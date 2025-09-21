@@ -34,18 +34,22 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'company_id' => 'required|exists:companies,id',
+            'role' => 'required|in:admin,agent,supervisor',
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'company_id' => $request->company_id,
+            'role' => $request->role,
         ]);
 
         event(new Registered($user));
 
-        Auth::login($user);
+        Auth::login($user); // Autenticar al usuario tras el registro
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
     }
 }
