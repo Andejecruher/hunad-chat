@@ -2,8 +2,21 @@ import { ThemeToggle } from "@/components/welcome/theme-toggle"
 import {Link, usePage} from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
 import type {SharedData} from "@/types";
+
 export function Header() {
     const { auth } = usePage<SharedData>().props;
+
+    const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>, targetId: string) => {
+        e.preventDefault();
+        const element = document.getElementById(targetId);
+        if (element) {
+            element.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+            });
+        }
+    };
+
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center justify-between m-auto">
@@ -17,18 +30,34 @@ export function Header() {
                 </div>
 
                 <nav className="hidden md:flex items-center space-x-6">
-                    <Link href="#features" className="text-sm font-medium hover:text-primary transition-colors">
+                    <a
+                        href="#features"
+                        onClick={(e) => handleSmoothScroll(e, 'features')}
+                        className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+                    >
                         Características
-                    </Link>
-                    <Link href="#integrations" className="text-sm font-medium hover:text-primary transition-colors">
+                    </a>
+                    <a
+                        href="#integrations"
+                        onClick={(e) => handleSmoothScroll(e, 'integrations')}
+                        className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+                    >
                         Integraciones
-                    </Link>
-                    <Link href="#pricing" className="text-sm font-medium hover:text-primary transition-colors">
+                    </a>
+                    <a
+                        href="#pricing"
+                        onClick={(e) => handleSmoothScroll(e, 'pricing')}
+                        className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+                    >
                         Precios
-                    </Link>
-                    <Link href="#support" className="text-sm font-medium hover:text-primary transition-colors">
+                    </a>
+                    <a
+                        href="#support"
+                        onClick={(e) => handleSmoothScroll(e, 'support')}
+                        className="text-sm font-medium hover:text-primary transition-colors cursor-pointer"
+                    >
                         Soporte
-                    </Link>
+                    </a>
                 </nav>
 
                 <div className="flex items-center space-x-4">
@@ -62,4 +91,3 @@ export function Header() {
         </header>
     )
 }
-

@@ -60,7 +60,7 @@ export function Pricing() {
     ]
 
     return (
-        <main className="container mx-auto px-4 py-16">
+        <main className="container mx-auto px-4 py-16" id="pricing">
             {/* Hero Section */}
             <div className="text-center mb-16">
                 <h1 className="text-4xl md:text-5xl font-bold mb-6 text-balance">
