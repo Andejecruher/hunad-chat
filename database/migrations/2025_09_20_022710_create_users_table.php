@@ -19,8 +19,6 @@ return new class extends Migration
             $table->string('password');
             $table->enum('role', ['admin', 'agent', 'supervisor'])->default('admin');
             $table->foreignId('company_id')->nullable()->constrained()->cascadeOnDelete();
-            $table->enum('subscription_type', ['free', 'basic', 'pro', 'enterprise'])->default('free');
-            $table->timestamp('subscription_expires_at')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

@@ -20,13 +20,24 @@ class CompanyFactory extends Factory
             'name' => $this->faker->company,
             'slug' => $this->faker->unique()->slug,
             'branding' => [
-                'theme' => $this->faker->randomElement(['light', 'dark']),
-                'colors' => [
-                    'primary' => '#3366FF',
-                    'secondary' => '#FF9933',
+                'theme' => [
+                    'light' => [
+                        'colors' => [
+                            'primary' => $this->faker->hexColor(),
+                            'secondary' => $this->faker->hexColor(),
+                        ],
+                    ],
+                    'dark' => [
+                        'colors' => [
+                            'primary' => $this->faker->hexColor(),
+                            'secondary' => $this->faker->hexColor(),
+                        ],
+                    ],
                 ],
                 'logo_url' => $this->faker->imageUrl(200, 200, 'business', true),
             ],
+            'subscription_type' => $this->faker->randomElement(['free', 'basic', 'pro', 'enterprise']),
+            'subscription_expires_at' => $this->faker->optional()->dateTimeBetween('now', '+1 year'),
         ];
     }
 }

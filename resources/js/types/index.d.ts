@@ -1,6 +1,10 @@
 import { InertiaLinkProps } from '@inertiajs/react';
 import { LucideIcon } from 'lucide-react';
 
+export interface ValidationErrors {
+    [key: string]: string;
+}
+
 export interface Auth {
     user: User;
 }
@@ -40,4 +44,8 @@ export interface User {
     created_at: string;
     updated_at: string;
     [key: string]: unknown; // This allows for additional properties...
+}
+
+export interface PageProps {
+    auth: User | null;
 }
