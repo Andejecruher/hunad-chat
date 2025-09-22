@@ -19,15 +19,15 @@ class RegistrationTest extends TestCase
 
     public function test_new_users_can_register()
     {
-        $company = Company::factory()->create();
-
         $response = $this->post(route('register.store'), [
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-            'company_id' => $company->id,
-            'role' => 'admin',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'company_name' => 'Test Company',
+            'company_slug' => 'test-company',
+            'subscription_type' => 'free',
+            'user_name' => 'Test User',
+            'user_email' => 'test@example.com',
+            'user_password' => 'password',
+            'user_password_confirmation' => 'password',
+            'branding_default_theme' => 'light',
         ]);
 
         $this->assertAuthenticated();
