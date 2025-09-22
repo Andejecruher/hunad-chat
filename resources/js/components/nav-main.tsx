@@ -24,7 +24,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
     const getIcon = (iconName?: string | React.ComponentType | null) => {
         if (!iconName) return null;
         if (typeof iconName === 'string') {
-            const Icon = (Icons as any)[iconName];
+            const Icon = (Icons as unknown)[iconName];
             return Icon ? <Icon className="h-4 w-4" /> : null;
         }
         if (typeof iconName === 'function') {

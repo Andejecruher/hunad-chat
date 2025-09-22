@@ -1,7 +1,9 @@
-import { SVGAttributes } from 'react';
-
-export default function AppLogoIcon(props: SVGAttributes<SVGElement>) {
+export default function AppLogoIcon() {
     return (
-        <img src="/logos/logo-hunad-chat.png" alt="HunadChat" className="w-auto h-auto" />
+        <img
+            src="/logos/logo-hunad-chat.png"
+            alt="HunadChat"
+            className="h-auto w-auto"
+        />
     );
 }
