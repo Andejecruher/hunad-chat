@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\{Company, User, Department, Agent, Channel, Customer, Conversation, Message, Ticket, Tool};
+use App\Models\{Company, User, Department, Agent, Channel, Customer, Conversation, Message, Ticket, Sale,Tool};
 
 
 class DatabaseSeeder extends Seeder
@@ -27,7 +27,9 @@ class DatabaseSeeder extends Seeder
             ->create();
 
         // Tickets y ventas adicionales
-        Ticket::factory(5)->create();
+        Ticket::factory(5)
+            ->has(Sale::factory(2))
+            ->create();
 
         // Crar el usuario admin
         User::factory()->create([

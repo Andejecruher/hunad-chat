@@ -20,9 +20,12 @@ export interface NavGroup {
 }
 
 export interface NavItem {
-    title: string;
-    href: NonNullable<InertiaLinkProps['href']>;
-    icon?: LucideIcon | null;
+    label: string;
+    icon?: string | LucideIcon | null;
+    path?: string;
+    href?: NonNullable<InertiaLinkProps['href']>;
+    children?: NavItem[];
+    subscriptionRequired?: string;
     isActive?: boolean;
 }
 

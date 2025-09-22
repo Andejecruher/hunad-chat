@@ -13,27 +13,57 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
+    { label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard' },
+    { label: 'Conversaciones', icon: 'MessageSquare', path: '/conversations' },
+    { label: 'Tickets', icon: 'Ticket', path: '/tickets' },
+    { label: 'Ventas', icon: 'ShoppingCart', path: '/sales' },
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        label: 'Gestión',
+        icon: 'Settings2',
+        children: [
+            { label: 'Clientes', icon: 'Users', path: '/customers' },
+            { label: 'Departamentos', icon: 'Building', path: '/departments' },
+            { label: 'Agentes', icon: 'UserCog', path: '/agents' },
+            { label: 'Herramientas IA', icon: 'Bot', path: '/tools' },
+        ],
+    },
+    {
+        label: 'Canales',
+        icon: 'Share2',
+        path: '/channels',
+    },
+    {
+        label: 'Configuración',
+        icon: 'Settings',
+        children: [
+            { label: 'Compañía', icon: 'Briefcase', path: '/company/settings' },
+            {
+                label: 'Suscripción',
+                icon: 'CreditCard',
+                path: '/company/subscription',
+            },
+            { label: 'Usuarios', icon: 'UserPlus', path: '/company/users' },
+        ],
+    },
+    {
+        label: 'Reportes',
+        icon: 'BarChart2',
+        children: [
+            { label: 'Analíticas', icon: 'TrendingUp', path: '/analytics' },
+            { label: 'Reportes IA', icon: 'Cpu', path: '/analytics/ai' },
+        ],
+        subscriptionRequired: 'pro',
     },
 ];
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        label: 'Documentation',
+        icon: 'BookOpen',
+        path: 'https://laravel.com/docs/starter-kits#react',
     },
 ];
 

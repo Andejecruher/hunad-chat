@@ -26,5 +26,9 @@ class Ticket extends Model
     {
         return $this->belongsTo(Conversation::class);
     }
-    
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
 }

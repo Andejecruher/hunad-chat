@@ -1,4 +1,3 @@
-import { Icon } from '@/components/icon';
 import {
     SidebarGroup,
     SidebarGroupContent,
@@ -7,6 +6,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
+import * as Icons from 'lucide-react';
 import { type ComponentPropsWithoutRef } from 'react';
 
 export function NavFooter({
@@ -16,6 +16,21 @@ export function NavFooter({
 }: ComponentPropsWithoutRef<typeof SidebarGroup> & {
     items: NavItem[];
 }) {
+    const getIcon = (iconName?: string | React.ComponentType | null) => {
+        if (!iconName) return null;
+        if (typeof iconName === 'string') {
+            const Icon = (Icons as any)[iconName];
+            return Icon ? <Icon className="h-5 w-5" /> : null;
+        }
+        if (typeof iconName === 'function') {
+            const IconComponent = iconName as React.ComponentType<{
+                className?: string;
+            }>;
+            return <IconComponent className="h-5 w-5" />;
+        }
+        return null;
+    };
+
     return (
         <SidebarGroup
             {...props}
@@ -24,27 +39,24 @@ export function NavFooter({
             <SidebarGroupContent>
                 <SidebarMenu>
                     {items.map((item) => (
-                        <SidebarMenuItem key={item.title}>
+                        <SidebarMenuItem key={item.label}>
                             <SidebarMenuButton
                                 asChild
                                 className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
                             >
                                 <a
                                     href={
-                                        typeof item.href === 'string'
+                                        item.path ||
+                                        (typeof item.href === 'string'
                                             ? item.href
-                                            : item.href.url
+                                            : item.href?.url) ||
+                                        '#'
                                     }
                                     target="_blank"
                                     rel="noopener noreferrer"
                                 >
-                                    {item.icon && (
-                                        <Icon
-                                            iconNode={item.icon}
-                                            className="h-5 w-5"
-                                        />
-                                    )}
-                                    <span>{item.title}</span>
+                                    {getIcon(item.icon)}
+                                    <span>{item.label}</span>
                                 </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
