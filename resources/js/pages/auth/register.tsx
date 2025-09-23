@@ -514,7 +514,7 @@ export default function Register() {
                                     <div className="space-y-2">
                                         <Label>Logo de la empresa</Label>
                                         <div
-                                            className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+                                            className={`relative rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
                                                 dragActive
                                                     ? 'border-primary bg-primary/5'
                                                     : 'border-muted-foreground/25'
@@ -556,7 +556,7 @@ export default function Register() {
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={handleFileChange}
-                                                className="inset-0 h-full w-full cursor-pointer opacity-0"
+                                                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                                             />
                                         </div>
                                     </div>

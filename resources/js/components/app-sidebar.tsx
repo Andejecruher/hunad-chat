@@ -39,7 +39,11 @@ const mainNavItems: NavItem[] = [
         label: 'Configuración',
         icon: 'Settings',
         children: [
-            { label: 'Compañía', icon: 'Briefcase', path: '/company/settings' },
+            {
+                label: 'Compañía',
+                icon: 'Briefcase',
+                path: '/configurations/company',
+            },
             {
                 label: 'Suscripción',
                 icon: 'CreditCard',

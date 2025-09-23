@@ -52,3 +52,28 @@ export interface User {
 export interface PageProps {
     auth: User | null;
 }
+
+export interface BrandingTheme {
+    light: {
+        colors: {
+            primary: string;
+            secondary: string;
+        };
+    };
+    dark: {
+        colors: {
+            primary: string;
+            secondary: string;
+        };
+    };
+}
+
+export interface CompanySettings {
+    name: string;
+    slug: string;
+    branding: {
+        theme: BrandingTheme;
+        logo_url: string;
+        default_theme: 'light' | 'dark';
+    };
+}
