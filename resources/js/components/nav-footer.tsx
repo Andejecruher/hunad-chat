@@ -19,7 +19,7 @@ export function NavFooter({
     const getIcon = (iconName?: string | React.ComponentType | null) => {
         if (!iconName) return null;
         if (typeof iconName === 'string') {
-            // @ts-ignore
+            // @ts-expect-error Dynamic icon access from Icons object
             const Icon = (Icons as unknown)[iconName];
             return Icon ? <Icon className="h-5 w-5" /> : null;
         }
