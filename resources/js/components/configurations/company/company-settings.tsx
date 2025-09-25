@@ -60,7 +60,7 @@ export function CompanySettings({
             setCompanySettings(company);
             setIsLoading(false);
         }
-    }, []);
+    }, [company, user]);
 
     useEffect(() => {
         console.log('Company settings updated:', companySettings);
