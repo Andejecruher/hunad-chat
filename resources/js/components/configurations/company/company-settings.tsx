@@ -45,15 +45,12 @@ export function CompanySettings({
             },
         });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        console.log('Loading company settings...', user);
-        console.log(company);
         setIsLoading(true);
         // validar existencia de company
         if (company) {
@@ -61,10 +58,6 @@ export function CompanySettings({
             setIsLoading(false);
         }
     }, [company, user]);
-
-    useEffect(() => {
-        console.log('Company settings updated:', companySettings);
-    }, [companySettings]);
 
     // Generate slug from company name
     const generateSlug = useCallback((name: string) => {
@@ -106,7 +99,7 @@ export function CompanySettings({
                 const url = URL.createObjectURL(file);
                 setCompanySettings((prev) => ({
                     ...prev,
-                    branding: { ...prev.branding, logoUrl: url },
+                    branding: { ...prev.branding, logo_url: url },
                 }));
             }
         }
@@ -119,7 +112,7 @@ export function CompanySettings({
             const url = URL.createObjectURL(file);
             setCompanySettings((prev) => ({
                 ...prev,
-                branding: { ...prev.branding, logoUrl: url },
+                branding: { ...prev.branding, logo_url: url },
             }));
         }
     };
@@ -160,10 +153,12 @@ export function CompanySettings({
 
         try {
             // Simulate API call to save settings
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+            // Here you would typically send `companySettings` and `logoFile` to your backend API
+            // For this example, we'll just log them to the console
             console.log('Company settings updated:', companySettings);
             toast.success('¡Configuración guardada exitosamente!');
+            console.log('Logo file to upload:', logoFile);
         } catch (error) {
             toast.error(`Error al guardar la configuración: ${error}`);
         } finally {
@@ -190,7 +185,7 @@ export function CompanySettings({
     }
 
     return (
-        <main className="container mx-auto max-w-6xl px-4 py-8">
+        <section className="container mx-auto max-w-6xl px-4 py-8">
             <div className="mb-8 text-center">
                 <h1 className="mb-4 font-heading text-4xl font-bold text-foreground">
                     Configuración de Empresa
@@ -343,10 +338,7 @@ export function CompanySettings({
                             {/* Color Configuration */}
                             <div className="space-y-4">
                                 <Label>
-                                    Colores para tema{' '}
-                                    {currentTheme === 'light'
-                                        ? 'Claro'
-                                        : 'Oscuro'}
+                                    Colores para tema claro
                                 </Label>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -361,10 +353,10 @@ export function CompanySettings({
                                             <input
                                                 id="primaryColor"
                                                 type="color"
-                                                value={currentColors.primary}
+                                                value={companySettings.branding.theme['light'].colors.primary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'light',
                                                         'primary',
                                                         e.target.value,
                                                     )
@@ -372,10 +364,10 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={currentColors.primary}
+                                                value={companySettings.branding.theme['light'].colors.primary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'light',
                                                         'primary',
                                                         e.target.value,
                                                     )
@@ -396,10 +388,10 @@ export function CompanySettings({
                                             <input
                                                 id="secondaryColor"
                                                 type="color"
-                                                value={currentColors.secondary}
+                                                value={companySettings.branding.theme['light'].colors.secondary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'light',
                                                         'secondary',
                                                         e.target.value,
                                                     )
@@ -407,10 +399,10 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={currentColors.secondary}
+                                                value={companySettings.branding.theme['light'].colors.secondary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'light',
                                                         'secondary',
                                                         e.target.value,
                                                     )
@@ -424,10 +416,7 @@ export function CompanySettings({
                             {/* Color Configuration */}
                             <div className="space-y-4">
                                 <Label>
-                                    Colores para tema{' '}
-                                    {currentTheme === 'light'
-                                        ? 'Claro'
-                                        : 'Oscuro'}
+                                    Colores para tema oscuro
                                 </Label>
 
                                 <div className="grid grid-cols-2 gap-4">
@@ -442,10 +431,10 @@ export function CompanySettings({
                                             <input
                                                 id="primaryColor"
                                                 type="color"
-                                                value={currentColors.primary}
+                                                value={companySettings.branding.theme['dark'].colors.primary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'dark',
                                                         'primary',
                                                         e.target.value,
                                                     )
@@ -453,10 +442,9 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={currentColors.primary}
+                                                value={companySettings.branding.theme['dark'].colors.primary}
                                                 onChange={(e) =>
-                                                    updateThemeColor(
-                                                        currentTheme,
+                                                    updateThemeColor('dark',
                                                         'primary',
                                                         e.target.value,
                                                     )
@@ -477,10 +465,10 @@ export function CompanySettings({
                                             <input
                                                 id="secondaryColor"
                                                 type="color"
-                                                value={currentColors.secondary}
+                                                value={companySettings.branding.theme['dark'].colors.secondary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'dark',
                                                         'secondary',
                                                         e.target.value,
                                                     )
@@ -488,10 +476,10 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={currentColors.secondary}
+                                                value={companySettings.branding.theme['dark'].colors.secondary}
                                                 onChange={(e) =>
                                                     updateThemeColor(
-                                                        currentTheme,
+                                                        'dark',
                                                         'secondary',
                                                         e.target.value,
                                                     )
@@ -638,6 +626,7 @@ export function CompanySettings({
                     </Button>
                 </div>
             </form>
-        </main>
+
+        </section>
     );
 }
