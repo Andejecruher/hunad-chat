@@ -10,7 +10,7 @@ class Company extends Model
     /** @use HasFactory<\Database\Factories\CompanyFactory> */
     use HasFactory;
 
-    protected $fillable = ['name', 'slug', 'branding'];
+    protected $fillable = ['name', 'slug', 'subscription_type', 'branding'];
 
     protected $casts = [
         'branding' => 'array',

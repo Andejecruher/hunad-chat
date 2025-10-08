@@ -1,3 +1,4 @@
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -9,7 +10,12 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { CompanySettings as CompanySettingsTypes, User } from '@/types';
+import {
+    CompanySettings as CompanySettingsTypes,
+    User,
+    ValidationErrors,
+} from '@/types';
+import { router } from '@inertiajs/react';
 import { Building2, Monitor, Palette, Save, Upload } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -49,11 +55,13 @@ export function CompanySettings({
     const [dragActive, setDragActive] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [errors, setErrors] = useState<ValidationErrors>({});
 
     useEffect(() => {
         setIsLoading(true);
         // validar existencia de company
         if (company) {
+            console.log('company', company);
             setCompanySettings(company);
             setIsLoading(false);
         }
@@ -143,25 +151,95 @@ export function CompanySettings({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSaving(true);
+        setErrors({});
 
         // Basic validation
         if (!companySettings.name || !companySettings.slug) {
-            alert('Por favor completa los datos de la empresa');
+            toast.error('Por favor completa los datos de la empresa');
+            setIsSaving(false);
+            return;
+        }
+
+        if (companySettings.name.length < 2) {
+            toast.error(
+                'El nombre de la empresa debe tener al menos 2 caracteres',
+            );
             setIsSaving(false);
             return;
         }
 
         try {
-            // Simulate API call to save settings
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-            // Here you would typically send `companySettings` and `logoFile` to your backend API
-            // For this example, we'll just log them to the console
-            console.log('Company settings updated:', companySettings);
-            toast.success('¡Configuración guardada exitosamente!');
-            console.log('Logo file to upload:', logoFile);
+            // Preparar datos para envío
+            const formData = new FormData();
+
+            // Agregar el campo _method para method spoofing
+            formData.append('_method', 'PUT');
+
+            // Datos de la empresa
+            formData.append('company_name', companySettings.name);
+            formData.append('company_slug', companySettings.slug);
+            formData.append(
+                'subscription_type',
+                companySettings.subscription_type || 'free',
+            );
+
+            // Datos de branding
+            formData.append(
+                'branding_theme',
+                JSON.stringify(companySettings.branding.theme),
+            );
+            formData.append(
+                'branding_default_theme',
+                companySettings.branding.default_theme,
+            );
+
+            // Logo si existe
+            if (logoFile) {
+                formData.append('branding_logo', logoFile);
+            }
+
+            // Enviar usando Inertia con POST para que funcione con multipart/form-data
+            router.post(`/configurations/company/${company.id}`, formData, {
+                forceFormData: true,
+                onSuccess: (page) => {
+                    toast.success(
+                        '¡Configuración de empresa actualizada exitosamente!',
+                    );
+                    // Actualizar el estado local con los datos actualizados si vienen en la respuesta
+                    if (page.props.company) {
+                        setCompanySettings(
+                            page.props.company as CompanySettingsTypes,
+                        );
+                    }
+                    // Limpiar el archivo de logo ya que se guardó
+                    setLogoFile(null);
+                },
+                onError: (errors) => {
+                    setErrors(errors);
+                    console.error('Errores de validación:', errors);
+
+                    // Mostrar errores específicos
+                    if (errors.company_name) {
+                        toast.error(`Nombre: ${errors.company_name}`);
+                    } else if (errors.company_slug) {
+                        toast.error(`Slug: ${errors.company_slug}`);
+                    } else if (errors.branding_logo) {
+                        toast.error(`Logo: ${errors.branding_logo}`);
+                    } else if (errors.error) {
+                        toast.error(errors.error);
+                    } else {
+                        toast.error(
+                            'Error al actualizar la configuración. Por favor verifica los datos e intenta nuevamente.',
+                        );
+                    }
+                },
+                onFinish: () => {
+                    setIsSaving(false);
+                },
+            });
         } catch (error) {
-            toast.error(`Error al guardar la configuración: ${error}`);
-        } finally {
+            console.error('Error inesperado:', error);
+            toast.error(`Error inesperado durante la actualización: ${error}`);
             setIsSaving(false);
         }
     };
@@ -222,6 +300,10 @@ export function CompanySettings({
                                     placeholder="Mi Empresa S.A."
                                     required
                                 />
+                                <InputError
+                                    message={errors.company_name}
+                                    className="mt-2"
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -239,6 +321,10 @@ export function CompanySettings({
                                     }
                                     placeholder="mi-empresa"
                                     required
+                                />
+                                <InputError
+                                    message={errors.company_slug}
+                                    className="mt-2"
                                 />
                                 <p className="text-sm text-muted-foreground">
                                     URL: {import.meta.env.VITE_APP_URL}/
@@ -337,9 +423,7 @@ export function CompanySettings({
 
                             {/* Color Configuration */}
                             <div className="space-y-4">
-                                <Label>
-                                    Colores para tema claro
-                                </Label>
+                                <Label>Colores para tema claro</Label>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -353,7 +437,11 @@ export function CompanySettings({
                                             <input
                                                 id="primaryColor"
                                                 type="color"
-                                                value={companySettings.branding.theme['light'].colors.primary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['light'].colors
+                                                        .primary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'light',
@@ -364,7 +452,11 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={companySettings.branding.theme['light'].colors.primary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['light'].colors
+                                                        .primary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'light',
@@ -388,7 +480,11 @@ export function CompanySettings({
                                             <input
                                                 id="secondaryColor"
                                                 type="color"
-                                                value={companySettings.branding.theme['light'].colors.secondary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['light'].colors
+                                                        .secondary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'light',
@@ -399,7 +495,11 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={companySettings.branding.theme['light'].colors.secondary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['light'].colors
+                                                        .secondary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'light',
@@ -415,9 +515,7 @@ export function CompanySettings({
                             </div>
                             {/* Color Configuration */}
                             <div className="space-y-4">
-                                <Label>
-                                    Colores para tema oscuro
-                                </Label>
+                                <Label>Colores para tema oscuro</Label>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
@@ -431,7 +529,11 @@ export function CompanySettings({
                                             <input
                                                 id="primaryColor"
                                                 type="color"
-                                                value={companySettings.branding.theme['dark'].colors.primary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['dark'].colors
+                                                        .primary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'dark',
@@ -442,9 +544,14 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={companySettings.branding.theme['dark'].colors.primary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['dark'].colors
+                                                        .primary
+                                                }
                                                 onChange={(e) =>
-                                                    updateThemeColor('dark',
+                                                    updateThemeColor(
+                                                        'dark',
                                                         'primary',
                                                         e.target.value,
                                                     )
@@ -465,7 +572,11 @@ export function CompanySettings({
                                             <input
                                                 id="secondaryColor"
                                                 type="color"
-                                                value={companySettings.branding.theme['dark'].colors.secondary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['dark'].colors
+                                                        .secondary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'dark',
@@ -476,7 +587,11 @@ export function CompanySettings({
                                                 className="h-10 w-10 cursor-pointer rounded border border-input"
                                             />
                                             <Input
-                                                value={companySettings.branding.theme['dark'].colors.secondary}
+                                                value={
+                                                    companySettings.branding
+                                                        .theme['dark'].colors
+                                                        .secondary
+                                                }
                                                 onChange={(e) =>
                                                     updateThemeColor(
                                                         'dark',
@@ -626,7 +741,6 @@ export function CompanySettings({
                     </Button>
                 </div>
             </form>
-
         </section>
     );
 }

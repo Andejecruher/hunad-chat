@@ -69,11 +69,14 @@ export interface BrandingTheme {
 }
 
 export interface CompanySettings {
+    id?: number;
     name: string;
     slug: string;
+    subscription_type?: 'free' | 'basic' | 'pro' | 'enterprise';
     branding: {
         theme: BrandingTheme;
         logo_url: string;
+        logo_path?: string;
         default_theme: 'light' | 'dark';
     };
 }

@@ -14,6 +14,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::get('/configurations/company', [CompaniesController::class, 'show'])->name('configurations.company');
+    Route::put('/configurations/company/{company}', [CompaniesController::class, 'update'])->name('configurations.company.update');
+    Route::post('/configurations/company/{company}', [CompaniesController::class, 'update'])->name('configurations.company.update.post');
 });
 
 require __DIR__.'/settings.php';
