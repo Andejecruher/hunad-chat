@@ -47,9 +47,9 @@ const mainNavItems: NavItem[] = [
             {
                 label: 'Suscripción',
                 icon: 'CreditCard',
-                path: '/company/subscription',
+                path: '/configurations/subscription',
             },
-            { label: 'Usuarios', icon: 'UserPlus', path: '/company/users' },
+            { label: 'Usuarios', icon: 'UserPlus', path: '/configurations/users' },
         ],
     },
     {
