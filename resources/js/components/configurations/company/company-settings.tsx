@@ -59,13 +59,23 @@ export function CompanySettings({
 
     useEffect(() => {
         setIsLoading(true);
-        // validar existencia de company
+        // valid exist company
         if (company) {
-            console.log('company', company);
             setCompanySettings(company);
             setIsLoading(false);
         }
     }, [company, user]);
+
+    // function to logo upload and preview
+    function getLogoUrl(logo_url: string): string {
+        if (!logo_url) return '/placeholder.svg';
+        if (logo_url.startsWith('http://') || logo_url.startsWith('https://')) {
+            return logo_url;
+        }
+        // Si es local, asume que está en storage/logos
+        return `${import.meta.env.VITE_APP_URL}/storage/${logo_url.replace(/^\/?storage\/logos\//, '')}`;
+    }
+
 
     // Generate slug from company name
     const generateSlug = useCallback((name: string) => {
@@ -363,8 +373,8 @@ export function CompanySettings({
                                         <div className="space-y-2">
                                             <img
                                                 src={
-                                                    companySettings.branding
-                                                        .logo_url ||
+                                                    getLogoUrl(companySettings.branding
+                                                        .logo_url) ||
                                                     '/placeholder.svg'
                                                 }
                                                 alt="Logo preview"
@@ -637,8 +647,8 @@ export function CompanySettings({
                                         {companySettings.branding.logo_url && (
                                             <img
                                                 src={
-                                                    companySettings.branding
-                                                        .logo_url ||
+                                                    getLogoUrl(companySettings.branding
+                                                        .logo_url) ||
                                                     '/placeholder.svg'
                                                 }
                                                 alt="Logo"
