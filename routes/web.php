@@ -17,8 +17,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Company Routes
     Route::get('/configurations/company', [CompaniesController::class, 'show'])->name('configurations.company');
     Route::put('/configurations/company/{company}', [CompaniesController::class, 'update'])->name('configurations.company.update');
-    Route::post('/configurations/company/{company}', [CompaniesController::class, 'update'])->name('configurations.company.update.post');
-
     // User Routes
     Route::get('/configurations/users', [UserController::class, 'index'])->name('configurations.users');
 
