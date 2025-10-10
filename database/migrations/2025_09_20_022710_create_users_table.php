@@ -17,7 +17,10 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->enum('role', ['admin', 'agent', 'supervisor'])->default('admin');
+            $table->enum('role', ['admin', 'agent', 'supervisor', 'super-admin'])->default('agent');
+            $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
+            $table->timestamp('last_connection')->nullable()->default(null);
+            $table->boolean('status_connection')->default(false);
             $table->foreignId('company_id')->nullable()->constrained()->cascadeOnDelete();
             $table->rememberToken();
             $table->timestamps();

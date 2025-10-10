@@ -1,4 +1,4 @@
-import { CompanySettings } from '@/components/configurations/company/company-settings';
+import { CompanySettings } from '@/features/configurations/company/company-settings';
 import AppLayout from '@/layouts/app-layout';
 import { company } from '@/routes/configurations';
 import {

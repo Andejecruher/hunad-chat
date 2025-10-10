@@ -1,15 +1,15 @@
 
 import { Head } from '@inertiajs/react';
-import { Header } from "@/components/welcome/header"
-import { HeroSection } from "@/components/welcome/hero-section"
-import { FeaturesSection } from "@/components/welcome/features-section"
-import { IntegrationsSection } from "@/components/welcome/integrations-section"
-import { AIAgentsSection } from "@/components/welcome/ai-agents-section"
-import { TestimonialsSection } from "@/components/welcome/testimonials-section"
-import { CTASection } from "@/components/welcome/cta-section"
-import { Support } from "@/components/welcome/support"
-import { Pricing } from "@/components/welcome/pricing"
-import { Footer } from "@/components/welcome/footer"
+import { Header } from "@/features/welcome/header"
+import { HeroSection } from "@/features/welcome/hero-section"
+import { FeaturesSection } from "@/features/welcome/features-section"
+import { IntegrationsSection } from "@/features/welcome/integrations-section"
+import { AIAgentsSection } from "@/features/welcome/ai-agents-section"
+import { TestimonialsSection } from "@/features/welcome/testimonials-section"
+import { CTASection } from "@/features/welcome/cta-section"
+import { Support } from "@/features/welcome/support"
+import { Pricing } from "@/features/welcome/pricing"
+import { Footer } from "@/features/welcome/footer"
 
 export default function Welcome() {
     return (

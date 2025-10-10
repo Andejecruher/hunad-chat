@@ -24,6 +24,9 @@ class User extends Authenticatable
         'password',
         'company_id',
         'role',
+        'status',
+        'last_connection',
+        'status_connection',
     ];
 
     /**
@@ -57,5 +60,18 @@ class User extends Authenticatable
     public function agent()
     {
         return $this->hasOne(Agent::class);
+    }
+
+    // funcition to check if user is admin
+    public function isAdmin()
+    {
+        return $this->role === 'admin' || $this->role === 'super-admin';
+    }
+
+    // function update last_connection field
+    public function updateLastConnection()
+    {
+        $this->last_connection = now();
+        $this->save();
     }
 }

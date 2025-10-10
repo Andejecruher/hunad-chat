@@ -15,7 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // Crear 3 compañías con todo su ecosistema
         Company::factory(3)
-            ->has(User::factory(5))       // usuarios
+            ->has(User::factory(50))       // usuarios
             ->has(Department::factory(2)) // departamentos
             ->has(Channel::factory(3))    // canales/plataformas
             ->has(Customer::factory(10)   // clientes
@@ -37,6 +37,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'andejecruher@gmail.com',
             'password' => bcrypt('password'), // Cambia esto en producción
             'role' => 'admin',
+            'status' => 'active',
+            'status_connection' => false,
+            'last_connection' => now(),
             'company_id' => 1,
         ]);
     }

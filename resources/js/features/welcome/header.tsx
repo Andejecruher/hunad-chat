@@ -1,4 +1,4 @@
-import { ThemeToggle } from '@/components/welcome/theme-toggle';
+import { ThemeToggle } from '@/features/welcome/theme-toggle';
 import { dashboard, login, register } from '@/routes';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';

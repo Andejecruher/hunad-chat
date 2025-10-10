@@ -24,69 +24,18 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { UserPlus, Search, MoreVertical, Mail, Shield, Clock } from "lucide-react"
+import { User as UserType } from '@/types';
 
-interface User {
-    id: string
-    name: string
-    email: string
-    role: "Admin" | "Manager" | "Agent"
-    status: "active" | "inactive" | "pending"
-    lastConnection: string
-}
-
-const mockUsers: User[] = [
-    {
-        id: "1",
-        name: "Ana García",
-        email: "ana.garcia@empresa.com",
-        role: "Admin",
-        status: "active",
-        lastConnection: "Hace 5 min",
-    },
-    {
-        id: "2",
-        name: "Carlos López",
-        email: "carlos.lopez@empresa.com",
-        role: "Manager",
-        status: "active",
-        lastConnection: "Hace 1 hora",
-    },
-    {
-        id: "3",
-        name: "María Rodríguez",
-        email: "maria.rodriguez@empresa.com",
-        role: "Agent",
-        status: "active",
-        lastConnection: "Hace 2 horas",
-    },
-    {
-        id: "4",
-        name: "Juan Martínez",
-        email: "juan.martinez@empresa.com",
-        role: "Agent",
-        status: "inactive",
-        lastConnection: "Hace 2 días",
-    },
-    {
-        id: "5",
-        name: "Laura Sánchez",
-        email: "laura.sanchez@empresa.com",
-        role: "Agent",
-        status: "pending",
-        lastConnection: "Nunca",
-    },
-]
-
-export function Users() {
-    const [users, setUsers] = useState<User[]>(mockUsers)
+export function Users({data}: {data: UserType[];}) {
+    const [users, setUsers] = useState<UserType[]>(data)
     const [searchQuery, setSearchQuery] = useState("")
     const [roleFilter, setRoleFilter] = useState<string>("all")
     const [statusFilter, setStatusFilter] = useState<string>("all")
     const [isInviteOpen, setIsInviteOpen] = useState(false)
     const [inviteEmail, setInviteEmail] = useState("")
-    const [inviteRole, setInviteRole] = useState<"Admin" | "Manager" | "Agent">("Agent")
+    const [inviteRole, setInviteRole] = useState<"admin" | "supervisor" | "agent">("agent")
 
-    const filteredUsers = users.filter((user) => {
+    const filteredUsers = users.filter((user: UserType) => {
         const matchesSearch =
             user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             user.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -98,28 +47,29 @@ export function Users() {
     const handleInviteUser = () => {
         if (!inviteEmail) return
 
-        const newUser: User = {
-            id: String(users.length + 1),
+        const newUser: UserType = {
+            id: Number(users.length + 1),
             name: inviteEmail.split("@")[0],
             email: inviteEmail,
             role: inviteRole,
             status: "pending",
-            lastConnection: "Nunca",
+            last_connection: null,
+            status_connection: false
         }
 
         setUsers([...users, newUser])
         setInviteEmail("")
-        setInviteRole("Agent")
+        setInviteRole("agent")
         setIsInviteOpen(false)
     }
 
     const getRoleBadgeVariant = (role: string) => {
         switch (role) {
-            case "Admin":
+            case "admin":
                 return "default"
-            case "Manager":
+            case "agent":
                 return "secondary"
-            case "Agent":
+            case "supervisor":
                 return "outline"
             default:
                 return "outline"
@@ -185,9 +135,9 @@ export function Users() {
                                         <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="Admin">Admin</SelectItem>
-                                        <SelectItem value="Manager">Manager</SelectItem>
-                                        <SelectItem value="Agent">Agent</SelectItem>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="agent">Agent</SelectItem>
+                                        <SelectItem value="supervisor">Supervisor</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -260,58 +210,85 @@ export function Users() {
                                 <th className="pb-3 font-medium">Rol</th>
                                 <th className="pb-3 font-medium">Estado</th>
                                 <th className="pb-3 font-medium">Última Conexión</th>
+                                <th className="pb-3 font-medium">Estado Conexión</th>
                                 <th className="pb-3 font-medium text-right">Acciones</th>
                             </tr>
                             </thead>
                             <tbody>
-                            {filteredUsers.map((user) => (
-                                <tr key={user.id} className="border-b border-border">
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarFallback className="bg-primary text-primary-foreground">
-                                                    {getInitials(user.name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <div className="font-medium">{user.name}</div>
-                                                <div className="text-sm text-muted-foreground">{user.email}</div>
+                            {filteredUsers.map((user: UserType) =>{
+                                return (
+                                    <tr key={user.id} className="border-b border-border">
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-3">
+                                                <Avatar>
+                                                    {user.logo_url ? (
+                                                        <img
+                                                            src={typeof user.logo_url === "string" && user.logo_url.startsWith("http")
+                                                                ? user.logo_url
+                                                                : `/storage/logos/${typeof user.logo_url === "string" ? user.logo_url.replace(/^\/+/, "") : ""}`}
+                                                            alt={`Avatar de ${user.name}`}
+                                                            className="w-full h-full object-cover rounded-full"
+                                                            loading="lazy"
+                                                        />
+                                                    ) : (
+                                                        <AvatarFallback className="bg-primary text-primary-foreground">
+                                                            {getInitials(user.name)}
+                                                        </AvatarFallback>
+                                                    )}
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium">{user.name}</div>
+                                                    <div className="text-sm text-muted-foreground">{user.email}</div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td className="py-4">
-                                        <Badge variant={getRoleBadgeVariant(user.role)}>
-                                            <Shield className="mr-1 h-3 w-3" />
-                                            {user.role}
-                                        </Badge>
-                                    </td>
-                                    <td className="py-4">{getStatusBadge(user.status)}</td>
-                                    <td className="py-4">
-                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <Clock className="h-4 w-4" />
-                                            {user.lastConnection}
-                                        </div>
-                                    </td>
-                                    <td className="py-4 text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <MoreVertical className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
-                                                <DropdownMenuItem>Editar Rol</DropdownMenuItem>
-                                                <DropdownMenuItem>Cambiar Estado</DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem className="text-destructive">Eliminar Usuario</DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </td>
-                                </tr>
-                            ))}
+                                        </td>
+                                        <td className="py-4">
+                                            <Badge variant={getRoleBadgeVariant(user.role)}>
+                                                <Shield className="mr-1 h-3 w-3" />
+                                                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                                            </Badge>
+                                        </td>
+                                        <td className="py-4">{getStatusBadge(user.status)}</td>
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Clock className="h-4 w-4" />
+                                                {user.last_connection && new Date(user.last_connection).toLocaleString()}
+                                            </div>
+                                        </td>
+                                        <td className="py-4">
+                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                <Badge className="flex items-center gap-2">
+                                                    <span
+                                                        className={`inline-block w-2 h-2 rounded-full ${user.status_connection ? "bg-green-500" : "bg-red-500"}`}
+                                                        aria-label={user.status_connection ? "Conectado" : "Desconectado"}
+                                                    />
+                                                    <span className="hidden sm:inline">
+                                                        {user.status_connection ? "En línea" : "Desconectado"}
+                                                    </span>
+                                                </Badge>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 text-right">
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <MoreVertical className="h-4 w-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                                                    <DropdownMenuItem>Editar Rol</DropdownMenuItem>
+                                                    <DropdownMenuItem>Cambiar Estado</DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem className="text-destructive">Eliminar Usuario</DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                             </tbody>
                         </table>
                     </div>
