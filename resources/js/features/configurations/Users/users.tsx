@@ -1,10 +1,11 @@
-import { useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect, useCallback } from "react";
+import { router } from "@inertiajs/react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
     Dialog,
     DialogContent,
@@ -13,7 +14,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,47 +22,60 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { UserPlus, Search, MoreVertical, Mail, Shield, Clock } from "lucide-react"
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserPlus, Search, MoreVertical, Mail, Shield, Clock } from "lucide-react";
 import { User as UserType } from '@/types';
+import { users as usersRoute } from '@/routes/configurations';
+import { Loader2 } from "lucide-react";
 
-export function Users({data}: {data: UserType[];}) {
-    const [users, setUsers] = useState<UserType[]>(data)
-    const [searchQuery, setSearchQuery] = useState("")
-    const [roleFilter, setRoleFilter] = useState<string>("all")
-    const [statusFilter, setStatusFilter] = useState<string>("all")
-    const [isInviteOpen, setIsInviteOpen] = useState(false)
-    const [inviteEmail, setInviteEmail] = useState("")
-    const [inviteRole, setInviteRole] = useState<"admin" | "supervisor" | "agent">("agent")
+interface UserFilters {
+  search?: string;
+  role?: string;
+}
 
-    const filteredUsers = users.filter((user: UserType) => {
-        const matchesSearch =
-            user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase())
-        const matchesRole = roleFilter === "all" || user.role === roleFilter
-        const matchesStatus = statusFilter === "all" || user.status === statusFilter
-        return matchesSearch && matchesRole && matchesStatus
-    })
+interface PaginatedUsers {
+  data: UserType[];
+  links: { url: string | null; label: string; active: boolean }[];
+  total: number;
+}
 
-    const handleInviteUser = () => {
-        if (!inviteEmail) return
+export function Users({ users, filters }: { users: PaginatedUsers; filters: UserFilters }) {
+    const [searchQuery, setSearchQuery] = useState<string>(filters.search ?? "");
+    const [roleFilter, setRoleFilter] = useState<string>(filters.role ?? "all");
+    const [isInviteOpen, setIsInviteOpen] = useState(false);
+    const [inviteEmail, setInviteEmail] = useState("");
+    const [inviteRole, setInviteRole] = useState<"admin" | "supervisor" | "agent">("agent");
+    const [isLoading, setIsLoading] = useState(false);
+    // Debounce para búsqueda
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            const params = { search: searchQuery, role: roleFilter };
+            router.get(usersRoute().url, params, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                only: ['users'],
+                onStart: () => setIsLoading(true),
+                onFinish: () => setIsLoading(false),
+            });
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchQuery, roleFilter]);
 
-        const newUser: UserType = {
-            id: Number(users.length + 1),
-            name: inviteEmail.split("@")[0],
-            email: inviteEmail,
-            role: inviteRole,
-            status: "pending",
-            last_connection: null,
-            status_connection: false
-        }
-
-        setUsers([...users, newUser])
-        setInviteEmail("")
-        setInviteRole("agent")
-        setIsInviteOpen(false)
-    }
+    // Paginación
+    const handlePageChange = useCallback((url: string | null) => {
+        if (!url) return;
+        const params = { search: searchQuery, role: roleFilter };
+        router.get(url, params, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['users'],
+            onStart: () => setIsLoading(true),
+            onFinish: () => setIsLoading(false),
+        });
+    }, [searchQuery, roleFilter]);
 
     const getRoleBadgeVariant = (role: string) => {
         switch (role) {
@@ -146,7 +160,10 @@ export function Users({data}: {data: UserType[];}) {
                             <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
                                 Cancelar
                             </Button>
-                            <Button onClick={handleInviteUser}>
+                            <Button onClick={() => {
+                                // Aquí iría la lógica de invitación real
+                                setIsInviteOpen(false)
+                            }}>
                                 <Mail className="mr-2 h-4 w-4" />
                                 Enviar Invitación
                             </Button>
@@ -158,7 +175,7 @@ export function Users({data}: {data: UserType[];}) {
             <Card>
                 <CardHeader>
                     <CardTitle>Filtros</CardTitle>
-                    <CardDescription>Busca y filtra usuarios por rol y estado</CardDescription>
+                    <CardDescription>Busca y filtra usuarios por rol</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 md:flex-row">
@@ -177,20 +194,9 @@ export function Users({data}: {data: UserType[];}) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Todos los roles</SelectItem>
-                                <SelectItem value="Admin">Admin</SelectItem>
-                                <SelectItem value="Manager">Manager</SelectItem>
-                                <SelectItem value="Agent">Agent</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <Select value={statusFilter} onValueChange={setStatusFilter}>
-                            <SelectTrigger className="w-full md:w-40">
-                                <SelectValue placeholder="Estado" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Todos los estados</SelectItem>
-                                <SelectItem value="active">Activo</SelectItem>
-                                <SelectItem value="inactive">Inactivo</SelectItem>
-                                <SelectItem value="pending">Pendiente</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="agent">Agent</SelectItem>
+                                <SelectItem value="supervisor">Supervisor</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -199,7 +205,7 @@ export function Users({data}: {data: UserType[];}) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Lista de Usuarios ({filteredUsers.length})</CardTitle>
+                    <CardTitle>Lista de Usuarios ({users.total})</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
@@ -214,86 +220,118 @@ export function Users({data}: {data: UserType[];}) {
                                 <th className="pb-3 font-medium text-right">Acciones</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            {filteredUsers.map((user: UserType) =>{
-                                return (
-                                    <tr key={user.id} className="border-b border-border">
-                                        <td className="py-4">
-                                            <div className="flex items-center gap-3">
-                                                <Avatar>
-                                                    {user.logo_url ? (
-                                                        <img
-                                                            src={typeof user.logo_url === "string" && user.logo_url.startsWith("http")
-                                                                ? user.logo_url
-                                                                : `/storage/logos/${typeof user.logo_url === "string" ? user.logo_url.replace(/^\/+/, "") : ""}`}
-                                                            alt={`Avatar de ${user.name}`}
-                                                            className="w-full h-full object-cover rounded-full"
-                                                            loading="lazy"
-                                                        />
-                                                    ) : (
-                                                        <AvatarFallback className="bg-primary text-primary-foreground">
-                                                            {getInitials(user.name)}
-                                                        </AvatarFallback>
-                                                    )}
-                                                </Avatar>
-                                                <div>
-                                                    <div className="font-medium">{user.name}</div>
-                                                    <div className="text-sm text-muted-foreground">{user.email}</div>
+                            {isLoading ? (
+                                <tbody>
+                                <tr>
+                                    <td colSpan={6} className="py-10 text-center">
+                                        <div className="flex justify-center items-center py-4 text-gray-500">
+                                            <Loader2 className="animate-spin w-5 h-5 mr-2" />
+                                            Cargando usuarios...
+                                        </div>
+                                    </td>
+                                </tr>
+                                </tbody>
+                                ) : (
+                                <tbody>
+                                {users.data.map((user: UserType) =>{
+                                    return (
+                                        <tr key={user.id} className="border-b border-border">
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar>
+                                                        {user.logo_url ? (
+                                                            <img
+                                                                src={typeof user.logo_url === "string" && user.logo_url.startsWith("http")
+                                                                    ? user.logo_url
+                                                                    : `/storage/logos/${typeof user.logo_url === "string" ? user.logo_url.replace(/^\/+/, "") : ""}`}
+                                                                alt={`Avatar de ${user.name}`}
+                                                                className="w-full h-full object-cover rounded-full"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <AvatarFallback className="bg-primary text-primary-foreground">
+                                                                {getInitials(user.name)}
+                                                            </AvatarFallback>
+                                                        )}
+                                                    </Avatar>
+                                                    <div>
+                                                        <div className="font-medium">{user.name}</div>
+                                                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-4">
-                                            <Badge variant={getRoleBadgeVariant(user.role)}>
-                                                <Shield className="mr-1 h-3 w-3" />
-                                                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                                            </Badge>
-                                        </td>
-                                        <td className="py-4">{getStatusBadge(user.status)}</td>
-                                        <td className="py-4">
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <Clock className="h-4 w-4" />
-                                                {user.last_connection && new Date(user.last_connection).toLocaleString()}
-                                            </div>
-                                        </td>
-                                        <td className="py-4">
-                                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                <Badge className="flex items-center gap-2">
+                                            </td>
+                                            <td className="py-4">
+                                                <Badge variant={getRoleBadgeVariant(user.role)}>
+                                                    <Shield className="mr-1 h-3 w-3" />
+                                                    {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
+                                                </Badge>
+                                            </td>
+                                            <td className="py-4">{getStatusBadge(user.status)}</td>
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                    <Clock className="h-4 w-4" />
+                                                    {user.last_connection && new Date(user.last_connection).toLocaleString()}
+                                                </div>
+                                            </td>
+                                            <td className="py-4">
+                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                                    <Badge className="flex items-center gap-2">
                                                     <span
                                                         className={`inline-block w-2 h-2 rounded-full ${user.status_connection ? "bg-green-500" : "bg-red-500"}`}
                                                         aria-label={user.status_connection ? "Conectado" : "Desconectado"}
                                                     />
-                                                    <span className="hidden sm:inline">
+                                                        <span className="hidden sm:inline">
                                                         {user.status_connection ? "En línea" : "Desconectado"}
                                                     </span>
-                                                </Badge>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 text-right">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <MoreVertical className="h-4 w-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent align="end">
-                                                    <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
-                                                    <DropdownMenuItem>Editar Rol</DropdownMenuItem>
-                                                    <DropdownMenuItem>Cambiar Estado</DropdownMenuItem>
-                                                    <DropdownMenuSeparator />
-                                                    <DropdownMenuItem className="text-destructive">Eliminar Usuario</DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                            </tbody>
+                                                    </Badge>
+                                                </div>
+                                            </td>
+                                            <td className="py-4 text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                                                        <DropdownMenuItem>Editar Rol</DropdownMenuItem>
+                                                        <DropdownMenuItem>Cambiar Estado</DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem className="text-destructive">Eliminar Usuario</DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                </tbody>
+                            )}
                         </table>
                     </div>
                 </CardContent>
             </Card>
+
+            <div className="flex justify-end">
+                <div className="flex items-center gap-2">
+                    {users.links.map((link) => {
+                        if (link.url) {
+                            return (
+                                <Button
+                                    key={link.label}
+                                    variant={link.active ? "default" : "outline"}
+                                    onClick={() => handlePageChange(link.url)}
+                                >
+                                    {link.label}
+                                </Button>
+                            );
+                        }
+                        return null;
+                    })}
+                </div>
+            </div>
         </div>
     )
 }
