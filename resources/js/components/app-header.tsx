@@ -32,7 +32,14 @@ import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    LucideIcon,
+    Menu,
+    Search,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -92,7 +99,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                     Navigation Menu
                                 </SheetTitle>
                                 <SheetHeader className="flex justify-start text-left">
-                                    <AppLogoIcon className="h-6 w-6 fill-current text-black dark:text-white" />
+                                    <AppLogoIcon />
                                 </SheetHeader>
                                 <div className="flex h-full flex-1 flex-col space-y-4 p-4">
                                     <div className="flex h-full flex-col justify-between text-sm">
@@ -105,7 +112,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 >
                                                     {item.icon && (
                                                         <Icon
-                                                            iconNode={item.icon}
+                                                            iconNode={
+                                                                item.icon as LucideIcon
+                                                            }
                                                             className="h-5 w-5"
                                                         />
                                                     )}
@@ -122,7 +131,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                         typeof item.href ===
                                                         'string'
                                                             ? item.href
-                                                            : item.href.url
+                                                            : item?.href?.url
                                                     }
                                                     target="_blank"
                                                     rel="noopener noreferrer"
@@ -130,7 +139,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                 >
                                                     {item.icon && (
                                                         <Icon
-                                                            iconNode={item.icon}
+                                                            iconNode={
+                                                                item.icon as LucideIcon
+                                                            }
                                                             className="h-5 w-5"
                                                         />
                                                     )}
@@ -169,14 +180,16 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                     (typeof item.href ===
                                                     'string'
                                                         ? item.href
-                                                        : item.href.url) &&
+                                                        : item?.href?.url) &&
                                                     activeItemStyles,
                                                 'h-9 cursor-pointer px-3',
                                             )}
                                         >
                                             {item.icon && (
                                                 <Icon
-                                                    iconNode={item.icon}
+                                                    iconNode={
+                                                        item.icon as LucideIcon
+                                                    }
                                                     className="mr-2 h-4 w-4"
                                                 />
                                             )}
@@ -213,7 +226,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                         typeof item.href ===
                                                         'string'
                                                             ? item.href
-                                                            : item.href.url
+                                                            : item?.href?.url
                                                     }
                                                     target="_blank"
                                                     rel="noopener noreferrer"
@@ -224,7 +237,9 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                                     </span>
                                                     {item.icon && (
                                                         <Icon
-                                                            iconNode={item.icon}
+                                                            iconNode={
+                                                                item.icon as LucideIcon
+                                                            }
                                                             className="size-5 opacity-80 group-hover:opacity-100"
                                                         />
                                                     )}

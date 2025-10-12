@@ -1,6 +1,5 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
 import {
     Sidebar,
     SidebarContent,
@@ -49,7 +48,11 @@ const mainNavItems: NavItem[] = [
                 icon: 'CreditCard',
                 path: '/configurations/subscription',
             },
-            { label: 'Usuarios', icon: 'UserPlus', path: '/configurations/users' },
+            {
+                label: 'Usuarios',
+                icon: 'UserPlus',
+                path: '/configurations/users',
+            },
         ],
     },
     {
@@ -77,7 +80,7 @@ export function AppSidebar() {
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" variant="outline" asChild>
                             <Link href={dashboard()} prefetch>
                                 <AppLogo />
                             </Link>
@@ -92,7 +95,6 @@ export function AppSidebar() {
 
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
             </SidebarFooter>
         </Sidebar>
     );

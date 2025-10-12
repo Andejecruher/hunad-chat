@@ -20,13 +20,15 @@ export interface NavGroup {
 }
 
 export interface NavItem {
-    label: string;
+    label?: string;
     icon?: string | LucideIcon | null;
     path?: string;
     href?: NonNullable<InertiaLinkProps['href']>;
     children?: NavItem[];
     subscriptionRequired?: string;
     isActive?: boolean;
+    title?: string;
+    description?: string;
 }
 
 export interface SharedData {

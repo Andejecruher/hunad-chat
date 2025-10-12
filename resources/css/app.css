@@ -1,10 +1,5 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 @import "tw-animate-css";
-
-@plugin 'tailwindcss-animate';
-
-@source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -98,11 +93,6 @@
     --sidebar-accent-foreground: oklch(0.15 0.02 120);
     --sidebar-border: oklch(0.92 0.01 120);
     --sidebar-ring: var(--brand-green-500);
-
-    --font-geist-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-    --font-inter: 'Inter', ui-sans-serif, system-ui, -apple-system;
-    --font-poppins: 'Poppins', ui-sans-serif, system-ui, -apple-system;
-
 }
 
 .dark {
