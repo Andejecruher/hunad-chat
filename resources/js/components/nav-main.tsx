@@ -26,7 +26,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
         if (typeof iconName === 'string') {
             // @ts-expect-error Dynamic icon access from Icons object
             const Icon = (Icons as unknown)[iconName];
-            return Icon ? <Icon className="h-4 w-4" /> : null;
+            return Icon ? <Icon className="h-4 w-4 " /> : null;
         }
         if (typeof iconName === 'function') {
             const IconComponent = iconName as React.ComponentType<{
