@@ -26,7 +26,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { users as usersRoute } from '@/routes/configurations';
-import { PaginationLink, User as UserType } from '@/types';
+import { PaginatedUsers, User as UserType } from '@/types';
 import { router } from '@inertiajs/react';
 import { Clock, Loader2, MoreVertical, Search, Shield } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -38,15 +38,6 @@ interface UserFilters {
     status?: string;
     limit?: string;
 }
-
-interface PaginatedUsers {
-    data: UserType[];
-    links: PaginationLink[];
-    total: number;
-    to: number;
-    from: number;
-}
-
 export function Users({
     users,
     filters,
@@ -67,9 +58,14 @@ export function Users({
     const [isLoading, setIsLoading] = useState(false);
     // Paginación
     const handlePageChange = useCallback(
-        (url: string | null) => {
+        (url: string | undefined) => {
             if (!url) return;
-            const params = { search: searchQuery, role: roleFilter };
+            const params = {
+                search: searchQuery,
+                role: roleFilter,
+                limit: limitFilter,
+                status: statusFilter
+            };
             router.get(url, params, {
                 preserveState: true,
                 preserveScroll: true,
@@ -79,7 +75,7 @@ export function Users({
                 onFinish: () => setIsLoading(false),
             });
         },
-        [searchQuery, roleFilter],
+        [searchQuery, roleFilter, statusFilter, limitFilter],
     );
 
     const getRoleBadgeVariant = (role: string) => {

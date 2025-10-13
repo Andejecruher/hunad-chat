@@ -3,17 +3,11 @@ import { users } from '@/routes/configurations';
 import { Users } from '@/features/configurations/Users/users';
 import { Head } from '@inertiajs/react';
 import { BreadcrumbItem } from '@/types';
-import { User } from '@/types';
+import { PaginatedUsers } from '@/types';
 
 interface UserFilters {
   search?: string;
   role?: string;
-}
-
-interface PaginatedUsers {
-  data: User[];
-  links: { url: string | null; label: string; active: boolean }[];
-  total: number;
 }
 
 const breadcrumbs: BreadcrumbItem[] = [

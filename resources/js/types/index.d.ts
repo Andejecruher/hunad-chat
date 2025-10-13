@@ -14,11 +14,6 @@ export interface BreadcrumbItem {
     href: string;
 }
 
-export interface NavGroup {
-    title: string;
-    items: NavItem[];
-}
-
 export interface NavItem {
     label?: string;
     icon?: string | LucideIcon | null;
@@ -55,10 +50,6 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export interface PageProps {
-    auth: User | null;
-}
-
 export interface BrandingTheme {
     light: {
         colors: {
@@ -88,7 +79,15 @@ export interface CompanySettings {
 }
 
 export interface PaginationLink {
-    url: string | null;
+    url: string | undefined;
     label: string;
     active: boolean;
+}
+
+export interface PaginatedUsers {
+    data: UserType[];
+    links: PaginationLink[];
+    total: number;
+    to: number;
+    from: number;
 }

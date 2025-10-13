@@ -2,8 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\InviteUserRequest;
+use App\Mail\UserInviteMail;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -63,9 +70,62 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(InviteUserRequest $request)
     {
-        //
+        try {
+            $data = $request->validated();
+            $user = auth()->user();
+
+            // Generar contraseña temporal segura
+            $tempPassword = Str::random(16);
+
+            // Crear usuario
+            $newUser = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'role' => $data['role'],
+                'password' => Hash::make($tempPassword),
+                'email_verified_at' => null,
+                'company_id' => $user->company_id, // Heredar company_id del usuario autenticado
+
+            ]);
+
+            // Generar URL de verificación
+            $verificationUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                ['id' => $newUser->id, 'hash' => sha1($newUser->email)]
+            );
+
+            // Enviar email usando Mailable
+            \Mail::to($newUser->email)->send(
+                new UserInviteMail(
+                    $newUser->name,
+                    $newUser->email,
+                    $data['role'],
+                    $tempPassword,
+                    $verificationUrl
+                )
+            );
+
+            Log::info('Usuario invitado exitosamente', [
+                'invited_email' => $newUser->email,
+                'invited_by' => $user->email,
+                'role' => $data['role']
+            ]);
+
+            return back()->with('success', '¡Usuarion invitado correctamente!');
+
+
+        } catch (\Exception $e) {
+            Log::error('Error invitando usuario: ' . $e->getMessage(), [
+                'email' => $data['email'] ?? 'unknown',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return back()->withErrors(['error' => 'Error al invitar usuario: ' . $e->getMessage()]);
+        }
     }
 
     /**
