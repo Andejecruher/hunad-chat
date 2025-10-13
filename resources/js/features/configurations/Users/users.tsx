@@ -10,15 +10,6 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -27,7 +18,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -38,16 +28,9 @@ import {
 import { users as usersRoute } from '@/routes/configurations';
 import { PaginationLink, User as UserType } from '@/types';
 import { router } from '@inertiajs/react';
-import {
-    Clock,
-    Loader2,
-    Mail,
-    MoreVertical,
-    Search,
-    Shield,
-    UserPlus,
-} from 'lucide-react';
+import { Clock, Loader2, MoreVertical, Search, Shield } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { UserInvite } from './user-invite';
 
 interface UserFilters {
     search?: string;
@@ -81,11 +64,6 @@ export function Users({
     const [limitFilter, setLimitFilter] = useState<string>(
         filters.limit ?? '10',
     );
-    const [isInviteOpen, setIsInviteOpen] = useState(false);
-    const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteRole, setInviteRole] = useState<
-        'admin' | 'supervisor' | 'agent'
-    >('agent');
     const [isLoading, setIsLoading] = useState(false);
     // Paginación
     const handlePageChange = useCallback(
@@ -178,80 +156,7 @@ export function Users({
                         Gestiona los usuarios de tu plataforma
                     </p>
                 </div>
-                <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-                    <DialogTrigger asChild>
-                        <Button>
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Invitar Usuario
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Invitar Nuevo Usuario</DialogTitle>
-                            <DialogDescription>
-                                Envía una invitación por correo electrónico para
-                                unirse a tu equipo
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4 py-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="email">
-                                    Correo Electrónico
-                                </Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="usuario@empresa.com"
-                                    value={inviteEmail}
-                                    onChange={(e) =>
-                                        setInviteEmail(e.target.value)
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="role">Rol</Label>
-                                <Select
-                                    value={inviteRole}
-                                    onValueChange={(value: never) =>
-                                        setInviteRole(value)
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="admin">
-                                            Admin
-                                        </SelectItem>
-                                        <SelectItem value="agent">
-                                            Agent
-                                        </SelectItem>
-                                        <SelectItem value="supervisor">
-                                            Supervisor
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-                        <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => setIsInviteOpen(false)}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                onClick={() => {
-                                    // Aquí iría la lógica de invitación real
-                                    setIsInviteOpen(false);
-                                }}
-                            >
-                                <Mail className="mr-2 h-4 w-4" />
-                                Enviar Invitación
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                <UserInvite />
             </div>
 
             <Card>
