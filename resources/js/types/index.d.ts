@@ -47,6 +47,7 @@ export interface User {
     last_connection: number | null;
     status_connection: boolean;
     status: 'active' | 'inactive' | 'pending';
+    company_id: number;
     [key: string]: unknown; // This allows for additional properties...
 }
 

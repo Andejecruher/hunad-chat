@@ -1,4 +1,3 @@
-import React from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
@@ -19,16 +18,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import users from '@/routes/users';
 import { ValidationErrors } from '@/types';
-import { Mail, UserPlus } from 'lucide-react';
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
+import { Mail, UserPlus } from 'lucide-react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
 
 export function UserInvite() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
-    const [role, setRole] = useState<'admin' | 'supervisor' | 'agent' | 'super-admin'>('agent');
+    const [role, setRole] = useState<
+        'admin' | 'supervisor' | 'agent' | 'super-admin'
+    >('agent');
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [isInviteOpen, setIsInviteOpen] = useState<boolean>(false);
     const [loading, setLoading] = useState(false);
@@ -54,7 +56,7 @@ export function UserInvite() {
         setErrors({});
 
         router.post(
-            '/configurations/users',
+            users.store().url,
             { name: name.trim(), email: email.trim(), role },
             {
                 preserveScroll: true,
@@ -67,10 +69,11 @@ export function UserInvite() {
                 onError: (err) => {
                     setLoading(false);
                     setErrors(err);
-                    const errorMessage = err.message || 'Error al invitar usuario';
+                    const errorMessage =
+                        err.message || 'Error al invitar usuario';
                     toast.error(errorMessage);
                 },
-            }
+            },
         );
     };
 
@@ -116,7 +119,9 @@ export function UserInvite() {
                                 onChange={(e) => setName(e.target.value)}
                                 disabled={loading}
                                 required
-                                aria-describedby={errors.name ? "name-error" : undefined}
+                                aria-describedby={
+                                    errors.name ? 'name-error' : undefined
+                                }
                             />
                             <InputError
                                 message={errors.name}
@@ -134,7 +139,9 @@ export function UserInvite() {
                                 onChange={(e) => setEmail(e.target.value)}
                                 disabled={loading}
                                 required
-                                aria-describedby={errors.email ? "email-error" : undefined}
+                                aria-describedby={
+                                    errors.email ? 'email-error' : undefined
+                                }
                             />
                             <InputError
                                 message={errors.email}
@@ -146,7 +153,13 @@ export function UserInvite() {
                             <Label htmlFor="role">Rol</Label>
                             <Select
                                 value={role}
-                                onValueChange={(value: 'admin' | 'supervisor' | 'agent' | 'super-admin') => setRole(value)}
+                                onValueChange={(
+                                    value:
+                                        | 'admin'
+                                        | 'supervisor'
+                                        | 'agent'
+                                        | 'super-admin',
+                                ) => setRole(value)}
                                 name="role"
                                 disabled={loading}
                             >
@@ -155,8 +168,12 @@ export function UserInvite() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="agent">Agente</SelectItem>
-                                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                                    <SelectItem value="agent">
+                                        Agente
+                                    </SelectItem>
+                                    <SelectItem value="supervisor">
+                                        Supervisor
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                             <InputError
@@ -174,7 +191,10 @@ export function UserInvite() {
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={loading || !name.trim() || !email.trim()}>
+                        <Button
+                            type="submit"
+                            disabled={loading || !name.trim() || !email.trim()}
+                        >
                             {loading ? (
                                 <>
                                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

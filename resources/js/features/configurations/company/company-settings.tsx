@@ -10,6 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import company from '@/routes/company';
 import {
     CompanySettings as CompanySettingsTypes,
     User,
@@ -22,10 +23,10 @@ import { toast } from 'sonner';
 
 export function CompanySettings({
     user,
-    company,
+    companyData,
 }: {
     user: User;
-    company: CompanySettingsTypes;
+    companyData: CompanySettingsTypes;
 }) {
     const [companySettings, setCompanySettings] =
         useState<CompanySettingsTypes>({
@@ -60,11 +61,11 @@ export function CompanySettings({
     useEffect(() => {
         setIsLoading(true);
         // valid exist company
-        if (company) {
-            setCompanySettings(company);
+        if (companyData) {
+            setCompanySettings(companyData);
             setIsLoading(false);
         }
-    }, [company, user]);
+    }, [companyData, user]);
 
     // function to logo upload and preview
     function getLogoUrl(logo_url: string): string {
@@ -186,6 +187,12 @@ export function CompanySettings({
             // Preparar datos para envío
             const formData = new FormData();
 
+            if (!companySettings.id) {
+                toast.error('ID de la empresa no encontrado.');
+                setIsSaving(false);
+                return;
+            }
+
             // Agregar el campo _method para method spoofing
             formData.append('_method', 'PUT');
 
@@ -209,48 +216,53 @@ export function CompanySettings({
 
             // Logo si existe
             if (logoFile) {
+                console.log(logoFile);
                 formData.append('branding_logo', logoFile);
             }
 
             // Enviar usando Inertia con POST para que funcione con multipart/form-data
-            router.post(`/configurations/company/${company.id}`, formData, {
-                forceFormData: true,
-                onSuccess: (page) => {
-                    toast.success(
-                        '¡Configuración de empresa actualizada exitosamente!',
-                    );
-                    // Actualizar el estado local con los datos actualizados si vienen en la respuesta
-                    if (page.props.company) {
-                        setCompanySettings(
-                            page.props.company as CompanySettingsTypes,
+            router.post(
+                company.update({ company: companySettings?.id }).url,
+                formData,
+                {
+                    forceFormData: true,
+                    onSuccess: (page) => {
+                        toast.success(
+                            '¡Configuración de empresa actualizada exitosamente!',
                         );
-                    }
-                    // Limpiar el archivo de logo ya que se guardó
-                    setLogoFile(null);
-                },
-                onError: (errors) => {
-                    setErrors(errors);
-                    console.error('Errores de validación:', errors);
+                        // Actualizar el estado local con los datos actualizados si vienen en la respuesta
+                        if (page.props.company) {
+                            setCompanySettings(
+                                page.props.company as CompanySettingsTypes,
+                            );
+                        }
+                        // Limpiar el archivo de logo ya que se guardó
+                        setLogoFile(null);
+                    },
+                    onError: (errors) => {
+                        setErrors(errors);
+                        console.error('Errores de validación:', errors);
 
-                    // Mostrar errores específicos
-                    if (errors.company_name) {
-                        toast.error(`Nombre: ${errors.company_name}`);
-                    } else if (errors.company_slug) {
-                        toast.error(`Slug: ${errors.company_slug}`);
-                    } else if (errors.branding_logo) {
-                        toast.error(`Logo: ${errors.branding_logo}`);
-                    } else if (errors.error) {
-                        toast.error(errors.error);
-                    } else {
-                        toast.error(
-                            'Error al actualizar la configuración. Por favor verifica los datos e intenta nuevamente.',
-                        );
-                    }
+                        // Mostrar errores específicos
+                        if (errors.company_name) {
+                            toast.error(`Nombre: ${errors.company_name}`);
+                        } else if (errors.company_slug) {
+                            toast.error(`Slug: ${errors.company_slug}`);
+                        } else if (errors.branding_logo) {
+                            toast.error(`Logo: ${errors.branding_logo}`);
+                        } else if (errors.error) {
+                            toast.error(errors.error);
+                        } else {
+                            toast.error(
+                                'Error al actualizar la configuración. Por favor verifica los datos e intenta nuevamente.',
+                            );
+                        }
+                    },
+                    onFinish: () => {
+                        setIsSaving(false);
+                    },
                 },
-                onFinish: () => {
-                    setIsSaving(false);
-                },
-            });
+            );
         } catch (error) {
             console.error('Error inesperado:', error);
             toast.error(`Error inesperado durante la actualización: ${error}`);

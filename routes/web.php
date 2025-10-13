@@ -15,13 +15,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     // Company Routes
-    Route::get('/configurations/company', [CompaniesController::class, 'show'])->name('configurations.company');
-    Route::put('/configurations/company/{company}', [CompaniesController::class, 'update'])->name('configurations.company.update');
+    Route::resource('/configurations/company', CompaniesController::class);
     // User Routes
-    Route::get('/configurations/users', [UserController::class, 'index'])->name('configurations.users');
-    Route::post('/configurations/users', [UserController::class, 'store'])->name('configurations.users.store');
-
-});
+    Route::resource('/configurations/users', UserController::class);
+   });
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

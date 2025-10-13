@@ -69,18 +69,7 @@ class CompaniesController extends Controller
         if ($request->isMethod('post') && $request->has('_method') && $request->input('_method') === 'PUT') {
             $request->setMethod('PUT');
         }
-
-        // Debug temporal mejorado para ver qué datos llegan
-        \Log::info('Datos recibidos en el request:', [
-            'all' => $request->all(),
-            'files' => $request->allFiles(),
-            'method' => $request->method(),
-            'content_type' => $request->header('Content-Type'),
-            'has_files' => $request->hasFile('branding_logo'),
-            'input_names' => array_keys($request->all()),
-            'file_names' => array_keys($request->allFiles())
-        ]);
-
+        // validate the request data
         $request->validate([
             'company_name' => 'required|string|max:255',
             'company_slug' => [
@@ -99,7 +88,7 @@ class CompaniesController extends Controller
             DB::beginTransaction();
 
             // Procesar logo si existe
-            $logoPath = $company->branding['logo_path'] ?? null;
+            $logoPath = $company->branding['logo_url'] ?? null;
             $oldLogoPath = $logoPath;
 
             if ($request->hasFile('branding_logo')) {

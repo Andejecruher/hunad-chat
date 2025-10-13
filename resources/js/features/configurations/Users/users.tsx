@@ -25,7 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { users as usersRoute } from '@/routes/configurations';
+import users from '@/routes/users';
 import { PaginatedUsers, User as UserType } from '@/types';
 import { router } from '@inertiajs/react';
 import { Clock, Loader2, MoreVertical, Search, Shield } from 'lucide-react';
@@ -39,10 +39,10 @@ interface UserFilters {
     limit?: string;
 }
 export function Users({
-    users,
+    usersData,
     filters,
 }: {
-    users: PaginatedUsers;
+    usersData: PaginatedUsers;
     filters: UserFilters;
 }) {
     const [searchQuery, setSearchQuery] = useState<string>(
@@ -64,7 +64,7 @@ export function Users({
                 search: searchQuery,
                 role: roleFilter,
                 limit: limitFilter,
-                status: statusFilter
+                status: statusFilter,
             };
             router.get(url, params, {
                 preserveState: true,
@@ -129,7 +129,7 @@ export function Users({
                 limit: limitFilter,
                 status: statusFilter,
             };
-            router.get(usersRoute().url, params, {
+            router.get(users.index().url, params, {
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
@@ -232,7 +232,7 @@ export function Users({
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Total de usuarios ({users.total})</CardTitle>
+                    <CardTitle>Total de usuarios ({usersData.total})</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="overflow-x-auto">
@@ -271,7 +271,7 @@ export function Users({
                                 </tbody>
                             ) : (
                                 <tbody>
-                                    {users.data.map((user: UserType) => {
+                                    {usersData.data.map((user: UserType) => {
                                         return (
                                             <tr
                                                 key={user.id}
@@ -403,15 +403,15 @@ export function Users({
             </Card>
 
             <div className="block">
-                {users.links && (
+                {usersData.links && (
                     <Pagination
-                        links={users.links}
+                        links={usersData.links}
                         onChange={handlePageChange}
                         showInfo={true}
                         position="center"
-                        to={users.to}
-                        from={users.from}
-                        total={users.total}
+                        to={usersData.to}
+                        from={usersData.from}
+                        total={usersData.total}
                     />
                 )}
             </div>

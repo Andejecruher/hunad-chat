@@ -10,71 +10,84 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import company from '@/routes/company';
+import users from '@/routes/users';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import AppLogo from './app-logo';
 
-const mainNavItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard' },
-    { label: 'Conversaciones', icon: 'MessageSquare', path: '/conversations' },
-    { label: 'Tickets', icon: 'Ticket', path: '/tickets' },
-    { label: 'Ventas', icon: 'ShoppingCart', path: '/sales' },
-    {
-        label: 'Gestión',
-        icon: 'Settings2',
-        children: [
-            { label: 'Clientes', icon: 'Users', path: '/customers' },
-            { label: 'Departamentos', icon: 'Building', path: '/departments' },
-            { label: 'Agentes', icon: 'UserCog', path: '/agents' },
-            { label: 'Herramientas IA', icon: 'Bot', path: '/tools' },
-        ],
-    },
-    {
-        label: 'Canales',
-        icon: 'Share2',
-        path: '/channels',
-    },
-    {
-        label: 'Configuración',
-        icon: 'Settings',
-        children: [
-            {
-                label: 'Compañía',
-                icon: 'Briefcase',
-                path: '/configurations/company',
-            },
-            {
-                label: 'Suscripción',
-                icon: 'CreditCard',
-                path: '/configurations/subscription',
-            },
-            {
-                label: 'Usuarios',
-                icon: 'UserPlus',
-                path: '/configurations/users',
-            },
-        ],
-    },
-    {
-        label: 'Reportes',
-        icon: 'BarChart2',
-        children: [
-            { label: 'Analíticas', icon: 'TrendingUp', path: '/analytics' },
-            { label: 'Reportes IA', icon: 'Cpu', path: '/analytics/ai' },
-        ],
-        subscriptionRequired: 'pro',
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        label: 'Documentation',
-        icon: 'BookOpen',
-        path: 'https://laravel.com/docs/starter-kits#react',
-    },
-];
-
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+
+    const mainNavItems: NavItem[] = [
+        { label: 'Dashboard', icon: 'LayoutDashboard', path: dashboard().url },
+        {
+            label: 'Conversaciones',
+            icon: 'MessageSquare',
+            path: '#',
+        },
+        { label: 'Tickets', icon: 'Ticket', path: '#' },
+        { label: 'Ventas', icon: 'ShoppingCart', path: '#' },
+        {
+            label: 'Gestión',
+            icon: 'Settings2',
+            children: [
+                { label: 'Clientes', icon: 'Users', path: '#' },
+                {
+                    label: 'Departamentos',
+                    icon: 'Building',
+                    path: '#',
+                },
+                { label: 'Agentes', icon: 'UserCog', path: '#' },
+                { label: 'Herramientas IA', icon: 'Bot', path: '#' },
+            ],
+        },
+        {
+            label: 'Canales',
+            icon: 'Share2',
+            path: '#',
+        },
+        {
+            label: 'Configuración',
+            icon: 'Settings',
+            children: [
+                {
+                    label: 'Compañía',
+                    icon: 'Briefcase',
+                    path: company.show({
+                        company: auth.user.company_id,
+                    }).url,
+                },
+                {
+                    label: 'Suscripción',
+                    icon: 'CreditCard',
+                    path: '#',
+                },
+                {
+                    label: 'Usuarios',
+                    icon: 'UserPlus',
+                    path: users.index().url,
+                },
+            ],
+        },
+        {
+            label: 'Reportes',
+            icon: 'BarChart2',
+            children: [
+                { label: 'Analíticas', icon: 'TrendingUp', path: '#' },
+                { label: 'Reportes IA', icon: 'Cpu', path: '#' },
+            ],
+            subscriptionRequired: 'pro',
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        {
+            label: 'Documentation',
+            icon: 'BookOpen',
+            path: 'https://laravel.com/docs/starter-kits#react',
+        },
+    ];
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
