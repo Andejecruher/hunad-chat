@@ -16,6 +16,7 @@ class UserController extends Controller
         if (!$user) {
             abort(403, 'Usuario no autenticado');
         }
+
         $query = User::query()
             ->where('company_id', $user->company_id)
             ->when($request->filled('search'), function ($q) use ($request) {
@@ -31,11 +32,23 @@ class UserController extends Controller
                 $q->where('role', $role);
             });
 
-        $users = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $limit = $request->input('limit');
+        if ($limit === 'all') {
+            $users = $query->orderBy('id', 'desc')->get();
+            $users = new \Illuminate\Pagination\LengthAwarePaginator(
+                $users,
+                $users->count(),
+                $users->count(),
+                1,
+                ['path' => $request->url(), 'query' => $request->query()]
+            );
+        } else {
+            $users = $query->orderBy('id', 'desc')->paginate($limit ?? 10)->withQueryString();
+        }
 
         return inertia('configurations/users', [
             'users' => $users,
-            'filters' => $request->only(['search', 'role']),
+            'filters' => $request->only(['search', 'role', 'limit']),
         ]);
     }
 

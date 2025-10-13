@@ -86,3 +86,9 @@ export interface CompanySettings {
         default_theme: 'light' | 'dark';
     };
 }
+
+export interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
