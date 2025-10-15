@@ -30,11 +30,15 @@ class UserInvitationTest extends TestCase
 
         $this->actingAs($admin);
 
+        // Agrega el header 'Accept: application/json' para evitar redirección
         $response = $this->postJson('/configurations/users', [
             'name' => 'Juan Pérez',
             'email' => 'newuser@example.com',
             'role' => 'agent'
+        ], [
+            'Accept' => 'application/json'
         ]);
+
 
         $response->assertStatus(201);
         $response->assertJson([

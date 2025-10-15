@@ -87,7 +87,6 @@ class UserController extends Controller
                 'password' => Hash::make($tempPassword),
                 'email_verified_at' => null,
                 'company_id' => $user->company_id, // Heredar company_id del usuario autenticado
-
             ]);
 
             // Generar URL de verificación
@@ -114,16 +113,23 @@ class UserController extends Controller
                 'role' => $data['role']
             ]);
 
-            return back()->with('success', '¡Usuarion invitado correctamente!');
-
-
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Usuario invitado exitosamente'
+                ], 201);
+            }
+            return back()->with('success', '¡Usuario invitado correctamente!');
         } catch (\Exception $e) {
             Log::error('Error invitando usuario: ' . $e->getMessage(), [
                 'email' => $data['email'] ?? 'unknown',
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'error' => 'Error al invitar usuario: ' . $e->getMessage()
+                ], 500);
+            }
             return back()->withErrors(['error' => 'Error al invitar usuario: ' . $e->getMessage()]);
         }
     }
