@@ -86,7 +86,7 @@ export interface PaginationLink {
 }
 
 export interface PaginatedUsers {
-    data: UserType[];
+    data: User[];
     links: PaginationLink[];
     total: number;
     to: number;

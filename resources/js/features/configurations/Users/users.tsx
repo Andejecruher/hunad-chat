@@ -1,7 +1,6 @@
 import { Pagination } from '@/components/pagination';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -9,14 +8,6 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
     Select,
@@ -28,10 +19,10 @@ import {
 import users from '@/routes/users';
 import { PaginatedUsers, User as UserType } from '@/types';
 import { router } from '@inertiajs/react';
-import { Clock, Loader2, MoreVertical, Search, Shield } from 'lucide-react';
+import { Clock, Loader2, Search, Shield } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { UserInvite } from './user-invite';
-
+import { UserActions } from './user-actions';
 interface UserFilters {
     search?: string;
     role?: string;
@@ -118,6 +109,14 @@ export function Users({
             .toUpperCase()
             .slice(0, 2);
     };
+
+    const handleUpdateUser = (userId: number, updates: Partial<UserType>) => {
+        console.log('Update user:', userId, updates);
+    }
+
+    const handleDeleteUser = (userId: number) => {
+        console.log('Delete  user:', userId);
+    }
 
     // Debounce para búsqueda
     useEffect(() => {
@@ -360,37 +359,7 @@ export function Users({
                                                     </div>
                                                 </td>
                                                 <td className="py-4 text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger
-                                                            asChild
-                                                        >
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="icon"
-                                                            >
-                                                                <MoreVertical className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuLabel>
-                                                                Acciones
-                                                            </DropdownMenuLabel>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuItem>
-                                                                Ver Perfil
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem>
-                                                                Editar Rol
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem>
-                                                                Cambiar Estado
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuItem className="text-destructive">
-                                                                Eliminar Usuario
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                    <UserActions user={user} onUpdate={handleUpdateUser} onDelete={handleDeleteUser} />
                                                 </td>
                                             </tr>
                                         );
