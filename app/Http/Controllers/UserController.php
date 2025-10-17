@@ -3,13 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\InviteUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Mail\UserInviteMail;
 use App\Models\User;
+use App\Events\UserUpdated;
+use App\Events\UserDeleted;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -74,20 +79,20 @@ class UserController extends Controller
     {
         try {
             $data = $request->validated();
-            $user = auth()->user();
+            $authUser = auth()->user();
 
             // Generar contraseña temporal segura
             $tempPassword = Str::random(16);
 
-            // Crear usuario
-            $newUser = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'role' => $data['role'],
-                'password' => Hash::make($tempPassword),
-                'email_verified_at' => null,
-                'company_id' => $user->company_id, // Heredar company_id del usuario autenticado
-            ]);
+            // Crear usuario asignando atributos explícitamente para evitar warnings de "guarded"
+            $newUser = new User();
+            $newUser->name = $data['name'];
+            $newUser->email = $data['email'];
+            $newUser->role = $data['role'];
+            $newUser->password = Hash::make($tempPassword);
+            $newUser->email_verified_at = null;
+            $newUser->company_id = $authUser->company_id; // Heredar company_id del usuario autenticado
+            $newUser->save();
 
             // Generar URL de verificación
             $verificationUrl = URL::temporarySignedRoute(
@@ -109,7 +114,7 @@ class UserController extends Controller
 
             Log::info('Usuario invitado exitosamente', [
                 'invited_email' => $newUser->email,
-                'invited_by' => $user->email,
+                'invited_by' => $authUser->email,
                 'role' => $data['role']
             ]);
 
@@ -153,16 +158,137 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(UpdateUserRequest $request, string $id)
     {
-        //
+        try {
+            $data = $request->validated();
+            $authUser = auth()->user();
+
+            $user = User::findOrFail($id);
+
+            // Authorization: only same company or admins can update
+            if ($user->company_id !== $authUser->company_id && !$authUser->isAdmin()) {
+                abort(403, 'No autorizado para actualizar este usuario');
+            }
+
+            // Evitar cambios en company_id desde el request
+            if (isset($data['company_id'])) {
+                unset($data['company_id']);
+            }
+
+            // Manejar contraseña: si se envía, hashearla; si viene null/empty, removerla
+            if (array_key_exists('password', $data)) {
+                if (!empty($data['password'])) {
+                    $data['password'] = Hash::make($data['password']);
+                } else {
+                    unset($data['password']);
+                }
+            }
+
+            // Registrar cambios en transacción para mantener consistencia
+            DB::beginTransaction();
+
+            $original = $user->only(array_keys($data));
+
+            $user->fill($data);
+            $user->save();
+
+            $changes = $user->getChanges();
+
+            Log::info('Usuario actualizado', [
+                'user_id' => $user->id,
+                'updated_by' => $authUser->id,
+                'changes' => $changes,
+            ]);
+
+            DB::commit();
+
+            // Dispatch broadcast event so clients can refresh in real-time
+            event(new UserUpdated($user));
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Usuario actualizado correctamente',
+                    'user' => $user->fresh(),
+                ], 200);
+            }
+
+            return back()->with('success', 'Usuario actualizado correctamente');
+        } catch (ModelNotFoundException $e) {
+            Log::warning('Usuario no encontrado al intentar actualizar', ['id' => $id]);
+            abort(404, 'Usuario no encontrado');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error actualizando usuario: ' . $e->getMessage(), [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Error al actualizar usuario'], 500);
+            }
+
+            return back()->withErrors(['error' => 'Error al actualizar usuario']);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id)
     {
-        //
+        try {
+            $authUser = auth()->user();
+            $user = User::findOrFail($id);
+
+            // Prevent deleting self
+            if ($authUser->id === $user->id) {
+                abort(403, 'No puedes eliminar tu propio usuario');
+            }
+
+            // Authorization: only same company or admins can delete
+            if ($user->company_id !== $authUser->company_id && !$authUser->isAdmin()) {
+                abort(403, 'No autorizado para eliminar este usuario');
+            }
+
+            DB::beginTransaction();
+
+            // Si se desea implementar borrado suave, usar softDeletes en el modelo
+            // Actualmente realiza un delete físico
+            $user->delete();
+
+            Log::info('Usuario eliminado', [
+                'user_id' => $user->id,
+                'deleted_by' => $authUser->id,
+            ]);
+
+            DB::commit();
+
+            // Dispatch broadcast event so clients can refresh in real-time
+            event(new UserDeleted($user));
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Usuario eliminado correctamente'], 200);
+            }
+
+            return back()->with('success', 'Usuario eliminado correctamente');
+        } catch (ModelNotFoundException $e) {
+            Log::warning('Usuario no encontrado al intentar eliminar', ['id' => $id]);
+            abort(404, 'Usuario no encontrado');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error eliminando usuario: ' . $e->getMessage(), [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['error' => 'Error al eliminar usuario'], 500);
+            }
+
+            return back()->withErrors(['error' => 'Error al eliminar usuario']);
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -6,27 +6,40 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Shield } from "lucide-react"
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { User } from '@/types';
+import { Shield } from 'lucide-react';
+import { useState } from 'react';
 
 interface ChangeRoleDialogProps {
-    user: User
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    onSave: (userId: number, updates: Partial<User>) => void
+    user: User;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSave: (userId: number, updates: Partial<User>) => void;
 }
 
-export function ChangeRoleDialog({ user, open, onOpenChange, onSave }: ChangeRoleDialogProps) {
-    const [role, setRole] = useState<'admin' | 'agent' | 'super-admin' | 'supervisor'>(user.role)
+export function ChangeRoleDialog({
+    user,
+    open,
+    onOpenChange,
+    onSave,
+}: ChangeRoleDialogProps) {
+    const [role, setRole] = useState<
+        'admin' | 'agent' | 'super-admin' | 'supervisor'
+    >(user.role);
 
     const handleSave = () => {
-        onSave(user.id, { role })
-        onOpenChange(false)
-    }
+        onSave(user.id, { role });
+        onOpenChange(false);
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -40,35 +53,78 @@ export function ChangeRoleDialog({ user, open, onOpenChange, onSave }: ChangeRol
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
                         <Label htmlFor="role-select">Nuevo Rol</Label>
-                        <Select value={role} onValueChange={(value: 'admin' | 'agent' | 'super-admin' | 'supervisor') => setRole(value)}>
+                        <Select
+                            value={role}
+                            onValueChange={(
+                                value:
+                                    | 'admin'
+                                    | 'agent'
+                                    | 'super-admin'
+                                    | 'supervisor',
+                            ) => setRole(value)}
+                        >
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Admin">
+                                <SelectItem value="admin">
                                     <div className="flex items-center gap-2">
                                         <Shield className="h-4 w-4" />
-                                        <div>
+                                        <div className="flex items-center justify-start gap-2">
                                             <p className="font-medium">Admin</p>
-                                            <p className="text-xs text-muted-foreground">Acceso completo al sistema</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Acceso completo al sistema
+                                            </p>
                                         </div>
                                     </div>
                                 </SelectItem>
-                                <SelectItem value="Manager">
+                                <SelectItem value="manager">
                                     <div className="flex items-center gap-2">
                                         <Shield className="h-4 w-4" />
-                                        <div>
-                                            <p className="font-medium">Manager</p>
-                                            <p className="text-xs text-muted-foreground">Gestión de equipos y reportes</p>
+                                        <div className="flex items-center justify-start gap-2">
+                                            <p className="font-medium">
+                                                Manager
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Gestión de equipos y reportes
+                                            </p>
                                         </div>
                                     </div>
                                 </SelectItem>
-                                <SelectItem value="Agent">
+                                <SelectItem value="agent">
                                     <div className="flex items-center gap-2">
                                         <Shield className="h-4 w-4" />
-                                        <div>
+                                        <div className="flex items-center justify-start gap-2">
                                             <p className="font-medium">Agent</p>
-                                            <p className="text-xs text-muted-foreground">Atención de conversaciones</p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Atención de conversaciones
+                                            </p>
+                                        </div>
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="supervisor">
+                                    <div className="flex items-center gap-2">
+                                        <Shield className="h-4 w-4" />
+                                        <div className="flex items-center justify-start gap-2">
+                                            <p className="font-medium">
+                                                Supervisor
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Supervisión de agentes y calidad
+                                            </p>
+                                        </div>
+                                    </div>
+                                </SelectItem>
+                                <SelectItem value="super-admin">
+                                    <div className="flex items-center gap-2">
+                                        <Shield className="h-4 w-4" />
+                                        <div className="flex items-center justify-start gap-2">
+                                            <p className="font-medium">
+                                                Super Admin
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Acceso total y sin restricciones
+                                            </p>
                                         </div>
                                     </div>
                                 </SelectItem>
@@ -77,12 +133,16 @@ export function ChangeRoleDialog({ user, open, onOpenChange, onSave }: ChangeRol
                     </div>
                     <div className="rounded-lg border border-border bg-muted/50 p-3">
                         <p className="text-sm text-muted-foreground">
-                            El usuario recibirá una notificación sobre el cambio de rol y sus nuevos permisos.
+                            El usuario recibirá una notificación sobre el cambio
+                            de rol y sus nuevos permisos.
                         </p>
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
+                    <Button
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                    >
                         Cancelar
                     </Button>
                     <Button onClick={handleSave}>
@@ -92,5 +152,5 @@ export function ChangeRoleDialog({ user, open, onOpenChange, onSave }: ChangeRol
                 </DialogFooter>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

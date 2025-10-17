@@ -1,6 +1,5 @@
 import { Pagination } from '@/components/pagination';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
     Card,
     CardContent,
@@ -18,17 +17,47 @@ import {
 } from '@/components/ui/select';
 import users from '@/routes/users';
 import { PaginatedUsers, User as UserType } from '@/types';
-import { router } from '@inertiajs/react';
-import { Clock, Loader2, Search, Shield } from 'lucide-react';
+import {
+    getInitials,
+    getRoleBadgeVariant,
+    getStatusBadge,
+    getStatusConectionBadge,
+} from '@/utils/user-utils';
+import { router, usePage } from '@inertiajs/react';
+import { Clock, Loader2, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { UserInvite } from './user-invite';
 import { UserActions } from './user-actions';
+import { UserInvite } from './user-invite';
+
 interface UserFilters {
     search?: string;
     role?: string;
     status?: string;
     limit?: string;
 }
+
+interface PageProps {
+    auth?: {
+        user: UserType;
+    };
+    [key: string]: unknown;
+}
+
+interface EchoChannel {
+    listen: (
+        event: string,
+        callback: (data: { user: UserType }) => void,
+    ) => EchoChannel;
+    stopListening: (event: string) => EchoChannel;
+    unsubscribe: () => void;
+}
+
+interface WindowWithEcho extends Window {
+    Echo?: {
+        private: (channel: string) => EchoChannel;
+    };
+}
+
 export function Users({
     usersData,
     filters,
@@ -36,6 +65,9 @@ export function Users({
     usersData: PaginatedUsers;
     filters: UserFilters;
 }) {
+    const page = usePage<PageProps>();
+    const authUser = page.props.auth?.user;
+
     const [searchQuery, setSearchQuery] = useState<string>(
         filters.search ?? '',
     );
@@ -47,6 +79,64 @@ export function Users({
         filters.limit ?? '10',
     );
     const [isLoading, setIsLoading] = useState(false);
+    // Estado local para reflejar cambios en tiempo real y optimistas
+    const [localUsers, setLocalUsers] = useState<UserType[]>(usersData.data);
+
+    // Helper: convierte un objeto en FormData (aceptable por Inertia)
+    const toFormData = (obj: Partial<UserType>) => {
+        const fd = new FormData();
+        Object.entries(obj).forEach(([key, value]) => {
+            if (value === undefined || value === null) return;
+            // Si es booleano dejarlo como string '1'/'0' o 'true'/'false'
+            if (typeof value === 'boolean') {
+                fd.append(key, value ? '1' : '0');
+            } else if (Array.isArray(value)) {
+                value.forEach((v) => fd.append(`${key}[]`, String(v)));
+            } else {
+                fd.append(key, String(value));
+            }
+        });
+        return fd;
+    };
+
+    // Real-time: suscribirse a Echo si existe
+    useEffect(() => {
+        const companyId = authUser?.company_id;
+        if (!companyId) return;
+
+        const windowWithEcho = window as WindowWithEcho;
+        const Echo = windowWithEcho.Echo;
+        if (!Echo) return;
+
+        const channel = Echo.private(`company.${companyId}.users`);
+
+        channel.listen('.user.updated', (e: { user: UserType }) => {
+            const user = e.user;
+            setLocalUsers((prev) => {
+                const idx = prev.findIndex((u) => u.id === user.id);
+                if (idx === -1) return [user, ...prev];
+                const copy = [...prev];
+                copy[idx] = { ...copy[idx], ...user };
+                return copy;
+            });
+        });
+
+        channel.listen('.user.deleted', (e: { user: UserType }) => {
+            const user = e.user;
+            setLocalUsers((prev) => prev.filter((u) => u.id !== user.id));
+        });
+
+        return () => {
+            try {
+                channel.stopListening('.user.updated');
+                channel.stopListening('.user.deleted');
+                channel.unsubscribe();
+            } catch {
+                // noop
+            }
+        };
+    }, [authUser?.company_id]);
+
     // Paginación
     const handlePageChange = useCallback(
         (url: string | undefined) => {
@@ -69,54 +159,77 @@ export function Users({
         [searchQuery, roleFilter, statusFilter, limitFilter],
     );
 
-    const getRoleBadgeVariant = (role: string) => {
-        switch (role) {
-            case 'admin':
-                return 'default';
-            case 'agent':
-                return 'secondary';
-            case 'supervisor':
-                return 'outline';
-            default:
-                return 'outline';
-        }
-    };
-
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case 'active':
-                return (
-                    <Badge className="bg-brand-green text-white">Activo</Badge>
-                );
-            case 'inactive':
-                return <Badge variant="secondary">Inactivo</Badge>;
-            case 'pending':
-                return (
-                    <Badge className="bg-brand-gold text-white">
-                        Pendiente
-                    </Badge>
-                );
-            default:
-                return <Badge variant="outline">{status}</Badge>;
-        }
-    };
-
-    const getInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map((n) => n[0])
-            .join('')
-            .toUpperCase()
-            .slice(0, 2);
-    };
-
     const handleUpdateUser = (userId: number, updates: Partial<UserType>) => {
-        console.log('Update user:', userId, updates);
-    }
+        setIsLoading(true);
+        // Convertimos updates a FormData para cumplir la firma de Inertia
+        const payload = toFormData(updates);
+        // Optimistic update local
+        setLocalUsers((prev) =>
+            prev.map((u) => (u.id === userId ? { ...u, ...updates } : u)),
+        );
+
+        router.patch(users.update(userId).url, payload, {
+            preserveState: false,
+            onSuccess: () => {
+                // Actualizar la lista pidiendo solo los usuarios para refrescar la tabla
+                const params = {
+                    search: searchQuery,
+                    role: roleFilter,
+                    limit: limitFilter,
+                    status: statusFilter,
+                };
+                const url = users.index.url({ query: params });
+                router.get(
+                    url,
+                    {},
+                    {
+                        only: ['users'],
+                        preserveState: true,
+                        onFinish: () => setIsLoading(false),
+                    },
+                );
+            },
+            onError: () => setIsLoading(false),
+            onFinish: () => setIsLoading(false),
+        });
+    };
 
     const handleDeleteUser = (userId: number) => {
-        console.log('Delete  user:', userId);
-    }
+        if (
+            !confirm(
+                '¿Estás seguro de eliminar este usuario? Esta acción es irreversible.',
+            )
+        )
+            return;
+        setIsLoading(true);
+        // Optimistic local remove
+        setLocalUsers((prev) => prev.filter((u) => u.id !== userId));
+
+        const params = {
+            search: searchQuery,
+            role: roleFilter,
+            limit: limitFilter,
+            status: statusFilter,
+        };
+
+        router.delete(users.destroy(userId).url, {
+            preserveState: false,
+            onSuccess: () => {
+                const url = users.index.url({ query: params });
+                router.get(
+                    url,
+                    {},
+                    {
+                        only: ['users'],
+                        preserveState: true,
+                        onFinish: () => setIsLoading(false),
+                    },
+                );
+            },
+            onError: () => setIsLoading(false),
+            onFinish: () => setIsLoading(false),
+        });
+    };
 
     // Debounce para búsqueda
     useEffect(() => {
@@ -128,14 +241,19 @@ export function Users({
                 limit: limitFilter,
                 status: statusFilter,
             };
-            router.get(users.index().url, params, {
-                preserveState: true,
-                preserveScroll: true,
-                replace: true,
-                only: ['users'],
-                onStart: () => setIsLoading(true),
-                onFinish: () => setIsLoading(false),
-            });
+            const url = users.index.url({ query: params });
+            router.get(
+                url,
+                {},
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                    only: ['users'],
+                    onStart: () => setIsLoading(true),
+                    onFinish: () => setIsLoading(false),
+                },
+            );
         }, 300);
         return () => clearTimeout(handler);
     }, [searchQuery, roleFilter, limitFilter, statusFilter]);
@@ -270,7 +388,7 @@ export function Users({
                                 </tbody>
                             ) : (
                                 <tbody>
-                                    {usersData.data.map((user: UserType) => {
+                                    {localUsers.map((user: UserType) => {
                                         return (
                                             <tr
                                                 key={user.id}
@@ -313,17 +431,9 @@ export function Users({
                                                     </div>
                                                 </td>
                                                 <td className="py-4">
-                                                    <Badge
-                                                        variant={getRoleBadgeVariant(
-                                                            user.role,
-                                                        )}
-                                                    >
-                                                        <Shield className="mr-1 h-3 w-3" />
-                                                        {user.role
-                                                            .charAt(0)
-                                                            .toUpperCase() +
-                                                            user.role.slice(1)}
-                                                    </Badge>
+                                                    {getRoleBadgeVariant(
+                                                        user.role,
+                                                    )}
                                                 </td>
                                                 <td className="py-4">
                                                     {getStatusBadge(
@@ -341,25 +451,21 @@ export function Users({
                                                 </td>
                                                 <td className="py-4">
                                                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                        <Badge className="flex items-center gap-2">
-                                                            <span
-                                                                className={`inline-block h-2 w-2 rounded-full ${user.status_connection ? 'bg-green-500' : 'bg-red-500'}`}
-                                                                aria-label={
-                                                                    user.status_connection
-                                                                        ? 'Conectado'
-                                                                        : 'Desconectado'
-                                                                }
-                                                            />
-                                                            <span className="hidden sm:inline">
-                                                                {user.status_connection
-                                                                    ? 'En línea'
-                                                                    : 'Desconectado'}
-                                                            </span>
-                                                        </Badge>
+                                                        {getStatusConectionBadge(
+                                                            user.status_connection,
+                                                        )}
                                                     </div>
                                                 </td>
                                                 <td className="py-4 text-right">
-                                                    <UserActions user={user} onUpdate={handleUpdateUser} onDelete={handleDeleteUser} />
+                                                    <UserActions
+                                                        user={user}
+                                                        onUpdate={
+                                                            handleUpdateUser
+                                                        }
+                                                        onDelete={
+                                                            handleDeleteUser
+                                                        }
+                                                    />
                                                 </td>
                                             </tr>
                                         );
