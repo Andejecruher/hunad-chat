@@ -17,7 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Company Routes
     Route::resource('/configurations/company', CompaniesController::class);
     // User Routes
-    Route::resource('/configurations/users', UserController::class);
+    Route::resource('/configurations/users', UserController::class)->except(['create', 'edit', 'show']);
    });
 
 require __DIR__.'/settings.php';

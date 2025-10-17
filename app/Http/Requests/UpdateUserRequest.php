@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class UpdateUserRequest extends FormRequest
 {
@@ -14,7 +15,7 @@ class UpdateUserRequest extends FormRequest
 
     public function rules(): array
     {
-        $userId = $this->route('id');
+        $userId = $this->route('user');
 
         return [
             'name' => ['sometimes', 'required', 'string', 'min:2', 'max:255'],

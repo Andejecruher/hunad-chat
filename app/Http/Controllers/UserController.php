@@ -6,8 +6,6 @@ use App\Http\Requests\InviteUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Mail\UserInviteMail;
 use App\Models\User;
-use App\Events\UserUpdated;
-use App\Events\UserDeleted;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -199,12 +197,11 @@ class UserController extends Controller
                 'user_id' => $user->id,
                 'updated_by' => $authUser->id,
                 'changes' => $changes,
+                'data' => $data,
+                'user' => $user->only(['id', 'name', 'email', 'role', 'status', 'company_id']),
             ]);
 
             DB::commit();
-
-            // Dispatch broadcast event so clients can refresh in real-time
-            event(new UserUpdated($user));
 
             if ($request->expectsJson()) {
                 return response()->json([
@@ -264,9 +261,6 @@ class UserController extends Controller
             ]);
 
             DB::commit();
-
-            // Dispatch broadcast event so clients can refresh in real-time
-            event(new UserDeleted($user));
 
             if ($request->expectsJson()) {
                 return response()->json(['message' => 'Usuario eliminado correctamente'], 200);

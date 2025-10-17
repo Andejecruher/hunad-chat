@@ -23,7 +23,7 @@ import {
     getStatusBadge,
     getStatusConectionBadge,
 } from '@/utils/user-utils';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { Clock, Loader2, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { UserActions } from './user-actions';
@@ -35,29 +35,6 @@ interface UserFilters {
     status?: string;
     limit?: string;
 }
-
-interface PageProps {
-    auth?: {
-        user: UserType;
-    };
-    [key: string]: unknown;
-}
-
-interface EchoChannel {
-    listen: (
-        event: string,
-        callback: (data: { user: UserType }) => void,
-    ) => EchoChannel;
-    stopListening: (event: string) => EchoChannel;
-    unsubscribe: () => void;
-}
-
-interface WindowWithEcho extends Window {
-    Echo?: {
-        private: (channel: string) => EchoChannel;
-    };
-}
-
 export function Users({
     usersData,
     filters,
@@ -65,9 +42,6 @@ export function Users({
     usersData: PaginatedUsers;
     filters: UserFilters;
 }) {
-    const page = usePage<PageProps>();
-    const authUser = page.props.auth?.user;
-
     const [searchQuery, setSearchQuery] = useState<string>(
         filters.search ?? '',
     );
@@ -79,11 +53,9 @@ export function Users({
         filters.limit ?? '10',
     );
     const [isLoading, setIsLoading] = useState(false);
-    // Estado local para reflejar cambios en tiempo real y optimistas
-    const [localUsers, setLocalUsers] = useState<UserType[]>(usersData.data);
 
     // Helper: convierte un objeto en FormData (aceptable por Inertia)
-    const toFormData = (obj: Partial<UserType>) => {
+    const toFormData = (obj: Partial<UserType>, method: string) => {
         const fd = new FormData();
         Object.entries(obj).forEach(([key, value]) => {
             if (value === undefined || value === null) return;
@@ -96,46 +68,9 @@ export function Users({
                 fd.append(key, String(value));
             }
         });
+        fd.append('_method', method);
         return fd;
     };
-
-    // Real-time: suscribirse a Echo si existe
-    useEffect(() => {
-        const companyId = authUser?.company_id;
-        if (!companyId) return;
-
-        const windowWithEcho = window as WindowWithEcho;
-        const Echo = windowWithEcho.Echo;
-        if (!Echo) return;
-
-        const channel = Echo.private(`company.${companyId}.users`);
-
-        channel.listen('.user.updated', (e: { user: UserType }) => {
-            const user = e.user;
-            setLocalUsers((prev) => {
-                const idx = prev.findIndex((u) => u.id === user.id);
-                if (idx === -1) return [user, ...prev];
-                const copy = [...prev];
-                copy[idx] = { ...copy[idx], ...user };
-                return copy;
-            });
-        });
-
-        channel.listen('.user.deleted', (e: { user: UserType }) => {
-            const user = e.user;
-            setLocalUsers((prev) => prev.filter((u) => u.id !== user.id));
-        });
-
-        return () => {
-            try {
-                channel.stopListening('.user.updated');
-                channel.stopListening('.user.deleted');
-                channel.unsubscribe();
-            } catch {
-                // noop
-            }
-        };
-    }, [authUser?.company_id]);
 
     // Paginación
     const handlePageChange = useCallback(
@@ -162,70 +97,30 @@ export function Users({
     const handleUpdateUser = (userId: number, updates: Partial<UserType>) => {
         setIsLoading(true);
         // Convertimos updates a FormData para cumplir la firma de Inertia
-        const payload = toFormData(updates);
-        // Optimistic update local
-        setLocalUsers((prev) =>
-            prev.map((u) => (u.id === userId ? { ...u, ...updates } : u)),
-        );
+        const payload = toFormData(updates, 'PUT');
+        // Añadimos el método PUT
 
-        router.patch(users.update(userId).url, payload, {
-            preserveState: false,
-            onSuccess: () => {
-                // Actualizar la lista pidiendo solo los usuarios para refrescar la tabla
-                const params = {
-                    search: searchQuery,
-                    role: roleFilter,
-                    limit: limitFilter,
-                    status: statusFilter,
-                };
-                const url = users.index.url({ query: params });
-                router.get(
-                    url,
-                    {},
-                    {
-                        only: ['users'],
-                        preserveState: true,
-                        onFinish: () => setIsLoading(false),
-                    },
-                );
+        console.log('Updating user:', userId, payload);
+
+        router.post(users.update(userId).url, payload, {
+            preserveState: true,
+            preserveScroll: true,
+            forceFormData: true,
+            onSuccess: () => setIsLoading(false),
+            onError: (error) => {
+                console.log(error)
+                setIsLoading(false);
             },
-            onError: () => setIsLoading(false),
             onFinish: () => setIsLoading(false),
         });
     };
 
     const handleDeleteUser = (userId: number) => {
-        if (
-            !confirm(
-                '¿Estás seguro de eliminar este usuario? Esta acción es irreversible.',
-            )
-        )
-            return;
         setIsLoading(true);
-        // Optimistic local remove
-        setLocalUsers((prev) => prev.filter((u) => u.id !== userId));
-
-        const params = {
-            search: searchQuery,
-            role: roleFilter,
-            limit: limitFilter,
-            status: statusFilter,
-        };
-
         router.delete(users.destroy(userId).url, {
-            preserveState: false,
-            onSuccess: () => {
-                const url = users.index.url({ query: params });
-                router.get(
-                    url,
-                    {},
-                    {
-                        only: ['users'],
-                        preserveState: true,
-                        onFinish: () => setIsLoading(false),
-                    },
-                );
-            },
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => setIsLoading(false),
             onError: () => setIsLoading(false),
             onFinish: () => setIsLoading(false),
         });
@@ -388,7 +283,7 @@ export function Users({
                                 </tbody>
                             ) : (
                                 <tbody>
-                                    {localUsers.map((user: UserType) => {
+                                    {usersData.data.map((user: UserType) => {
                                         return (
                                             <tr
                                                 key={user.id}
