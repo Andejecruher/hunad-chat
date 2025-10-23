@@ -8,8 +8,10 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Mail, CheckCircle } from "lucide-react"
+import { Mail, CheckCircle, Loader2 } from "lucide-react"
 import { User } from '@/types';
+import { useResendInvite } from '@/hooks/users/use-resend-invite';
+
 interface ResendInviteDialogProps {
     user: User
     open: boolean
@@ -18,14 +20,20 @@ interface ResendInviteDialogProps {
 
 export function ResendInviteDialog({ user, open, onOpenChange }: ResendInviteDialogProps) {
     const [sent, setSent] = useState(false)
+    const { isLoading, resendInvite } = useResendInvite()
 
-    const handleResend = () => {
-        // Simulate sending invitation
-        setSent(true)
-        setTimeout(() => {
-            setSent(false)
-            onOpenChange(false)
-        }, 2000)
+    const handleResend = async () => {
+        try {
+            await resendInvite(user.id.toString())
+            setSent(true)
+            setTimeout(() => {
+                setSent(false)
+                onOpenChange(false)
+            }, 2000)
+        } catch (error) {
+            // El error ya se maneja en el hook con toast
+            console.error('Error resending invite:', error)
+        }
     }
 
     return (
@@ -60,12 +68,23 @@ export function ResendInviteDialog({ user, open, onOpenChange }: ResendInviteDia
                 <DialogFooter>
                     {!sent && (
                         <>
-                            <Button variant="outline" onClick={() => onOpenChange(false)}>
+                            <Button
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                                disabled={isLoading}
+                            >
                                 Cancelar
                             </Button>
-                            <Button onClick={handleResend}>
-                                <Mail className="mr-2 h-4 w-4" />
-                                Reenviar Invitación
+                            <Button
+                                onClick={handleResend}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                    <Mail className="mr-2 h-4 w-4" />
+                                )}
+                                {isLoading ? 'Enviando...' : 'Reenviar Invitación'}
                             </Button>
                         </>
                     )}

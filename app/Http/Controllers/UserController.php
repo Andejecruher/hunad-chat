@@ -219,6 +219,98 @@ class UserController extends Controller
     }
 
     /**
+     * Resend invitation email to user.
+     */
+    public function resendInvite(Request $request, string $id)
+    {
+        try {
+            $authUser = auth()->user();
+            $user = User::findOrFail($id);
+
+            // Authorization: only same company can resend invites
+            if ($user->company_id !== $authUser->company_id) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'No autorizado para reenviar invitación a este usuario'
+                    ], 403);
+                }
+                abort(403, 'No autorizado para reenviar invitación a este usuario');
+            }
+
+            // Check if user already verified their email
+            if ($user->email_verified_at) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'El usuario ya ha verificado su email'
+                    ], 400);
+                }
+                return back()->withErrors(['error' => 'El usuario ya ha verificado su email']);
+            }
+
+            // Generate new temporary password
+            $tempPassword = Str::random(16);
+            $user->password = Hash::make($tempPassword);
+            $user->save();
+
+            // Generate new verification URL
+            $verificationUrl = URL::temporarySignedRoute(
+                'verification.verify',
+                now()->addMinutes(60),
+                ['id' => $user->id, 'hash' => sha1($user->email)]
+            );
+
+            // Send invitation email
+            Mail::to($user->email)->send(
+                new UserInviteMail(
+                    $user->name,
+                    $user->email,
+                    $user->role,
+                    $tempPassword,
+                    $verificationUrl
+                )
+            );
+
+            Log::info('Invitación reenviada exitosamente', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'resent_by' => $authUser->email,
+                'role' => $user->role
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Invitación reenviada exitosamente'
+                ], 200);
+            }
+
+            return back()->with('success', 'Invitación reenviada exitosamente');
+        } catch (ModelNotFoundException $e) {
+            Log::warning('Usuario no encontrado al reenviar invitación', ['id' => $id]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Usuario no encontrado'
+                ], 404);
+            }
+            abort(404, 'Usuario no encontrado');
+        } catch (\Exception $e) {
+            Log::error('Error reenviando invitación: ' . $e->getMessage(), [
+                'user_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Error al reenviar invitación: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withErrors(['error' => 'Error al reenviar invitación: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Request $request, string $id)

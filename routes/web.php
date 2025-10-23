@@ -18,6 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/configurations/company', CompaniesController::class);
     // User Routes
     Route::resource('/configurations/users', UserController::class)->except(['create', 'edit', 'show']);
+    Route::post('/configurations/users/{id}/resend-invite', [UserController::class, 'resendInvite'])->name('users.resend-invite');
    });
 
 require __DIR__.'/settings.php';

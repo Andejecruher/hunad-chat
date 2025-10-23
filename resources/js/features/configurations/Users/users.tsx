@@ -28,6 +28,7 @@ import { Clock, Loader2, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { UserActions } from './user-actions';
 import { UserInvite } from './user-invite';
+import {toast} from "sonner";
 
 interface UserFilters {
     search?: string;
@@ -99,16 +100,17 @@ export function Users({
         // Convertimos updates a FormData para cumplir la firma de Inertia
         const payload = toFormData(updates, 'PUT');
         // Añadimos el método PUT
-
-        console.log('Updating user:', userId, payload);
-
         router.post(users.update(userId).url, payload, {
             preserveState: true,
             preserveScroll: true,
             forceFormData: true,
-            onSuccess: () => setIsLoading(false),
+            onStart: () => setIsLoading(true),
+            onSuccess: () => {
+                setIsLoading(false);
+                toast.success('User updated successfully.');
+            },
             onError: (error) => {
-                console.log(error)
+                toast.error(error.message);
                 setIsLoading(false);
             },
             onFinish: () => setIsLoading(false),
@@ -120,8 +122,15 @@ export function Users({
         router.delete(users.destroy(userId).url, {
             preserveState: true,
             preserveScroll: true,
-            onSuccess: () => setIsLoading(false),
-            onError: () => setIsLoading(false),
+            onStart: () => setIsLoading(true),
+            onSuccess: () => {
+                setIsLoading(false);
+                toast.warning('User deleted successfully.');
+            },
+            onError: (error   ) => {
+                toast.error(error.message);
+                setIsLoading(false)
+            },
             onFinish: () => setIsLoading(false),
         });
     };
@@ -146,6 +155,10 @@ export function Users({
                     replace: true,
                     only: ['users'],
                     onStart: () => setIsLoading(true),
+                    onError: (error) => {
+                        toast.error(error.message);
+                        setIsLoading(false)
+                    },
                     onFinish: () => setIsLoading(false),
                 },
             );
