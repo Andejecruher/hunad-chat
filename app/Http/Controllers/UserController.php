@@ -62,13 +62,6 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -138,22 +131,6 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateUserRequest $request, string $id)
@@ -164,8 +141,19 @@ class UserController extends Controller
 
             $user = User::findOrFail($id);
 
+            Log::info('Actualizacion de datos', [
+                'auth_user' => $authUser->only(['id','name','company_id']),
+                'user' => $user->only(['id','name','company_id']),
+            ]);
+
             // Authorization: only same company or admins can update
-            if ($user->company_id !== $authUser->company_id && !$authUser->isAdmin()) {
+            if ($user->company_id !== $authUser->company_id) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'No autorizado para actualizar este usuario',
+                        'user' => $user->fresh(),
+                    ], 403);
+                }
                 abort(403, 'No autorizado para actualizar este usuario');
             }
 
@@ -241,11 +229,23 @@ class UserController extends Controller
 
             // Prevent deleting self
             if ($authUser->id === $user->id) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'No puedes eliminar tu propio usuario',
+                        'user' => $user->fresh(),
+                    ], 403);
+                }
                 abort(403, 'No puedes eliminar tu propio usuario');
             }
 
             // Authorization: only same company or admins can delete
-            if ($user->company_id !== $authUser->company_id && !$authUser->isAdmin()) {
+            if ($user->company_id !== $authUser->company_id) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'message' => 'No autorizado para eliminar este usuario',
+                        'user' => $user->fresh(),
+                    ], 403);
+                }
                 abort(403, 'No autorizado para eliminar este usuario');
             }
 
