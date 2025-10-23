@@ -20,8 +20,7 @@ export function useResendInvite(): UseResendInviteReturn {
                 {
                     preserveScroll: true,
                     preserveState: true,
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    onSuccess: (page) => {
+                    onSuccess: () => {
                         toast.success('Invitación reenviada exitosamente', {
                             description: 'El usuario recibirá un nuevo correo con las credenciales de acceso.',
                         });
