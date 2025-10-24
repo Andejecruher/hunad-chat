@@ -137,7 +137,24 @@ export function Users({
 
     // Debounce para búsqueda
     useEffect(() => {
-        // Validación para evitar ejecuciones innecesarias
+        // Evitar ejecución en el primer render si los valores son iguales a los filtros iniciales
+        const initial = {
+            search: filters.search ?? '',
+            role: filters.role ?? 'all',
+            limit: filters.limit ?? '10',
+            status: filters.status ?? 'all',
+        };
+
+        if (
+            searchQuery === initial.search &&
+            roleFilter === initial.role &&
+            limitFilter === initial.limit &&
+            statusFilter === initial.status
+        ) {
+            return;
+        }
+
+        // Debounce para búsqueda
         const handler = setTimeout(() => {
             const params = {
                 search: searchQuery,
@@ -157,14 +174,15 @@ export function Users({
                     onStart: () => setIsLoading(true),
                     onError: (error) => {
                         toast.error(error.message);
-                        setIsLoading(false)
+                        setIsLoading(false);
                     },
                     onFinish: () => setIsLoading(false),
                 },
             );
         }, 300);
+
         return () => clearTimeout(handler);
-    }, [searchQuery, roleFilter, limitFilter, statusFilter]);
+    }, [searchQuery, roleFilter, limitFilter, statusFilter, filters]);
 
     return (
         <div className="space-y-6">
