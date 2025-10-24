@@ -1,4 +1,4 @@
-// resources/js/features/configurations/Users/delete-user-dialog.tsx
+// resources/js/features/configurations/users/delete-user-dialog.tsx
 import {
     AlertDialog,
     AlertDialogAction,
