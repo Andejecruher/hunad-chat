@@ -1,4 +1,4 @@
-import { Users } from '@/features/configurations/Users/users';
+import { Users } from '@/features/configurations/users/users';
 import AppLayout from '@/layouts/app-layout';
 import users from '@/routes/users';
 import { BreadcrumbItem, PaginatedUsers } from '@/types';
