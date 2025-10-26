@@ -1,4 +1,4 @@
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import { router } from "@inertiajs/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import { Plus, Search, MoreVertical, Users, Layers, Clock, Globe } from "lucide-
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { type Department, TIMEZONES } from "@/types/department"
 import { DepartmentFormDialog } from "./department-form-dialog"
+import {Filters, PaginatedData } from "@/types";
 
 const mockDepartments: Department[] = [
     {
@@ -64,7 +65,7 @@ const mockDepartments: Department[] = [
     },
 ]
 
-export function Departments() {
+export function Departments({ departmentsData, filters }: {departmentsData: PaginatedData<Department[]>; filters: Filters;}) {
     const [departments, setDepartments] = useState<Department[]>(mockDepartments)
     const [searchQuery, setSearchQuery] = useState("")
     const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -110,6 +111,14 @@ export function Departments() {
     const getTimezoneLabel = (timezone: string) => {
         return TIMEZONES.find((tz) => tz.value === timezone)?.label || timezone
     }
+
+    useEffect(() => {
+        console.log(departmentsData)
+        console.log(filters)
+    }, [
+        departmentsData,
+        filters,
+    ])
 
     return (
         <div className="space-y-6">

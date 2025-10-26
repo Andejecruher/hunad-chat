@@ -23,6 +23,12 @@ class Department extends Model
         'is_active' => 'boolean'
     ];
 
+    protected $appends = [
+        'agents_count',
+        'agents',
+        'color'
+    ];
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
@@ -43,10 +49,50 @@ class Department extends Model
         return $this->hasMany(DepartmentScheduleAudit::class);
     }
 
+    public function agents(): HasMany
+    {
+        return $this->hasMany(Agent::class);
+    }
+
     // Scope para departamentos activos
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
+    }
+
+    // Scope para filtrar por company del usuario autenticado
+    public function scopeForCompany($query, $companyId)
+    {
+        return $query->where('company_id', $companyId);
+    }
+
+    // Atributos calculados
+    public function getAgentsCountAttribute(): int
+    {
+        return $this->agents()->count();
+    }
+
+    public function getAgentsAttribute(): array
+    {
+        return $this->agents()->with('user:id,name,email')->get()->toArray();
+    }
+
+    public function getColorAttribute(): string
+    {
+        $colors = [
+            'bg-brand-green',
+            'bg-brand-teal',
+            'bg-brand-gold',
+            'bg-blue-500',
+            'bg-purple-500',
+            'bg-pink-500',
+            'bg-orange-500',
+            'bg-red-500',
+            'bg-indigo-500',
+            'bg-cyan-500'
+        ];
+
+        return $colors[$this->id % count($colors)];
     }
 
     // Método para obtener horario de un día específico

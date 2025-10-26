@@ -85,12 +85,19 @@ export interface PaginationLink {
     active: boolean;
 }
 
-export interface PaginatedUsers {
-    data: User[];
+export interface PaginatedData<T> {
+    data: T;
     links: PaginationLink[];
     total: number;
     to: number;
     from: number;
+}
+
+export interface Filters {
+    search?: string;
+    role?: string;
+    status?: string;
+    limit?: string;
 }
 
 // Add types for departments, tickets, conversations, etc. as needed

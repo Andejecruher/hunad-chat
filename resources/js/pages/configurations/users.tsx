@@ -1,7 +1,7 @@
 import { Users } from '@/features/configurations/users/users';
 import AppLayout from '@/layouts/app-layout';
 import users from '@/routes/users';
-import { BreadcrumbItem, PaginatedUsers } from '@/types';
+import {BreadcrumbItem, PaginatedData, User, Filters} from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface UserFilters {
@@ -21,8 +21,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function UsersPage(props: {
-    users: PaginatedUsers;
-    filters: UserFilters;
+    users: PaginatedData<User[]>;
+    filters: Filters;
 }) {
     const { users: paginatedUsers, filters } = props;
     return (

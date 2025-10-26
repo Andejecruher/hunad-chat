@@ -16,7 +16,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import users from '@/routes/users';
-import { PaginatedUsers, User as UserType } from '@/types';
+import {PaginatedData, User as UserType, Filters} from '@/types';
 import {
     getInitials,
     getRoleBadgeVariant,
@@ -29,19 +29,12 @@ import { useCallback, useEffect, useState } from 'react';
 import { UserActions } from './user-actions';
 import { UserInvite } from './user-invite';
 import {toast} from "sonner";
-
-interface UserFilters {
-    search?: string;
-    role?: string;
-    status?: string;
-    limit?: string;
-}
 export function Users({
     usersData,
     filters,
 }: {
-    usersData: PaginatedUsers;
-    filters: UserFilters;
+    usersData: PaginatedData<UserType[]>;
+    filters: Filters;
 }) {
     const [searchQuery, setSearchQuery] = useState<string>(
         filters.search ?? '',
