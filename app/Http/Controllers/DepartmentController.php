@@ -65,6 +65,7 @@ class DepartmentController extends Controller
                 ]
             ]);
         }
+
         return inertia('management/departments/index', [
             'departments' => $departments,
             'filters' => $request->only(['search', 'is_active', 'timezone', 'limit']),

@@ -208,35 +208,6 @@ class DepartmentControllerTest extends TestCase
         ]);
     }
 
-//    #[Test]
-//    public function it_can_get_department_stats()
-//    {
-//        Department::factory(3)->create(['company_id' => $this->company->id, 'is_active' => true]);
-//        Department::factory(2)->create(['company_id' => $this->company->id, 'is_active' => false]);
-//        Department::factory(5)->create(); // Otras companies
-//
-//        $response = $this->actingAs($this->user)
-//            ->getJson('/management/departments/stats');
-//
-//        $response->assertStatus(200)
-//            ->assertJsonStructure([
-//                'success',
-//                'data' => [
-//                    'total',
-//                    'active',
-//                    'inactive',
-//                    'with_agents',
-//                    'without_agents',
-//                    'by_timezone'
-//                ]
-//            ]);
-//
-//        $stats = $response->json('data');
-//        $this->assertEquals(5, $stats['total']);
-//        $this->assertEquals(3, $stats['active']);
-//        $this->assertEquals(2, $stats['inactive']);
-//    }
-
     #[Test]
     public function it_validates_required_fields_when_creating_department()
     {
