@@ -92,3 +92,6 @@ export interface PaginatedUsers {
     to: number;
     from: number;
 }
+
+// Add types for departments, tickets, conversations, etc. as needed
+export * from './department';
