@@ -1,5 +1,5 @@
 export interface Department {
-    id: number
+    id?: number
     name: string
     description?: string
     timezone: string
@@ -23,9 +23,14 @@ export interface DepartmentFormData {
 
 export interface DepartmentHours {
     day_of_week: number // 0-6 (Domingo=0 a Sábado=6)
+    time_ranges: TimeRange[] // Cambiado a array de rangos de horario para soportar múltiples horarios por día
+    is_closed: boolean
+}
+
+export interface TimeRange {
+    id: string
     open_time: string // formato "HH:MM"
     close_time: string // formato "HH:MM"
-    is_closed: boolean
 }
 
 export interface DepartmentException {

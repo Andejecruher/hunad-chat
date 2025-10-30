@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react"
 import { router } from "@inertiajs/react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -12,114 +12,154 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Plus, Search, MoreVertical, Users, Layers, Clock, Globe } from "lucide-react"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {Plus, Search, MoreVertical, Users, Layers, Clock, Globe, Loader2} from "lucide-react"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { type Department, TIMEZONES } from "@/types/department"
 import { DepartmentFormDialog } from "./department-form-dialog"
-import {Filters, PaginatedData } from "@/types";
-
-const mockDepartments: Department[] = [
-    {
-        id: 1,
-        name: "Ventas",
-        description: "Equipo encargado de gestionar oportunidades comerciales y cerrar ventas",
-        timezone: "America/Mexico_City",
-        is_active: true,
-        agentsCount: 5,
-        agents: ["Ana García", "Carlos López", "María Rodríguez"],
-        color: "bg-brand-green",
-        company_id: 1,
-    },
-    {
-        id: 2,
-        name: "Soporte Técnico",
-        description: "Resolución de problemas técnicos y asistencia a clientes",
-        timezone: "America/Mexico_City",
-        is_active: true,
-        agentsCount: 8,
-        agents: ["Juan Martínez", "Laura Sánchez", "Pedro Gómez"],
-        color: "bg-brand-teal",
-        company_id: 2
-    },
-    {
-        id: 2,
-        name: "Atención al Cliente",
-        description: "Atención general y consultas de clientes",
-        timezone: "America/New_York",
-        is_active: true,
-        agentsCount: 12,
-        agents: ["Sofia Torres", "Diego Ruiz", "Carmen Díaz"],
-        color: "bg-brand-gold",
-        company_id: 2
-    },
-    {
-        id: 2,
-        name: "Facturación",
-        description: "Gestión de pagos, facturas y consultas financieras",
-        timezone: "America/Mexico_City",
-        is_active: false,
-        agentsCount: 3,
-        agents: ["Roberto Fernández", "Isabel Castro"],
-        color: "bg-primary",
-        company_id: 3
-    },
-]
+import {Filters, PaginatedData, type SharedData} from "@/types";
+import { toast } from "sonner"
+import departmentsRouter from "@/routes/departments"
+import { toFormData } from '@/utils/form-data-utils';
+import { usePage } from '@inertiajs/react';
 
 export function Departments({ departmentsData, filters }: {departmentsData: PaginatedData<Department[]>; filters: Filters;}) {
-    const [departments, setDepartments] = useState<Department[]>(mockDepartments)
+    const { auth } = usePage<SharedData>().props;
     const [searchQuery, setSearchQuery] = useState("")
+    const [statusFilter, setStatusFilter] = useState<string>(
+        filters.status ?? 'all',
+    );
+    const [limitFilter, setLimitFilter] = useState<string>(
+        filters.limit ?? '10',
+    );
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [editingDepartment, setEditingDepartment] = useState<Department | undefined>()
+    const [isLoading, setIsLoading] = useState(false)
 
-    const filteredDepartments = departments.filter(
-        (dept) =>
-            dept.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            dept.description?.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
 
-    const handleSaveDepartment = (departmentData: Partial<Department>) => {
-        if (editingDepartment) {
-            setDepartments((prev) => prev.map((d) => (d.id === editingDepartment.id ? { ...d, ...departmentData } : d)))
-            setEditingDepartment(undefined)
+    const handleSaveDepartment = (department: Partial<Department>) => {
+        if (editingDepartment && department && department.id) {
+            const payload = toFormData(department, 'PUT');
+            // Añadimos el método PUT
+            router.post(departmentsRouter.update(department.id).url, payload, {
+                preserveState: true,
+                preserveScroll: true,
+                forceFormData: true,
+                onStart: () => setIsLoading(true),
+                onSuccess: () => {
+                    setIsLoading(false);
+                    toast.success('Department updated successfully.');
+                },
+                onError: (error) => {
+                    toast.error(error.message);
+                    setIsLoading(false);
+                },
+                onFinish: () => {
+                    setIsLoading(false)
+                    setEditingDepartment(undefined)
+                },
+            });
         } else {
-            const newDepartment: Department = {
-                id: Number(departments.length + 1),
-                name: departmentData.name!,
-                description: departmentData.description,
-                timezone: departmentData.timezone!,
-                is_active: departmentData.is_active ?? true,
+            const newDepartment = {
+                name: department.name!,
+                description: department.description,
+                timezone: department.timezone!,
+                is_active: department.is_active ?? true,
                 agentsCount: 0,
                 agents: [],
-                color: departmentData.color!,
-                company_id: 1,
+                color: department.color!,
+                company_id: auth.user.company_id,
             }
-            setDepartments([...departments, newDepartment])
+            // Añadimos el método PUT
+            router.post(departmentsRouter.store().url, newDepartment, {
+                preserveState: true,
+                preserveScroll: true,
+                forceFormData: true,
+                onStart: () => setIsLoading(true),
+                onSuccess: () => {
+                    setIsLoading(false);
+                    toast.success('Department created successfully.');
+                },
+                onError: (error) => {
+                    toast.error(error.message);
+                    setIsLoading(false);
+                },
+                onFinish: () => {
+                    setIsLoading(false)
+                    setEditingDepartment(undefined)
+                },
+            });
         }
         setIsCreateOpen(false)
     }
 
-    const handleDeleteDepartment = (id: number) => {
-        if (confirm("¿Estás seguro de que deseas eliminar este departamento?")) {
-            setDepartments((prev) => prev.filter((d) => d.id !== id))
-        }
+    const handleDeleteDepartment = (id?: number) => {
+        if (!id) return;
+        setIsLoading(true);
+        router.delete(departmentsRouter.destroy(id).url, {
+            preserveState: true,
+            preserveScroll: true,
+            onStart: () => setIsLoading(true),
+            onSuccess: () => {
+                setIsLoading(false);
+                toast.warning('Department deleted successfully.');
+            },
+            onError: (error   ) => {
+                toast.error(error.message);
+                setIsLoading(false)
+            },
+            onFinish: () => setIsLoading(false),
+        });
     }
 
-    const handleManageSchedule = (id: number) => {
-        router.visit(`/management/departments/${id}`)
+    const handleManageSchedule = (id?: number) => {
+        if (!id) return;
+        router.visit(departmentsRouter.show({id: id}).url)
     }
 
     const getTimezoneLabel = (timezone: string) => {
         return TIMEZONES.find((tz) => tz.value === timezone)?.label || timezone
     }
 
-    useEffect(() => {
-        console.log(departmentsData)
-        console.log(filters)
-    }, [
-        departmentsData,
-        filters,
-    ])
+    useEffect(()=>{
+        // Debounce para búsqueda
+        const handler = setTimeout(() => {
+            const params = {
+                search: searchQuery,
+                limit: limitFilter,
+                status: statusFilter,
+            };
+            const url = departmentsRouter.index.url({ query: params });
+            router.get(
+                url,
+                {},
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                    only: ['departments'],
+                    onStart: () => setIsLoading(true),
+                    onError: (error) => {
+                        toast.error(error.message);
+                        setIsLoading(false);
+                    },
+                    onFinish: () => setIsLoading(false),
+                },
+            );
+        }, 300);
 
+        return () => clearTimeout(handler);
+    },[searchQuery, statusFilter, limitFilter])
+
+    useEffect(()=>{
+
+    },[editingDepartment])
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -127,7 +167,10 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                     <h1 className="font-heading text-3xl font-bold text-foreground">Departamentos</h1>
                     <p className="text-muted-foreground">Organiza tu equipo en departamentos especializados</p>
                 </div>
-                <Button onClick={() => setIsCreateOpen(true)}>
+                <Button onClick={() => {
+                    setEditingDepartment(undefined)
+                    setIsCreateOpen(true)
+                }}>
                     <Plus className="mr-2 h-4 w-4" />
                     Crear Departamento
                 </Button>
@@ -138,23 +181,65 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                     <CardTitle>Buscar Departamentos</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                            placeholder="Buscar por nombre o descripción..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-10"
-                        />
+                    <div className="flex flex-col gap-4 xl:flex-row">
+                        <div className="relative block flex-1">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                placeholder="Buscar por nombre o descripción..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-10"
+                            />
+                        </div>
+                        <Select
+                            value={statusFilter}
+                            onValueChange={setStatusFilter}
+                        >
+                            <SelectTrigger className="w-full xl:w-40">
+                                <SelectValue placeholder="Estatus" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    Todos los estatus
+                                </SelectItem>
+                                <SelectItem value="true">Activo</SelectItem>
+                                <SelectItem value="false">
+                                    Inactivo
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Select
+                            value={limitFilter.toString()}
+                            onValueChange={setLimitFilter}
+                        >
+                            <SelectTrigger className="w-full xl:w-40">
+                                <SelectValue placeholder="Items Por Pagina" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="10">10</SelectItem>
+                                <SelectItem value="25">25</SelectItem>
+                                <SelectItem value="50">50</SelectItem>
+                                <SelectItem value="100">100</SelectItem>
+                                <SelectItem value="all">Todos</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardContent>
             </Card>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredDepartments.map((department) => (
-                    <Card key={department.id} className="relative overflow-hidden">
+
+                {isLoading && (
+                    <div className="flex items-center justify-center py-4 text-gray-500">
+                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                        Cargando departamentos...
+                    </div>
+                )}
+
+                {!isLoading && departmentsData.data && departmentsData.data.map((department) => (
+                    <Card key={department.id} className="relative overflow-hidden flex flex-col h-full">
                         <div className={`absolute left-0 top-0 h-full w-1 ${department.color}`} />
-                        <CardHeader>
+                        <CardHeader className="flex-1">
                             <div className="flex items-start justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className={`rounded-lg p-2 ${department.color}`}>
@@ -187,11 +272,8 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                                         >
                                             Editar
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem onClick={() => handleManageSchedule(department.id)}>
-                                            Gestionar Horarios
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem>Asignar Agentes</DropdownMenuItem>
-                                        <DropdownMenuItem>Ver Métricas</DropdownMenuItem>
+                                        {/*<DropdownMenuItem>Asignar Agentes</DropdownMenuItem>*/}
+                                        {/*<DropdownMenuItem>Ver Métricas</DropdownMenuItem>*/}
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem
                                             className="text-destructive"
@@ -239,7 +321,6 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                                     </div>
                                 </div>
                             )}
-
                             <Button
                                 variant="outline"
                                 className="w-full bg-transparent"

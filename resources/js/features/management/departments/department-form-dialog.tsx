@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { type Department, TIMEZONES } from "@/types/department"
+import { useEffect } from "react"
 
 interface DepartmentFormDialogProps {
     open: boolean
@@ -24,6 +25,7 @@ interface DepartmentFormDialogProps {
 
 export function DepartmentFormDialog({ open, onOpenChange, department, onSave }: DepartmentFormDialogProps) {
     const [formData, setFormData] = useState({
+        id: department?.id || undefined,
         name: department?.name || "",
         description: department?.description || "",
         timezone: department?.timezone || "America/Mexico_City",
@@ -36,6 +38,30 @@ export function DepartmentFormDialog({ open, onOpenChange, department, onSave }:
         onSave(formData)
         onOpenChange(false)
     }
+
+    useEffect(() => {
+        if (department) {
+            setFormData({
+                id: department.id,
+                name: department.name,
+                description: department.description || "",
+                timezone: department.timezone,
+                is_active: department.is_active,
+                color: department.color || "bg-brand-green",
+            })
+        }
+
+        if(!department){
+            setFormData({
+                id: undefined,
+                name: "",
+                description: "",
+                timezone: "America/Mexico_City",
+                is_active: true,
+                color: "bg-brand-green",
+            })
+        }
+    },[department]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

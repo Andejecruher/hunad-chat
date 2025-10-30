@@ -29,6 +29,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { UserActions } from './user-actions';
 import { UserInvite } from './user-invite';
 import {toast} from "sonner";
+import { toFormData } from '@/utils/form-data-utils';
 export function Users({
     usersData,
     filters,
@@ -47,25 +48,6 @@ export function Users({
         filters.limit ?? '10',
     );
     const [isLoading, setIsLoading] = useState(false);
-
-    // Helper: convierte un objeto en FormData (aceptable por Inertia)
-    const toFormData = (obj: Partial<UserType>, method: string) => {
-        const fd = new FormData();
-        Object.entries(obj).forEach(([key, value]) => {
-            if (value === undefined || value === null) return;
-            // Si es booleano dejarlo como string '1'/'0' o 'true'/'false'
-            if (typeof value === 'boolean') {
-                fd.append(key, value ? '1' : '0');
-            } else if (Array.isArray(value)) {
-                value.forEach((v) => fd.append(`${key}[]`, String(v)));
-            } else {
-                fd.append(key, String(value));
-            }
-        });
-        fd.append('_method', method);
-        return fd;
-    };
-
     // Paginación
     const handlePageChange = useCallback(
         (url: string | undefined) => {
