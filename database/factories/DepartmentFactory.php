@@ -30,7 +30,15 @@ class DepartmentFactory extends Factory
                 'Logística',
                 'Calidad'
             ]),
-            'description' => $this->faker->optional(0.7)->sentence(10),
+            'color' => $this->faker->randomElement([
+                'bg-brand-green',
+                'bg-brand-blue',
+                'bg-brand-red',
+                'bg-brand-yellow',
+                'bg-brand-purple',
+                'bg-brand-orange'
+            ]),
+            'description' => $this->faker->paragraph(3),
             'timezone' => $this->faker->randomElement([
                 'America/Mexico_City',
                 'America/New_York',
