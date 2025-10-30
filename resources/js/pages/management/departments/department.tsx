@@ -25,7 +25,7 @@ export default function DepartmentPage() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Configurations Company" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
-                <div className="relative min-h-screen flex-1 overflow-x-auto rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
+                <div className="relative min-h-screen flex-1 overflow-x-auto md:min-h-min">
                     <DepartmentSchedule params={{id: 1}} />
                 </div>
             </div>
