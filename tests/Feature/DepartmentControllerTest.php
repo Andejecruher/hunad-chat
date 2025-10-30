@@ -44,11 +44,7 @@ class DepartmentControllerTest extends TestCase
                     'per_page',
                     'total'
                 ],
-                'meta' => [
-                    'total_active',
-                    'total_inactive',
-                    'includes'
-                ]
+                'filters'
             ]);
 
         // Debe retornar solo los departamentos de la company del usuario
@@ -81,6 +77,7 @@ class DepartmentControllerTest extends TestCase
         $departmentData = [
             'name' => 'Nuevo Departamento',
             'description' => 'Descripción del departamento',
+            'color' => 'bg-blue-500',
             'timezone' => 'America/Mexico_City',
             'is_active' => true,
             'hours' => [
@@ -129,6 +126,7 @@ class DepartmentControllerTest extends TestCase
                 'data' => [
                     'id',
                     'name',
+                    'color',
                     'description',
                     'timezone',
                     'is_active',
@@ -137,7 +135,6 @@ class DepartmentControllerTest extends TestCase
                     'hours',
                     'exceptions'
                 ],
-                'meta'
             ]);
     }
 
@@ -153,7 +150,8 @@ class DepartmentControllerTest extends TestCase
         $response->assertStatus(403)
             ->assertJson([
                 'success' => false,
-                'message' => 'No tienes acceso a este departamento'
+                'message' => 'You do not have access to this department',
+                'toastType' => 'error'
             ]);
     }
 
@@ -174,7 +172,8 @@ class DepartmentControllerTest extends TestCase
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Departamento actualizado exitosamente'
+                'message' => 'Department updated successfully',
+                'toastType' => 'success'
             ]);
 
         $this->assertDatabaseHas('departments', [
@@ -196,10 +195,13 @@ class DepartmentControllerTest extends TestCase
         $response = $this->actingAs($this->user)
             ->patchJson("/management/departments/{$department->id}/toggle-status");
 
+        $status = $department->is_active ? 'deactivated':'activated';
+
         $response->assertStatus(200)
             ->assertJson([
                 'success' => true,
-                'message' => 'Departamento desactivado exitosamente'
+                'message' => "Department {$status} successfully",
+                'toastType' => 'success'
             ]);
 
         $this->assertDatabaseHas('departments', [

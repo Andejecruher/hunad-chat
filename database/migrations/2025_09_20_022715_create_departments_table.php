@@ -16,6 +16,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->string('name');
+            $table->string('color')->default('bg-brand-green');
             $table->text('description')->nullable();
             $table->string('timezone')->default('UTC');
             $table->boolean('is_active')->default(true);

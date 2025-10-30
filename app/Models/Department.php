@@ -14,6 +14,7 @@ class Department extends Model
     protected $fillable = [
         'company_id',
         'name',
+        'color',
         'description',
         'timezone',
         'is_active'
@@ -25,8 +26,7 @@ class Department extends Model
 
     protected $appends = [
         'agents_count',
-        'agents',
-        'color'
+        'agents'
     ];
 
     public function company(): BelongsTo
@@ -75,24 +75,6 @@ class Department extends Model
     public function getAgentsAttribute(): array
     {
         return $this->agents()->with('user:id,name,email')->get()->toArray();
-    }
-
-    public function getColorAttribute(): string
-    {
-        $colors = [
-            'bg-brand-green',
-            'bg-brand-teal',
-            'bg-brand-gold',
-            'bg-blue-500',
-            'bg-purple-500',
-            'bg-pink-500',
-            'bg-orange-500',
-            'bg-red-500',
-            'bg-indigo-500',
-            'bg-cyan-500'
-        ];
-
-        return $colors[$this->id % count($colors)];
     }
 
     // Método para obtener horario de un día específico

@@ -6,48 +6,48 @@ use App\Models\Department;
 use App\Http\Requests\StoreDepartmentRequest;
 use App\Http\Requests\UpdateDepartmentRequest;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Facades\Log;
 class DepartmentController extends Controller
 {
     /**
-     * Listar departamentos con búsqueda, filtros y paginación
+     * List departments with search, filters and pagination
      */
     public function index(Request $request)
     {
         $user = auth()->user();
-        $perPage = $request->get('per_page', 15);
+        $perPage = $request->get('limit', 10);
+        $status = $request->get('status', null);
 
         $query = Department::forCompany($user->company_id)
             ->with(['company:id,name', 'agents.user:id,name,email'])
             ->withCount(['agents', 'hours', 'exceptions']);
 
-        // Búsqueda en múltiples campos
+        Log::info("search term: " . $request->search);
+        Log::info($query->toSql(), $query->getBindings());
+
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = '%' . $request->search . '%';
             $query->where(function($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
-                  ->orWhere('description', 'like', $searchTerm);
+                    ->orWhere('description', 'like', $searchTerm);
             });
         }
 
-        // Filtro por estado activo/inactivo
-        if ($request->has('is_active') && $request->is_active !== null) {
-            $query->where('is_active', $request->boolean('is_active'));
+        if ($request->has('status') && $status !== null && $status !== 'all') {
+            $query->where('is_active', boolval($status === "true"));
         }
 
-        // Filtro por timezone
         if ($request->has('timezone') && !empty($request->timezone)) {
             $query->where('timezone', $request->timezone);
         }
 
-        // Ordenamiento
         $sortBy = $request->get('sort_by', 'name');
         $sortDirection = $request->get('sort_direction', 'asc');
 
         $allowedSorts = ['name', 'created_at', 'updated_at', 'is_active', 'agents_count'];
+
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortDirection);
         }
@@ -58,34 +58,32 @@ class DepartmentController extends Controller
             return response()->json([
                 'success' => true,
                 'data' => $departments,
-                'meta' => [
-                    'total_active' => Department::forCompany($user->company_id)->active()->count(),
-                    'total_inactive' => Department::forCompany($user->company_id)->where('is_active', false)->count(),
-                    'includes' => ['company', 'agents.user', 'agents_count', 'hours_count', 'exceptions_count']
-                ]
+                'filters' => $request->only(['search', 'status', 'limit', 'timezone', 'sort_by', 'sort_direction'])
             ]);
         }
 
         return inertia('management/departments/index', [
             'departments' => $departments,
-            'filters' => $request->only(['search', 'is_active', 'timezone', 'limit']),
+            'filters' => $request->only(['search', 'status', 'limit']),
         ]);
     }
 
     /**
-     * Obtener un departamento específico con todas sus relaciones
+     * Get a specific department with all relations
      */
-    public function show(Department $department): JsonResponse
+    public function show(Request $request, Department $department)
     {
         $user = auth()->user();
 
-        // Verificar que el departamento pertenece a la company del usuario
         if ($department->company_id !== $user->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No tienes acceso a este departamento',
-                'toastType' => 'error'
-            ], 403);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this department',
+                    'toastType' => 'error'
+                ], 403);
+            }
+            return back()->withErrors(['error' => 'You do not have access to this department']);
         }
 
         $department->load([
@@ -102,59 +100,66 @@ class DepartmentController extends Controller
             }
         ]);
 
-        return response()->json([
-            'success' => true,
-            'data' => $department,
-            'meta' => [
-                'includes' => ['company', 'agents.user', 'hours', 'exceptions', 'scheduleAudits.changedBy']
-            ]
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $department
+            ]);
+        }
+
+        return inertia('management/departments/department', [
+            'department' => $department
         ]);
     }
 
     /**
-     * Crear un nuevo departamento
+     * Create a new department
      */
-    public function store(StoreDepartmentRequest $request): JsonResponse
+    public function store(StoreDepartmentRequest $request)
     {
         try {
             DB::beginTransaction();
 
             $department = Department::create($request->validated());
 
-            // Crear horarios por defecto si se proporcionan
             if ($request->has('hours') && is_array($request->hours)) {
                 $this->syncDepartmentHours($department, $request->hours);
             }
 
-            // Registrar auditoría de creación
             $this->createScheduleAudit($department, 'created', null, $department->toArray());
 
             DB::commit();
 
             $department->load(['company:id,name', 'agents.user:id,name,email', 'hours']);
 
-            return response()->json([
-                'success' => true,
-                'data' => $department,
-                'message' => 'Departamento creado exitosamente',
-                'toastType' => 'success'
-            ], 201);
+            if($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $department,
+                    'message' => 'Department created successfully',
+                    'toastType' => 'success'
+                ], 201);
+            }
+            return back()->with('success', 'Department created successfully');
 
         } catch (QueryException $e) {
             DB::rollback();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el departamento: ' . $e->getMessage(),
-                'toastType' => 'error'
-            ], 422);
+            if($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error creating department: ' . $e->getMessage(),
+                    'toastType' => 'error'
+                ], 422);
+            }
+            return back()->withErrors(['error' => 'Error creating department: ' . $e->getMessage()])->withInput();
         }
     }
 
     /**
-     * Actualizar un departamento existente
+     * Update an existing department
      */
-    public function update(UpdateDepartmentRequest $request, Department $department): JsonResponse
+    public function update(UpdateDepartmentRequest $request, Department $department)
     {
         try {
             DB::beginTransaction();
@@ -162,111 +167,137 @@ class DepartmentController extends Controller
             $previousData = $department->toArray();
             $department->update($request->validated());
 
-            // Actualizar horarios si se proporcionan
             if ($request->has('hours') && is_array($request->hours)) {
                 $this->syncDepartmentHours($department, $request->hours);
             }
 
-            // Registrar auditoría de actualización
             $this->createScheduleAudit($department, 'updated', $previousData, $department->fresh()->toArray());
 
             DB::commit();
 
             $department->load(['company:id,name', 'agents.user:id,name,email', 'hours']);
 
-            return response()->json([
-                'success' => true,
-                'data' => $department,
-                'message' => 'Departamento actualizado exitosamente',
-                'toastType' => 'success'
-            ]);
+            if($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $department,
+                    'message' => 'Department updated successfully',
+                    'toastType' => 'success'
+                ]);
+            } else {
+                return back()->with('success', 'Department updated successfully');
+            }
 
         } catch (QueryException $e) {
             DB::rollback();
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar el departamento: ' . $e->getMessage(),
-                'toastType' => 'error'
-            ], 422);
+            if($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error updating department: ' . $e->getMessage(),
+                    'toastType' => 'error'
+                ], 422);
+            } else {
+                return back()->withErrors(['error' => 'Error updating department: ' . $e->getMessage()])->withInput();
+            }
         }
     }
 
     /**
-     * Eliminar un departamento
+     * Delete a department
      */
-    public function destroy(Department $department): JsonResponse
+    public function destroy(Request $request, Department $department)
     {
         $user = auth()->user();
 
-        // Verificar que el departamento pertenece a la company del usuario
         if ($department->company_id !== $user->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No tienes acceso a este departamento',
-                'toastType' => 'error'
-            ], 403);
+            if($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this department',
+                    'toastType' => 'error'
+                ], 403);
+            } else {
+                return back()->withErrors(['error' => 'You do not have access to this department']);
+            }
         }
 
         try {
             DB::beginTransaction();
 
-            // Verificar si hay agentes asignados
             $agentsCount = $department->agents()->count();
             if ($agentsCount > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "No se puede eliminar el departamento porque tiene {$agentsCount} agente(s) asignado(s)",
-                    'toastType' => 'error'
-                ], 422);
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Cannot delete department because it has {$agentsCount} assigned agent(s)",
+                        'toastType' => 'error'
+                    ], 422);
+                } else {
+                    return back()->withErrors(['error' => "Cannot delete department because it has {$agentsCount} assigned agent(s)"]);
+                }
             }
 
-            // Registrar auditoría de eliminación
             $this->createScheduleAudit($department, 'deleted', $department->toArray(), null);
 
             $department->delete();
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Departamento eliminado exitosamente',
-                'toastType' => 'success'
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Department deleted successfully',
+                    'toastType' => 'success'
+                ]);
+            } else {
+                return back()->with('success', 'Department deleted successfully');
+            }
 
         } catch (QueryException $e) {
             DB::rollback();
 
-            // Error de integridad referencial
             if ($e->getCode() === '23000') {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No se puede eliminar el departamento porque tiene registros relacionados',
-                    'toastType' => 'error'
-                ], 422);
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot delete department because it has related records',
+                        'toastType' => 'error'
+                    ], 422);
+                } else {
+                    return back()->withErrors(['error' => 'Cannot delete department because it has related records']);
+                }
             }
 
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al eliminar el departamento: ' . $e->getMessage(),
-                'toastType' => 'error'
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error deleting department: ' . $e->getMessage(),
+                    'toastType' => 'error'
+                ], 500);
+            } else {
+                return back()->withErrors(['error' => 'Error deleting department: ' . $e->getMessage()]);
+            }
         }
     }
 
     /**
-     * Activar/Desactivar un departamento
+     * Toggle department active/inactive
      */
-    public function toggleStatus(Department $department): JsonResponse
+    public function toggleStatus(Request $request, Department $department)
     {
         $user = auth()->user();
 
         if ($department->company_id !== $user->company_id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No tienes acceso a este departamento',
-                'toastType' => 'error'
-            ], 403);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You do not have access to this department',
+                    'toastType' => 'error'
+                ], 403);
+            } else {
+                return back()->withErrors(['error' => 'You do not have access to this department']);
+            }
         }
 
         try {
@@ -275,28 +306,36 @@ class DepartmentController extends Controller
 
             $this->createScheduleAudit($department, 'updated', $previousData, $department->fresh()->toArray());
 
-            $status = $department->is_active ? 'activado' : 'desactivado';
+            $status = $department->is_active ? 'activated' : 'deactivated';
 
-            return response()->json([
-                'success' => true,
-                'data' => $department,
-                'message' => "Departamento {$status} exitosamente",
-                'toastType' => 'success'
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $department,
+                    'message' => "Department {$status} successfully",
+                    'toastType' => 'success'
+                ]);
+            } else {
+                return back()->with('success', "Department {$status} successfully");
+            }
 
         } catch (QueryException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al cambiar el estado del departamento: ' . $e->getMessage(),
-                'toastType' => 'error'
-            ], 500);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error changing department status: ' . $e->getMessage(),
+                    'toastType' => 'error'
+                ], 500);
+            } else {
+                return back()->withErrors(['error' => 'Error changing department status: ' . $e->getMessage()]);
+            }
         }
     }
 
     /**
-     * Obtener estadísticas de los departamentos
+     * Get departments statistics
      */
-    public function stats(Request $request): JsonResponse
+    public function stats(Request $request)
     {
         $user = auth()->user();
 
@@ -314,21 +353,25 @@ class DepartmentController extends Controller
                 ->map(fn($item) => $item->count)
         ];
 
-        return response()->json([
-            'success' => true,
-            'data' => $stats
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $stats
+            ]);
+        }
+
+        return inertia('management/departments/stats', [
+            'stats' => $stats
         ]);
     }
 
     /**
-     * Método privado para sincronizar horarios del departamento
+     * Sync department hours
      */
     private function syncDepartmentHours(Department $department, array $hours): void
     {
-        // Eliminar horarios existentes
         $department->hours()->delete();
 
-        // Crear nuevos horarios
         foreach ($hours as $hour) {
             $department->hours()->create([
                 'day_of_week' => $hour['day_of_week'],
@@ -340,7 +383,7 @@ class DepartmentController extends Controller
     }
 
     /**
-     * Método privado para crear auditoría de cambios
+     * Create schedule audit
      */
     private function createScheduleAudit(Department $department, string $changeType, ?array $previousData, ?array $newData): void
     {
