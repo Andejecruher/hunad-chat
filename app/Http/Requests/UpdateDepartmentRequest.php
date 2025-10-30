@@ -19,6 +19,7 @@ class UpdateDepartmentRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|required|string|max:255',
+            'color' => 'sometimes|required|string|max:50',
             'description' => 'nullable|string',
             'timezone' => 'sometimes|required|string|max:50',
             'is_active' => 'boolean',
@@ -35,6 +36,7 @@ class UpdateDepartmentRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'color.required' => 'El color del departamento es requerido.',
             'name.required' => 'El nombre del departamento es requerido.',
             'name.max' => 'El nombre no puede exceder 255 caracteres.',
             'timezone.required' => 'La zona horaria es requerida.',

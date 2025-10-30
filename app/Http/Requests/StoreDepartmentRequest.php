@@ -17,6 +17,7 @@ class StoreDepartmentRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
+            'color' => 'required|string|max:50',
             'timezone' => 'required|string|max:50',
             'is_active' => 'boolean',
             'company_id' => 'required|exists:companies,id',
