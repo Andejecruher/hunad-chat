@@ -145,6 +145,8 @@ class DepartmentController extends Controller
         } catch (QueryException $e) {
             DB::rollback();
 
+            Log::error('Error creating department: ' . $e->getMessage());
+
             if($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -383,8 +385,7 @@ class DepartmentController extends Controller
                         'day_of_week' => $dayOfWeek,
                         'open_time' => $timeRange['open_time'] ?? null,
                         'close_time' => $timeRange['close_time'] ?? null,
-                        'is_closed' => $isClosed,
-                        'uuid' => $timeRange['id'] ?? \Illuminate\Support\Str::uuid(),
+                        'is_closed' => $isClosed
                     ]);
                 }
             } else {

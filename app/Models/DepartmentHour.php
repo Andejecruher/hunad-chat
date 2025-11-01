@@ -16,8 +16,7 @@ class DepartmentHour extends Model
         'day_of_week',
         'open_time',
         'close_time',
-        'is_closed',
-        'uuid'
+        'is_closed'
     ];
 
     protected $casts = [
@@ -25,17 +24,6 @@ class DepartmentHour extends Model
         'open_time' => 'datetime:H:i:s',
         'close_time' => 'datetime:H:i:s'
     ];
-
-    protected static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($model) {
-            if (empty($model->uuid)) {
-                $model->uuid = (string) Str::uuid();
-            }
-        });
-    }
 
     public function department(): BelongsTo
     {
