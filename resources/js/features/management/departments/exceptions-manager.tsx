@@ -20,12 +20,11 @@ import { Calendar, Plus, Trash2, Edit, AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ExceptionsManagerProps {
-    departmentId: number
     initialExceptions?: DepartmentException[]
     onSave: (exceptions: DepartmentException[]) => void
 }
 
-export function ExceptionsManager({ departmentId, initialExceptions = [], onSave }: ExceptionsManagerProps) {
+export function ExceptionsManager({ initialExceptions = [], onSave }: ExceptionsManagerProps) {
     const [exceptions, setExceptions] = useState<DepartmentException[]>(initialExceptions)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [editingException, setEditingException] = useState<DepartmentException | null>(null)

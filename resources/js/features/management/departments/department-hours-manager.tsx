@@ -10,12 +10,11 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 
 interface DepartmentHoursManagerProps {
-    departmentId: number
     initialHours?: DepartmentHours[]
     onSave: (hours: DepartmentHours[]) => void
 }
 
-export function DepartmentHoursManager({ departmentId, initialHours, onSave }: DepartmentHoursManagerProps) {
+export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHoursManagerProps) {
 
     const [hours, setHours] = useState<DepartmentHours[]>(() => {
         if (initialHours && initialHours.length > 0) {
@@ -92,11 +91,11 @@ export function DepartmentHoursManager({ departmentId, initialHours, onSave }: D
 
     const hasOverlap = (dayOfWeek: number): boolean => {
         const hour = hours.find((h) => h.day_of_week === dayOfWeek)
-        if (!hour || hour.is_closed || hour.time_ranges.length < 2) return false
+        if (!hour || hour.is_closed || hour.time_ranges?.length < 2) return false
 
-        const ranges = hour.time_ranges.sort((a, b) => a.open_time.localeCompare(b.open_time))
+        const ranges = hour.time_ranges?.sort((a, b) => a.open_time.localeCompare(b.open_time))
 
-        for (let i = 0; i < ranges.length - 1; i++) {
+        for (let i = 0; i < ranges?.length - 1; i++) {
             if (ranges[i].close_time > ranges[i + 1].open_time) {
                 return true
             }
@@ -109,7 +108,7 @@ export function DepartmentHoursManager({ departmentId, initialHours, onSave }: D
         if (!hour || hour.is_closed) return true
 
         // Validar que cada rango tenga hora de cierre posterior a apertura
-        const allRangesValid = hour.time_ranges.every((r) => r.close_time > r.open_time)
+        const allRangesValid = hour.time_ranges?.every((r) => r.close_time > r.open_time)
 
         // Validar que no haya solapamientos
         const noOverlap = !hasOverlap(dayOfWeek)
@@ -162,9 +161,9 @@ export function DepartmentHoursManager({ departmentId, initialHours, onSave }: D
         setHasChanges(false)
     }
 
-    useEffect(()=>{
-        console.log(departmentId)
-    },[departmentId])
+    useEffect(() => {
+        console.log('[v0] Horarios actuales:', hours)
+    }, [initialHours])
 
     return (
         <Card>
@@ -184,7 +183,7 @@ export function DepartmentHoursManager({ departmentId, initialHours, onSave }: D
                         const dayHour = hours.find((h) => h.day_of_week === day.value)
                         const isValid = validateTime(day.value)
                         const overlap = hasOverlap(day.value)
-                        const canBeOpen = dayHour ? dayHour.time_ranges.length > 0 : false
+                        const canBeOpen = dayHour ? dayHour?.time_ranges?.length > 0 : false
 
                         if (!dayHour) return null
 
@@ -212,7 +211,7 @@ export function DepartmentHoursManager({ departmentId, initialHours, onSave }: D
                                             variant="outline"
                                             size="sm"
                                             onClick={() => addTimeRange(day.value)}
-                                            disabled={dayHour.time_ranges.length >= 3}
+                                            disabled={dayHour?.time_ranges?.length >= 3}
                                             className="ml-auto"
                                         >
                                             <Plus className="h-4 w-4 mr-1" />
@@ -285,7 +284,7 @@ export function DepartmentHoursManager({ departmentId, initialHours, onSave }: D
                                     </div>
                                 )}
 
-                                {dayHour.is_closed && dayHour.time_ranges.length === 0 && (
+                                {dayHour?.is_closed && dayHour?.time_ranges?.length === 0 && (
                                     <div className="pl-32">
                                         <Alert>
                                             <AlertCircle className="h-4 w-4" />

@@ -99,6 +99,18 @@ class DepartmentFactory extends Factory
             ];
         }
 
+        for ($day = 1; $day <= 5; $day++) {
+            $hours[] = [
+                'department_id' => $department->id,
+                'day_of_week' => $day,
+                'open_time' => '18:00:00',
+                'close_time' => '22:00:00',
+                'is_closed' => false,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
+        }
+
         $hours[] = [
             'department_id' => $department->id,
             'day_of_week' => 6,

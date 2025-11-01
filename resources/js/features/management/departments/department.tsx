@@ -1,13 +1,13 @@
-import { useState } from "react"
+import {useEffect, useState} from "react"
 import departmentRouter from '@/routes/departments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
 import { DepartmentHoursManager } from "./department-hours-manager"
 import { ExceptionsManager } from "./exceptions-manager"
-import type { DepartmentHours, DepartmentException } from "@/types/department"
+import type { DepartmentHours, DepartmentException, Department } from "@/types/department"
 
-export function DepartmentSchedule({ params }: { params: { id: number } }) {
+export function DepartmentSchedule({ department }: {department: Department}) {
     const [hours, setHours] = useState<DepartmentHours[]>([])
     const [exceptions, setExceptions] = useState<DepartmentException[]>([])
 
@@ -22,6 +22,19 @@ export function DepartmentSchedule({ params }: { params: { id: number } }) {
         console.log("[v0] Guardando excepciones:", newExceptions)
         // Aquí iría la llamada a la API
     }
+
+    useEffect(() => {
+        // imprimier en consola el departamento recibido
+        console.log("Departamento recibido:", department)
+        console.log("Horarios iniciales:", department.hours)
+        console.log("Excepciones iniciales:", department.exceptions)
+        if(department.hours){
+            setHours(department.hours)
+        }
+        if(department.exceptions){
+            setExceptions(department.exceptions)
+        }
+    },[department])
 
     return (
         <div className="space-y-6">
@@ -43,11 +56,11 @@ export function DepartmentSchedule({ params }: { params: { id: number } }) {
                 </TabsList>
 
                 <TabsContent value="hours" className="space-y-4">
-                    <DepartmentHoursManager departmentId={params.id} initialHours={hours} onSave={handleSaveHours} />
+                    <DepartmentHoursManager  initialHours={hours} onSave={handleSaveHours} />
                 </TabsContent>
 
                 <TabsContent value="exceptions" className="space-y-4">
-                    <ExceptionsManager departmentId={params.id} initialExceptions={exceptions} onSave={handleSaveExceptions} />
+                    <ExceptionsManager initialExceptions={exceptions} onSave={handleSaveExceptions} />
                 </TabsContent>
 
                 <TabsContent value="preview" className="space-y-4">

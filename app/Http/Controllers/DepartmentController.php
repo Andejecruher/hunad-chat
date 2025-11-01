@@ -90,7 +90,7 @@ class DepartmentController extends Controller
             'company:id,name',
             'agents.user:id,name,email',
             'hours' => function($query) {
-                $query->orderBy('day_of_week');
+                $query->orderBy('day_of_week')->orderBy('open_time');
             },
             'exceptions' => function($query) {
                 $query->orderBy('start_date', 'desc');
@@ -103,12 +103,12 @@ class DepartmentController extends Controller
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
-                'data' => $department
+                'data' => $department,
             ]);
         }
 
         return inertia('management/departments/department', [
-            'department' => $department
+            'department' => $department,
         ]);
     }
 
@@ -372,13 +372,30 @@ class DepartmentController extends Controller
     {
         $department->hours()->delete();
 
-        foreach ($hours as $hour) {
-            $department->hours()->create([
-                'day_of_week' => $hour['day_of_week'],
-                'open_time' => $hour['open_time'] ?? null,
-                'close_time' => $hour['close_time'] ?? null,
-                'is_closed' => $hour['is_closed'] ?? false,
-            ]);
+        foreach ($hours as $daySchedule) {
+            $dayOfWeek = $daySchedule['day_of_week'];
+            $isClosed = $daySchedule['is_closed'] ?? false;
+
+            if (isset($daySchedule['time_ranges']) && is_array($daySchedule['time_ranges'])) {
+                // Si hay múltiples rangos de tiempo, crear uno por cada rango
+                foreach ($daySchedule['time_ranges'] as $timeRange) {
+                    $department->hours()->create([
+                        'day_of_week' => $dayOfWeek,
+                        'open_time' => $timeRange['open_time'] ?? null,
+                        'close_time' => $timeRange['close_time'] ?? null,
+                        'is_closed' => $isClosed,
+                        'uuid' => $timeRange['id'] ?? \Illuminate\Support\Str::uuid(),
+                    ]);
+                }
+            } else {
+                // Formato legacy - compatibilidad con formato anterior
+                $department->hours()->create([
+                    'day_of_week' => $dayOfWeek,
+                    'open_time' => $daySchedule['open_time'] ?? null,
+                    'close_time' => $daySchedule['close_time'] ?? null,
+                    'is_closed' => $isClosed,
+                ]);
+            }
         }
     }
 

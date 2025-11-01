@@ -34,10 +34,6 @@ return new class extends Migration
             $table->time('close_time')->nullable();
             $table->boolean('is_closed')->default(false);
             $table->timestamps();
-
-            // Un único horario por día por departamento
-            $table->unique(['department_id', 'day_of_week']);
-
             $table->index(['department_id', 'day_of_week', 'is_closed']);
         });
 
