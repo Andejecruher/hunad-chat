@@ -3,9 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Company;
-use App\Models\DepartmentException;
 use App\Models\Department;
-use App\Models\User;
+use App\Models\DepartmentException;
 use App\Models\DepartmentHour;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -28,15 +27,10 @@ class DepartmentFactory extends Factory
                 'TI',
                 'Operaciones',
                 'Logística',
-                'Calidad'
+                'Calidad',
             ]),
             'color' => $this->faker->randomElement([
-                'bg-brand-green',
-                'bg-brand-blue',
-                'bg-brand-red',
-                'bg-brand-yellow',
-                'bg-brand-purple',
-                'bg-brand-orange'
+                'bg-brand-green', 'bg-brand-teal', 'bg-brand-gold', 'bg-primary', 'bg-blue-500', 'bg-purple-500',
             ]),
             'description' => $this->faker->paragraph(3),
             'timezone' => $this->faker->randomElement([
@@ -45,7 +39,7 @@ class DepartmentFactory extends Factory
                 'America/Los_Angeles',
                 'America/Chicago',
                 'Europe/Madrid',
-                'UTC'
+                'UTC',
             ]),
             'is_active' => $this->faker->boolean(90),
         ];
@@ -177,8 +171,8 @@ class DepartmentFactory extends Factory
 
         foreach ($annualExceptions as $exception) {
             if ($this->faker->boolean(70)) {
-                $month = (int)$exception['recurrence_pattern']['month'];
-                $day = (int)$exception['recurrence_pattern']['day'];
+                $month = (int) $exception['recurrence_pattern']['month'];
+                $day = (int) $exception['recurrence_pattern']['day'];
                 $startDate = sprintf('%04d-%02d-%02d', $currentYear, $month, $day);
 
                 $row = [
@@ -224,7 +218,7 @@ class DepartmentFactory extends Factory
                     'Mantenimiento programado',
                     'Capacitación interna',
                     'Evento corporativo',
-                    'Feriado local'
+                    'Feriado local',
                 ]),
                 'type' => 'specific',
                 'start_date' => $specificDate,
@@ -244,7 +238,7 @@ class DepartmentFactory extends Factory
             $exceptions[] = array_replace($baseRow, $row);
         }
 
-        if (!empty($exceptions)) {
+        if (! empty($exceptions)) {
             DepartmentException::insert($exceptions);
         }
     }

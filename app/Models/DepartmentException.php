@@ -29,8 +29,6 @@ class DepartmentException extends Model
         'end_date' => 'date',
         'recurrence_pattern' => 'array',
         'partial_hours' => 'array',
-        'special_open_time' => 'datetime:H:i:s',
-        'special_close_time' => 'datetime:H:i:s'
     ];
 
     // Comportamientos disponibles
