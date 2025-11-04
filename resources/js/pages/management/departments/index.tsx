@@ -1,10 +1,8 @@
-import AppLayout from '@/layouts/app-layout';
-import {
-    type BreadcrumbItem, Department, PaginatedData,
-} from '@/types';
-import { Head } from '@inertiajs/react';
 import { Departments } from '@/features/management/departments/departments';
+import AppLayout from '@/layouts/app-layout';
 import departmentsRoutes from '@/routes/departments';
+import { type BreadcrumbItem, Department, PaginatedData } from '@/types';
+import { Head } from '@inertiajs/react';
 
 interface UserFilters {
     search?: string;
@@ -34,7 +32,10 @@ export default function DepartmentsPage(props: {
             <Head title="Configurations Company" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
                 <div className="relative min-h-screen flex-1 overflow-x-auto md:min-h-min">
-                    <Departments departmentsData={departments} filters={filters} />
+                    <Departments
+                        departmentsData={departments}
+                        filters={filters}
+                    />
                 </div>
             </div>
         </AppLayout>

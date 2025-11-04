@@ -1,7 +1,13 @@
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,37 +15,54 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select'
-import departmentsRouter from "@/routes/departments"
-import { Filters, PaginatedData, type SharedData } from "@/types"
-import { type Department, TIMEZONES } from "@/types/department"
-import { toFormData } from '@/utils/form-data-utils'
-import { router, usePage } from "@inertiajs/react"
-import { Clock, Globe, Layers, Loader2, MoreVertical, Plus, Search, Users } from "lucide-react"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
-import { DepartmentFormDialog } from "./department-form-dialog"
+} from '@/components/ui/select';
+import departmentsRouter from '@/routes/departments';
+import { Filters, PaginatedData, type SharedData } from '@/types';
+import { type Department, TIMEZONES } from '@/types/department';
+import { toFormData } from '@/utils/form-data-utils';
+import { router, usePage } from '@inertiajs/react';
+import {
+    Clock,
+    Globe,
+    Layers,
+    Loader2,
+    MoreVertical,
+    Plus,
+    Search,
+    Users,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { DepartmentFormDialog } from './department-form-dialog';
 
-export function Departments({ departmentsData, filters }: { departmentsData: PaginatedData<Department[]>; filters: Filters; }) {
+export function Departments({
+    departmentsData,
+    filters,
+}: {
+    departmentsData: PaginatedData<Department[]>;
+    filters: Filters;
+}) {
     const { auth } = usePage<SharedData>().props;
-    const [searchQuery, setSearchQuery] = useState("")
+    const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>(
         filters.status ?? 'all',
     );
     const [limitFilter, setLimitFilter] = useState<string>(
         filters.limit ?? '10',
     );
-    const [isCreateOpen, setIsCreateOpen] = useState(false)
-    const [editingDepartment, setEditingDepartment] = useState<Department | undefined>()
-    const [isLoading, setIsLoading] = useState(false)
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [editingDepartment, setEditingDepartment] = useState<
+        Department | undefined
+    >();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSaveDepartment = (department: Partial<Department>) => {
         if (editingDepartment && department && department.id) {
@@ -59,8 +82,8 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
                     setIsLoading(false);
                 },
                 onFinish: () => {
-                    setIsLoading(false)
-                    setEditingDepartment(undefined)
+                    setIsLoading(false);
+                    setEditingDepartment(undefined);
                 },
             });
         } else {
@@ -73,7 +96,7 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
                 agents: [],
                 color: department.color!,
                 company_id: auth.user.company_id,
-            }
+            };
             // Añadimos el método PUT
             router.post(departmentsRouter.store().url, newDepartment, {
                 preserveState: true,
@@ -89,13 +112,13 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
                     setIsLoading(false);
                 },
                 onFinish: () => {
-                    setIsLoading(false)
-                    setEditingDepartment(undefined)
+                    setIsLoading(false);
+                    setEditingDepartment(undefined);
                 },
             });
         }
-        setIsCreateOpen(false)
-    }
+        setIsCreateOpen(false);
+    };
 
     const handleDeleteDepartment = (id?: number) => {
         if (!id) return;
@@ -110,20 +133,20 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
             },
             onError: (error) => {
                 toast.error(error.message);
-                setIsLoading(false)
+                setIsLoading(false);
             },
             onFinish: () => setIsLoading(false),
         });
-    }
+    };
 
     const handleManageSchedule = (id?: number) => {
         if (!id) return;
-        router.visit(departmentsRouter.show({ id: id }).url)
-    }
+        router.visit(departmentsRouter.show({ id: id }).url);
+    };
 
     const getTimezoneLabel = (timezone: string) => {
-        return TIMEZONES.find((tz) => tz.value === timezone)?.label || timezone
-    }
+        return TIMEZONES.find((tz) => tz.value === timezone)?.label || timezone;
+    };
 
     useEffect(() => {
         // Debounce para búsqueda
@@ -153,19 +176,25 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
         }, 300);
 
         return () => clearTimeout(handler);
-    }, [searchQuery, statusFilter, limitFilter])
+    }, [searchQuery, statusFilter, limitFilter]);
 
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="font-heading text-3xl font-bold text-foreground">Departamentos</h1>
-                    <p className="text-muted-foreground">Organiza tu equipo en departamentos especializados</p>
+                    <h1 className="font-heading text-3xl font-bold text-foreground">
+                        Departamentos
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Organiza tu equipo en departamentos especializados
+                    </p>
                 </div>
-                <Button onClick={() => {
-                    setEditingDepartment(undefined)
-                    setIsCreateOpen(true)
-                }}>
+                <Button
+                    onClick={() => {
+                        setEditingDepartment(undefined);
+                        setIsCreateOpen(true);
+                    }}
+                >
                     <Plus className="mr-2 h-4 w-4" />
                     Crear Departamento
                 </Button>
@@ -178,7 +207,7 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
                 <CardContent>
                     <div className="flex flex-col gap-4 xl:flex-row">
                         <div className="relative block flex-1">
-                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                             <Input
                                 placeholder="Buscar por nombre o descripción..."
                                 value={searchQuery}
@@ -198,9 +227,7 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
                                     Todos los estatus
                                 </SelectItem>
                                 <SelectItem value="true">Activo</SelectItem>
-                                <SelectItem value="false">
-                                    Inactivo
-                                </SelectItem>
+                                <SelectItem value="false">Inactivo</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select
@@ -223,120 +250,175 @@ export function Departments({ departmentsData, filters }: { departmentsData: Pag
             </Card>
 
             {isLoading && (
-                <div className="flex w-full h-full items-center justify-center py-4 text-gray-500 m-auto">
+                <div className="m-auto flex h-full w-full items-center justify-center py-4 text-gray-500">
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     Cargando departamentos...
                 </div>
             )}
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {!isLoading && departmentsData.data && departmentsData.data.map((department) => (
-                    <Card key={department.id} className="relative overflow-hidden flex flex-col h-full">
-                        <div className={`absolute left-0 top-0 h-full w-1 ${department.color}`} />
-                        <CardHeader className="flex-1">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`rounded-lg p-2 ${department.color}`}>
-                                        <Layers className="h-5 w-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <CardTitle className="text-lg">{department.name}</CardTitle>
-                                            <Badge variant={department.is_active ? "default" : "secondary"}>
-                                                {department.is_active ? "Activo" : "Inactivo"}
-                                            </Badge>
+                {!isLoading &&
+                    departmentsData.data &&
+                    departmentsData.data.map((department) => (
+                        <Card
+                            key={department.id}
+                            className="relative flex h-full flex-col overflow-hidden"
+                        >
+                            <div
+                                className={`absolute top-0 left-0 h-full w-1 ${department.color}`}
+                            />
+                            <CardHeader className="flex-1">
+                                <div className="flex items-start justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                            className={`rounded-lg p-2 ${department.color}`}
+                                        >
+                                            <Layers className="h-5 w-5 text-white" />
                                         </div>
-                                        <CardDescription className="mt-1">{department.description}</CardDescription>
-                                    </div>
-                                </div>
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreVertical className="h-4 w-4" />
-                                        </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            onClick={() => {
-                                                setEditingDepartment(department)
-                                                setIsCreateOpen(true)
-                                            }}
-                                        >
-                                            Editar
-                                        </DropdownMenuItem>
-                                        {/*<DropdownMenuItem>Asignar Agentes</DropdownMenuItem>*/}
-                                        {/*<DropdownMenuItem>Ver Métricas</DropdownMenuItem>*/}
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem
-                                            className="text-destructive"
-                                            onClick={() => handleDeleteDepartment(department.id)}
-                                        >
-                                            Eliminar
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <Globe className="h-4 w-4" />
-                                <span>{getTimezoneLabel(department.timezone)}</span>
-                            </div>
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Users className="h-4 w-4" />
-                                    <span>{department?.agents_count} agentes</span>
-                                </div>
-                                <Badge variant="secondary">{department.agents_count && department.agents_count > 5 ? "Grande" : "Pequeño"}</Badge>
-                            </div>
-
-                            {department.agents && department.agents.length > 0 && (
-                                <div className="space-y-2">
-                                    <div className="text-sm font-medium">Agentes Asignados</div>
-                                    <div className="flex -space-x-2">
-                                        {department?.agents.slice(0, 3).map((agent, index) => (
-                                            <Avatar key={index} className="border-2 border-background">
-                                                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                                    {agent.user.name
-                                                        .split(" ")
-                                                        .map((n) => n[0])
-                                                        .join("")}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                        ))}
-                                        {department?.agents_count && department.agents_count > 3 && (
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium">
-                                                +{department.agents_count - 3}
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <CardTitle className="text-lg">
+                                                    {department.name}
+                                                </CardTitle>
+                                                <Badge
+                                                    variant={
+                                                        department.is_active
+                                                            ? 'default'
+                                                            : 'secondary'
+                                                    }
+                                                >
+                                                    {department.is_active
+                                                        ? 'Activo'
+                                                        : 'Inactivo'}
+                                                </Badge>
                                             </div>
-                                        )}
+                                            <CardDescription className="mt-1">
+                                                {department.description}
+                                            </CardDescription>
+                                        </div>
                                     </div>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuLabel>
+                                                Acciones
+                                            </DropdownMenuLabel>
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                onClick={() => {
+                                                    setEditingDepartment(
+                                                        department,
+                                                    );
+                                                    setIsCreateOpen(true);
+                                                }}
+                                            >
+                                                Editar
+                                            </DropdownMenuItem>
+                                            {/*<DropdownMenuItem>Asignar Agentes</DropdownMenuItem>*/}
+                                            {/*<DropdownMenuItem>Ver Métricas</DropdownMenuItem>*/}
+                                            <DropdownMenuSeparator />
+                                            <DropdownMenuItem
+                                                className="text-destructive"
+                                                onClick={() =>
+                                                    handleDeleteDepartment(
+                                                        department.id,
+                                                    )
+                                                }
+                                            >
+                                                Eliminar
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
-                            )}
-                            <Button
-                                variant="outline"
-                                className="w-full bg-transparent"
-                                onClick={() => handleManageSchedule(department.id)}
-                            >
-                                <Clock className="mr-2 h-4 w-4" />
-                                Gestionar Horarios
-                            </Button>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Globe className="h-4 w-4" />
+                                    <span>
+                                        {getTimezoneLabel(department.timezone)}
+                                    </span>
+                                </div>
+
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Users className="h-4 w-4" />
+                                        <span>
+                                            {department?.agents_count} agentes
+                                        </span>
+                                    </div>
+                                    <Badge variant="secondary">
+                                        {department.agents_count &&
+                                        department.agents_count > 5
+                                            ? 'Grande'
+                                            : 'Pequeño'}
+                                    </Badge>
+                                </div>
+
+                                {department.agents &&
+                                    department.agents.length > 0 && (
+                                        <div className="space-y-2">
+                                            <div className="text-sm font-medium">
+                                                Agentes Asignados
+                                            </div>
+                                            <div className="flex -space-x-2">
+                                                {department?.agents
+                                                    .slice(0, 3)
+                                                    .map((agent, index) => (
+                                                        <Avatar
+                                                            key={index}
+                                                            className="border-2 border-background"
+                                                        >
+                                                            <AvatarFallback className="bg-primary text-xs text-primary-foreground">
+                                                                {agent.user.name
+                                                                    .split(' ')
+                                                                    .map(
+                                                                        (n) =>
+                                                                            n[0],
+                                                                    )
+                                                                    .join('')}
+                                                            </AvatarFallback>
+                                                        </Avatar>
+                                                    ))}
+                                                {department?.agents_count &&
+                                                    department.agents_count >
+                                                        3 && (
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium">
+                                                            +
+                                                            {department.agents_count -
+                                                                3}
+                                                        </div>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    )}
+                                <Button
+                                    variant="outline"
+                                    className="w-full bg-transparent"
+                                    onClick={() =>
+                                        handleManageSchedule(department.id)
+                                    }
+                                >
+                                    <Clock className="mr-2 h-4 w-4" />
+                                    Gestionar Horarios
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ))}
             </div>
 
             <DepartmentFormDialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
-                    setIsCreateOpen(open)
-                    if (!open) setEditingDepartment(undefined)
+                    setIsCreateOpen(open);
+                    if (!open) setEditingDepartment(undefined);
                 }}
                 department={editingDepartment}
                 onSave={handleSaveDepartment}
             />
         </div>
-    )
+    );
 }
