@@ -1,4 +1,5 @@
-import { useState } from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -14,10 +15,10 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import type { DepartmentException } from "@/types/department"
-import { Calendar, Plus, Trash2, Edit, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import type { DepartmentException, MonthlyRecurrence } from "@/types/department"
+import { to12HourFormat } from "@/utils/timeFormatter"
+import { AlertCircle, Calendar, Edit, Plus, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
 
 interface ExceptionsManagerProps {
     initialExceptions?: DepartmentException[]
@@ -30,24 +31,90 @@ export function ExceptionsManager({ initialExceptions = [], onSave }: Exceptions
     const [editingException, setEditingException] = useState<DepartmentException | null>(null)
 
     const handleAddException = (exception: DepartmentException) => {
+        let updatedExceptions: DepartmentException[]
+
         if (editingException) {
-            setExceptions((prev) => prev.map((e) => (e.id === editingException.id ? exception : e)))
+            updatedExceptions = exceptions.map((e) => (e.id === editingException.id ? exception : e))
         } else {
-            setExceptions((prev) => [...prev, exception])
+            updatedExceptions = [...exceptions, exception]
         }
-        onSave(exceptions)
+
+        setExceptions(updatedExceptions)
+        onSave(updatedExceptions)
         setIsDialogOpen(false)
         setEditingException(null)
     }
 
     const handleDeleteException = (id: number) => {
-        setExceptions((prev) => prev.filter((e) => e.id !== id))
-        onSave(exceptions.filter((e) => e.id !== id))
+        const updatedExceptions = exceptions.filter((e) => e.id !== id)
+        setExceptions(updatedExceptions)
+        onSave(updatedExceptions)
     }
 
     const handleEditException = (exception: DepartmentException) => {
         setEditingException(exception)
         setIsDialogOpen(true)
+    }
+
+    const getRecurrencePatternDisplay = (exception: DepartmentException): string => {
+        if (exception.type === "specific") {
+            // Verificar que start_date sea una fecha válida
+            if (!exception.start_date || exception.start_date.trim() === '') {
+                return "Fecha no configurada"
+            }
+            return new Date(exception.start_date).toLocaleDateString()
+        }
+
+        if (exception.type === "annual" && exception.recurrence_pattern) {
+            const { month, day } = exception.recurrence_pattern
+            if (month === undefined || day === undefined) return "Sin patrón"
+            const monthNames = [
+                "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            ]
+            return `${day} de ${monthNames[month - 1]}`
+        }
+
+        if (exception.type === "monthly") {
+            // Intentar con monthly_recurrence primero (nueva estructura)
+            if (exception.monthly_recurrence) {
+                if (exception.monthly_recurrence.type === "specific_day") {
+                    return `Día ${exception.monthly_recurrence.day_of_month} de cada mes`
+                } else if (exception.monthly_recurrence.type === "pattern") {
+                    const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+                    const weekPatterns = {
+                        first: "Primer",
+                        second: "Segundo",
+                        third: "Tercer",
+                        fourth: "Cuarto",
+                        last: "Último"
+                    }
+                    const weekPattern = exception.monthly_recurrence.week_pattern!
+                    const dayOfWeek = exception.monthly_recurrence.day_of_week!
+                    return `${weekPatterns[weekPattern]} ${dayNames[dayOfWeek]} de cada mes`
+                }
+            }
+            // Fallback a recurrence_pattern (estructura antigua)
+            else if (exception.recurrence_pattern) {
+                if (exception.recurrence_pattern.type === "specific_day") {
+                    return `Día ${exception.recurrence_pattern.day_of_month} de cada mes`
+                } else if (exception.recurrence_pattern.type === "pattern") {
+                    const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+                    const weekPatterns = {
+                        first: "Primer",
+                        second: "Segundo",
+                        third: "Tercer",
+                        fourth: "Cuarto",
+                        last: "Último"
+                    }
+                    const weekPattern = exception.recurrence_pattern.week_pattern!
+                    const dayOfWeek = exception.recurrence_pattern.day_of_week!
+                    return `${weekPatterns[weekPattern]} ${dayNames[dayOfWeek]} de cada mes`
+                }
+            }
+        }
+
+        return "Sin patrón"
     }
 
     const getExceptionTypeLabel = (type: string) => {
@@ -124,9 +191,7 @@ export function ExceptionsManager({ initialExceptions = [], onSave }: Exceptions
                                         <Badge variant="outline">{getExceptionTypeLabel(exception.type)}</Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {exception.type === "specific"
-                                            ? new Date(exception.start_date).toLocaleDateString()
-                                            : exception.recurrence_pattern}
+                                        {getRecurrencePatternDisplay(exception)}
                                     </TableCell>
                                     <TableCell>{getBehaviorBadge(exception.behavior)}</TableCell>
                                     <TableCell>
@@ -135,14 +200,14 @@ export function ExceptionsManager({ initialExceptions = [], onSave }: Exceptions
                                         )}
                                         {exception.behavior === "partially_closed" && (
                                             <span className="text-sm">
-                        {exception.special_open_time} - {exception.special_close_time}
-                      </span>
+                                                {to12HourFormat(exception.special_open_time)} - {to12HourFormat(exception.special_close_time)}
+                                            </span>
                                         )}
                                         {exception.behavior === "partially_open" && exception.partial_hours && (
                                             <div className="space-y-1">
                                                 {exception.partial_hours.map((hour, idx) => (
                                                     <div key={idx} className="text-sm">
-                                                        {hour.open_time} - {hour.close_time}
+                                                        {to12HourFormat(hour.open_time)} - {to12HourFormat(hour.close_time)}
                                                     </div>
                                                 ))}
                                             </div>
@@ -179,11 +244,11 @@ export function ExceptionsManager({ initialExceptions = [], onSave }: Exceptions
 }
 
 function ExceptionFormDialog({
-                                 open,
-                                 onOpenChange,
-                                 exception,
-                                 onSave,
-                             }: {
+    open,
+    onOpenChange,
+    exception,
+    onSave,
+}: {
     open: boolean
     onOpenChange: (open: boolean) => void
     exception: DepartmentException | null
@@ -192,9 +257,9 @@ function ExceptionFormDialog({
     const [formData, setFormData] = useState<Partial<DepartmentException>>({
         name: exception?.name || "",
         type: exception?.type || "specific",
-        start_date: exception?.start_date || "",
-        end_date: exception?.end_date || "",
-        recurrence_pattern: exception?.recurrence_pattern || "",
+        start_date: exception?.start_date || undefined,
+        end_date: exception?.end_date || undefined,
+        recurrence_pattern: exception?.recurrence_pattern || {},
         behavior: exception?.behavior || "fully_closed",
         special_open_time: exception?.special_open_time || "09:00",
         special_close_time: exception?.special_close_time || "18:00",
@@ -207,6 +272,85 @@ function ExceptionFormDialog({
     )
 
     const [errors, setErrors] = useState<string[]>([])
+
+    // Efecto para actualizar el formulario cuando cambia la excepción a editar
+    useEffect(() => {
+        if (exception) {
+            // Helper para convertir fecha ISO a formato YYYY-MM-DD
+            const formatDateForInput = (dateString?: string | null) => {
+                if (!dateString || dateString.trim() === '' || dateString === 'null') return ""
+                try {
+                    // Si la fecha viene en formato ISO, extraer solo la parte de la fecha
+                    if (dateString.includes('T')) {
+                        return dateString.split('T')[0]
+                    }
+                    // Si ya está en formato YYYY-MM-DD, devolverla tal como está
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+                        return dateString
+                    }
+                    // Intentar parsear y formatear la fecha
+                    const date = new Date(dateString)
+                    if (!isNaN(date.getTime())) {
+                        return date.toISOString().split('T')[0]
+                    }
+                    return ""
+                } catch (error) {
+                    console.warn('Error al formatear fecha:', dateString, error)
+                    return ""
+                }
+            }
+
+            // Determinar el tipo mensual correctamente
+            let monthlyRecurrenceType = "specific_day"
+            let monthlyRecurrenceData: Partial<MonthlyRecurrence> = { type: "specific_day", day_of_month: 1 }
+
+            if (exception.type === "monthly") {
+                if (exception.monthly_recurrence) {
+                    monthlyRecurrenceType = exception.monthly_recurrence.type || "specific_day"
+                    monthlyRecurrenceData = exception.monthly_recurrence
+                } else if (exception.recurrence_pattern?.type) {
+                    // Migrar datos de recurrence_pattern a monthly_recurrence
+                    monthlyRecurrenceType = exception.recurrence_pattern.type
+                    monthlyRecurrenceData = {
+                        type: exception.recurrence_pattern.type,
+                        day_of_month: exception.recurrence_pattern.day_of_month || 1,
+                        week_pattern: exception.recurrence_pattern.week_pattern,
+                        day_of_week: exception.recurrence_pattern.day_of_week,
+                    }
+                }
+            }
+
+            setFormData({
+                name: exception.name || "",
+                type: exception.type || "specific",
+                start_date: formatDateForInput(exception.start_date),
+                end_date: formatDateForInput(exception.end_date),
+                recurrence_pattern: exception.recurrence_pattern || {},
+                behavior: exception.behavior || "fully_closed",
+                special_open_time: exception.special_open_time || "09:00",
+                special_close_time: exception.special_close_time || "18:00",
+                partial_hours: exception.partial_hours || [],
+                monthly_recurrence: monthlyRecurrenceData as MonthlyRecurrence,
+            })
+            setMonthlyType(monthlyRecurrenceType as "specific_day" | "pattern")
+        } else {
+            // Resetear formulario para nueva excepción
+            setFormData({
+                name: "",
+                type: "specific",
+                start_date: "",
+                end_date: "",
+                recurrence_pattern: {},
+                behavior: "fully_closed",
+                special_open_time: "09:00",
+                special_close_time: "18:00",
+                partial_hours: [],
+                monthly_recurrence: { type: "specific_day", day_of_month: 1 },
+            })
+            setMonthlyType("specific_day")
+        }
+        setErrors([])
+    }, [exception])
 
     const addPartialHour = () => {
         if ((formData.partial_hours?.length || 0) >= 3) {
@@ -276,22 +420,52 @@ function ExceptionFormDialog({
             if (!validatePartialHours()) return
         }
 
-        let recurrencePattern = formData.recurrence_pattern || ""
-        if (formData.type === "monthly" && formData.monthly_recurrence) {
-            if (formData.monthly_recurrence.type === "specific_day") {
-                recurrencePattern = `day-${formData.monthly_recurrence.day_of_month}`
-            } else if (formData.monthly_recurrence.type === "pattern") {
-                const dayNames = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"]
-                recurrencePattern = `${formData.monthly_recurrence.week_pattern}-${dayNames[formData.monthly_recurrence.day_of_week || 0]}`
+        let recurrencePattern: DepartmentException['recurrence_pattern'] = {}
+        let startDate = formData.start_date
+        const endDate = formData.end_date
+
+        // Para excepciones anuales, usar month y day
+        if (formData.type === "annual") {
+            const month = formData.recurrence_pattern?.month || 1
+            const day = formData.recurrence_pattern?.day || 1
+
+            recurrencePattern = { month, day }
+
+            // Si no hay start_date, generar una fecha válida para el año actual
+            if (!startDate || startDate.trim() === '') {
+                const currentYear = new Date().getFullYear()
+                startDate = `${currentYear}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
             }
+        }
+
+        // Para excepciones mensuales, usar la configuración de monthly_recurrence
+        if (formData.type === "monthly" && formData.monthly_recurrence) {
+            recurrencePattern = {
+                type: formData.monthly_recurrence.type,
+                day_of_month: formData.monthly_recurrence.day_of_month,
+                week_pattern: formData.monthly_recurrence.week_pattern,
+                day_of_week: formData.monthly_recurrence.day_of_week,
+            }
+
+            // Para excepciones mensuales, si no hay start_date, usar el primer día del mes actual
+            if (!startDate || startDate.trim() === '') {
+                const now = new Date()
+                startDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+            }
+        }
+
+        // Para excepciones específicas, la fecha es requerida
+        if (formData.type === "specific" && (!startDate || startDate.trim() === '')) {
+            setErrors(["La fecha es requerida para excepciones específicas"])
+            return
         }
 
         const newException: DepartmentException = {
             id: exception?.id || Number(new Date().getTime()),
-            name: formData.name,
+            name: formData.name!,
             type: formData.type as "annual" | "monthly" | "specific",
-            start_date: formData.start_date || "",
-            end_date: formData.end_date,
+            start_date: startDate || "",
+            end_date: endDate || undefined,
             recurrence_pattern: recurrencePattern,
             behavior: formData.behavior as "fully_closed" | "partially_closed" | "partially_open",
             special_open_time: formData.behavior === "partially_closed" ? formData.special_open_time : undefined,
@@ -300,7 +474,16 @@ function ExceptionFormDialog({
             monthly_recurrence: formData.type === "monthly" ? formData.monthly_recurrence : undefined,
         }
 
-        onSave(newException)
+        // Crear una copia para enviar al backend que convierta undefined a null
+        const exceptionForBackend = {
+            ...newException,
+            start_date: newException.start_date || null,
+            end_date: newException.end_date || null,
+            special_open_time: newException.special_open_time || null,
+            special_close_time: newException.special_close_time || null,
+        }
+
+        onSave(exceptionForBackend as DepartmentException)
         setErrors([])
     }
 
@@ -369,8 +552,8 @@ function ExceptionFormDialog({
                             <Input
                                 id="start-date"
                                 type="date"
-                                value={formData.start_date}
-                                onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
+                                value={formData.start_date || ""}
+                                onChange={(e) => setFormData({ ...formData, start_date: e.target.value || "" })}
                             />
                         </div>
                     )}
@@ -380,11 +563,15 @@ function ExceptionFormDialog({
                             <div className="space-y-2">
                                 <Label htmlFor="month">Mes</Label>
                                 <Select
-                                    value={formData.recurrence_pattern?.split("-")[0] || ""}
+                                    value={String(formData.recurrence_pattern?.month || 1)}
                                     onValueChange={(value) =>
                                         setFormData({
                                             ...formData,
-                                            recurrence_pattern: `${value}-${formData.recurrence_pattern?.split("-")[1] || "01"}`,
+                                            recurrence_pattern: {
+                                                ...formData.recurrence_pattern,
+                                                month: parseInt(value),
+                                                day: formData.recurrence_pattern?.day || 1,
+                                            },
                                         })
                                     }
                                 >
@@ -406,7 +593,7 @@ function ExceptionFormDialog({
                                             "Noviembre",
                                             "Diciembre",
                                         ].map((month, index) => (
-                                            <SelectItem key={month} value={String(index + 1).padStart(2, "0")}>
+                                            <SelectItem key={month} value={String(index + 1)}>
                                                 {month}
                                             </SelectItem>
                                         ))}
@@ -420,11 +607,15 @@ function ExceptionFormDialog({
                                     type="number"
                                     min="1"
                                     max="31"
-                                    value={formData.recurrence_pattern?.split("-")[1] || ""}
+                                    value={formData.recurrence_pattern?.day || 1}
                                     onChange={(e) =>
                                         setFormData({
                                             ...formData,
-                                            recurrence_pattern: `${formData.recurrence_pattern?.split("-")[0] || "01"}-${e.target.value.padStart(2, "0")}`,
+                                            recurrence_pattern: {
+                                                ...formData.recurrence_pattern,
+                                                month: formData.recurrence_pattern?.month || 1,
+                                                day: parseInt(e.target.value),
+                                            },
                                         })
                                     }
                                 />

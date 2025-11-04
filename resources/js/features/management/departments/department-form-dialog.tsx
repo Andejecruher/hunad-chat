@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
     Dialog,
@@ -10,11 +9,11 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Textarea } from "@/components/ui/textarea"
 import { type Department, TIMEZONES } from "@/types/department"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 interface DepartmentFormDialogProps {
     open: boolean
@@ -51,7 +50,7 @@ export function DepartmentFormDialog({ open, onOpenChange, department, onSave }:
             })
         }
 
-        if(!department){
+        if (!department) {
             setFormData({
                 id: undefined,
                 name: "",
@@ -61,7 +60,7 @@ export function DepartmentFormDialog({ open, onOpenChange, department, onSave }:
                 color: "bg-brand-green",
             })
         }
-    },[department]);
+    }, [department]);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -136,9 +135,8 @@ export function DepartmentFormDialog({ open, onOpenChange, department, onSave }:
                                     <button
                                         key={color}
                                         type="button"
-                                        className={`h-10 w-10 rounded-full ${color} ${
-                                            formData.color === color ? "ring-2 ring-offset-2 ring-foreground" : ""
-                                        }`}
+                                        className={`h-10 w-10 rounded-full ${color} ${formData.color === color ? "ring-2 ring-offset-2 ring-foreground" : ""
+                                            }`}
                                         onClick={() => setFormData({ ...formData, color })}
                                     />
                                 ),

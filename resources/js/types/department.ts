@@ -73,7 +73,15 @@ export interface DepartmentException {
     type: "annual" | "monthly" | "specific"
     start_date: string // formato ISO "YYYY-MM-DD"
     end_date?: string // formato ISO "YYYY-MM-DD"
-    recurrence_pattern: string
+    recurrence_pattern: {
+        month?: number // 1-12 para tipo annual
+        day?: number // 1-31 para tipo annual
+        // Para tipo monthly mejorado
+        type?: "specific_day" | "pattern"
+        day_of_month?: number // 1-31 para specific_day
+        week_pattern?: "first" | "second" | "third" | "fourth" | "last"
+        day_of_week?: number // 0-6 para pattern (0=Domingo, 6=Sábado)
+    }
     behavior: "fully_closed" | "partially_closed" | "partially_open" // NUEVO
     special_open_time?: string // formato "HH:MM" - para partially_closed
     special_close_time?: string // formato "HH:MM" - para partially_closed

@@ -1,13 +1,13 @@
-import {useEffect, useState} from "react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import { Input } from "@/components/ui/input"
 import { type DepartmentHours, DAYS_OF_WEEK } from "@/types/department"
-import { Clock, Plus, Trash2 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { AlertCircle } from "lucide-react"
+import { AlertCircle, Clock, Plus, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface DepartmentHoursManagerProps {
     initialHours?: DepartmentHours[]
@@ -25,7 +25,7 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
             day_of_week: day.value,
             time_ranges: [
                 {
-                    id: crypto.randomUUID(),
+                    id: '',
                     open_time: "09:00",
                     close_time: "18:00",
                 },
@@ -46,7 +46,7 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
                         time_ranges: [
                             ...h.time_ranges,
                             {
-                                id: crypto.randomUUID(),
+                                id: '',
                                 open_time: lastRange?.close_time || "09:00",
                                 close_time: "18:00",
                             },
@@ -93,9 +93,18 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
         const hour = hours.find((h) => h.day_of_week === dayOfWeek)
         if (!hour || hour.is_closed || hour.time_ranges?.length < 2) return false
 
-        const ranges = hour.time_ranges?.sort((a, b) => a.open_time.localeCompare(b.open_time))
+        // Filtrar rangos válidos y ordenar de forma segura
+        const validRanges = hour.time_ranges?.filter(
+            (range) => range.open_time && range.close_time
+        )
 
-        for (let i = 0; i < ranges?.length - 1; i++) {
+        if (!validRanges || validRanges.length < 2) return false
+
+        const ranges = validRanges.sort((a, b) =>
+            a.open_time.localeCompare(b.open_time)
+        )
+
+        for (let i = 0; i < ranges.length - 1; i++) {
             if (ranges[i].close_time > ranges[i + 1].open_time) {
                 return true
             }
@@ -108,12 +117,14 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
         if (!hour || hour.is_closed) return true
 
         // Validar que cada rango tenga hora de cierre posterior a apertura
-        const allRangesValid = hour.time_ranges?.every((r) => r.close_time > r.open_time)
+        const allRangesValid = hour.time_ranges?.every((r) =>
+            r.open_time && r.close_time && r.close_time > r.open_time
+        )
 
         // Validar que no haya solapamientos
         const noOverlap = !hasOverlap(dayOfWeek)
 
-        return allRangesValid && noOverlap
+        return Boolean(allRangesValid) && noOverlap
     }
 
     const toggleDayClosed = (dayOfWeek: number, isClosed: boolean) => {
@@ -127,7 +138,7 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
                             is_closed: isClosed,
                             time_ranges: [
                                 {
-                                    id: crypto.randomUUID(),
+                                    id: '',
                                     open_time: "09:00",
                                     close_time: "18:00",
                                 },
@@ -145,25 +156,19 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
     const handleSave = () => {
         const allValid = hours.every((h) => validateTime(h.day_of_week))
         if (!allValid) {
-            alert(
-                "Por favor corrige los horarios inválidos:\n- La hora de cierre debe ser posterior a la de apertura\n- Los rangos de horario no deben solaparse",
-            )
+            toast.warning("Please fix the errors in the schedule before saving.")
             return
         }
 
         const allOpenDaysHaveRanges = hours.every((h) => h.is_closed || h.time_ranges.length > 0)
         if (!allOpenDaysHaveRanges) {
-            alert("Los días abiertos deben tener al menos un rango de horario configurado")
+            toast.warning("All open days must have at least one time range.")
             return
         }
 
         onSave(hours)
         setHasChanges(false)
     }
-
-    useEffect(() => {
-        console.log('[v0] Horarios actuales:', hours)
-    }, [initialHours])
 
     return (
         <Card>
@@ -234,7 +239,7 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
                                                         <Input
                                                             id={`open-${day.value}-${range.id}`}
                                                             type="time"
-                                                            value={range.open_time}
+                                                            value={range.open_time || ""}
                                                             onChange={(e) => updateTimeRange(day.value, range.id, "open_time", e.target.value)}
                                                             className="w-32"
                                                         />
@@ -247,7 +252,7 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
                                                         <Input
                                                             id={`close-${day.value}-${range.id}`}
                                                             type="time"
-                                                            value={range.close_time}
+                                                            value={range.close_time || ""}
                                                             onChange={(e) => updateTimeRange(day.value, range.id, "close_time", e.target.value)}
                                                             className="w-32"
                                                         />
@@ -310,7 +315,7 @@ export function DepartmentHoursManager({ initialHours, onSave }: DepartmentHours
                                         day_of_week: day.value,
                                         time_ranges: [
                                             {
-                                                id: crypto.randomUUID(),
+                                                id: '',
                                                 open_time: "09:00",
                                                 close_time: "18:00",
                                             },

@@ -1,9 +1,7 @@
-import {useEffect, useState} from "react"
-import { router } from "@inertiajs/react"
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,24 +10,25 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Input } from "@/components/ui/input"
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from '@/components/ui/select';
-import {Plus, Search, MoreVertical, Users, Layers, Clock, Globe, Loader2} from "lucide-react"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { type Department, TIMEZONES } from "@/types/department"
-import { DepartmentFormDialog } from "./department-form-dialog"
-import {Filters, PaginatedData, type SharedData} from "@/types";
-import { toast } from "sonner"
+} from '@/components/ui/select'
 import departmentsRouter from "@/routes/departments"
-import { toFormData } from '@/utils/form-data-utils';
-import { usePage } from '@inertiajs/react';
+import { Filters, PaginatedData, type SharedData } from "@/types"
+import { type Department, TIMEZONES } from "@/types/department"
+import { toFormData } from '@/utils/form-data-utils'
+import { router, usePage } from "@inertiajs/react"
+import { Clock, Globe, Layers, Loader2, MoreVertical, Plus, Search, Users } from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "sonner"
+import { DepartmentFormDialog } from "./department-form-dialog"
 
-export function Departments({ departmentsData, filters }: {departmentsData: PaginatedData<Department[]>; filters: Filters;}) {
+export function Departments({ departmentsData, filters }: { departmentsData: PaginatedData<Department[]>; filters: Filters; }) {
     const { auth } = usePage<SharedData>().props;
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState<string>(
@@ -41,7 +40,6 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [editingDepartment, setEditingDepartment] = useState<Department | undefined>()
     const [isLoading, setIsLoading] = useState(false)
-
 
     const handleSaveDepartment = (department: Partial<Department>) => {
         if (editingDepartment && department && department.id) {
@@ -110,7 +108,7 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                 setIsLoading(false);
                 toast.warning('Department deleted successfully.');
             },
-            onError: (error   ) => {
+            onError: (error) => {
                 toast.error(error.message);
                 setIsLoading(false)
             },
@@ -120,14 +118,14 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
 
     const handleManageSchedule = (id?: number) => {
         if (!id) return;
-        router.visit(departmentsRouter.show({id: id}).url)
+        router.visit(departmentsRouter.show({ id: id }).url)
     }
 
     const getTimezoneLabel = (timezone: string) => {
         return TIMEZONES.find((tz) => tz.value === timezone)?.label || timezone
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         // Debounce para búsqueda
         const handler = setTimeout(() => {
             const params = {
@@ -155,11 +153,8 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
         }, 300);
 
         return () => clearTimeout(handler);
-    },[searchQuery, statusFilter, limitFilter])
+    }, [searchQuery, statusFilter, limitFilter])
 
-    useEffect(()=>{
-
-    },[editingDepartment])
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -227,15 +222,14 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                 </CardContent>
             </Card>
 
+            {isLoading && (
+                <div className="flex w-full h-full items-center justify-center py-4 text-gray-500 m-auto">
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Cargando departamentos...
+                </div>
+            )}
+
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-
-                {isLoading && (
-                    <div className="flex items-center justify-center py-4 text-gray-500">
-                        <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                        Cargando departamentos...
-                    </div>
-                )}
-
                 {!isLoading && departmentsData.data && departmentsData.data.map((department) => (
                     <Card key={department.id} className="relative overflow-hidden flex flex-col h-full">
                         <div className={`absolute left-0 top-0 h-full w-1 ${department.color}`} />
@@ -294,28 +288,28 @@ export function Departments({ departmentsData, filters }: {departmentsData: Pagi
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <Users className="h-4 w-4" />
-                                    <span>{department.agentsCount} agentes</span>
+                                    <span>{department?.agents_count} agentes</span>
                                 </div>
-                                <Badge variant="secondary">{department.agentsCount > 5 ? "Grande" : "Pequeño"}</Badge>
+                                <Badge variant="secondary">{department.agents_count && department.agents_count > 5 ? "Grande" : "Pequeño"}</Badge>
                             </div>
 
-                            {department.agents.length > 0 && (
+                            {department.agents && department.agents.length > 0 && (
                                 <div className="space-y-2">
                                     <div className="text-sm font-medium">Agentes Asignados</div>
                                     <div className="flex -space-x-2">
-                                        {department.agents.slice(0, 3).map((agent, index) => (
+                                        {department?.agents.slice(0, 3).map((agent, index) => (
                                             <Avatar key={index} className="border-2 border-background">
                                                 <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                                                    {agent
+                                                    {agent.user.name
                                                         .split(" ")
                                                         .map((n) => n[0])
                                                         .join("")}
                                                 </AvatarFallback>
                                             </Avatar>
                                         ))}
-                                        {department.agentsCount > 3 && (
+                                        {department?.agents_count && department.agents_count > 3 && (
                                             <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium">
-                                                +{department.agentsCount - 3}
+                                                +{department.agents_count - 3}
                                             </div>
                                         )}
                                     </div>

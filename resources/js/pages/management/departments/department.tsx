@@ -1,10 +1,10 @@
+import { DepartmentSchedule } from '@/features/management/departments/department';
 import AppLayout from '@/layouts/app-layout';
+import departmentsRoutes from '@/routes/departments';
 import {
     type BreadcrumbItem, Department,
 } from '@/types';
 import { Head } from '@inertiajs/react';
-import { DepartmentSchedule } from '@/features/management/departments/department';
-import departmentsRoutes from '@/routes/departments';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function DepartmentPage(props: {
     department: Department;
 }) {
-    const { department} = props;
+    const { department } = props;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Configurations Company" />
