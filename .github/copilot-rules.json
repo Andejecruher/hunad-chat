@@ -1,0 +1,59 @@
+{
+    "version": 1,
+    "rules": [
+        {
+            "trigger": "// @analyze:patterns",
+            "description": "Analiza el código actual aplicando principios SOLID y patrones de diseño de refactoring.guru. Explica el patrón, el porqué y el para qué.",
+            "actions": [
+                {
+                    "type": "analyze",
+                    "language": ["javascript", "typescript", "php"],
+                    "context": "file",
+                    "instructions": [
+                        "Examinar el archivo actual para identificar violaciones a principios SOLID.",
+                        "Detectar patrones de diseño aplicables según el catálogo de refactoring.guru.",
+                        "Si aplica un patrón, refactorizar el código directamente manteniendo el comportamiento existente.",
+                        "Añadir un bloque de comentario con el formato:",
+                        "// 🔍 Refactor aplicado:",
+                        "// Patrón: <nombre del patrón>",
+                        "// Motivo: <por qué fue necesario>",
+                        "// Beneficio: <para qué mejora el código>"
+                    ]
+                }
+            ]
+        },
+        {
+            "trigger": "// @refactor:responsibilities",
+            "description": "Refactoriza el componente o módulo separando responsabilidades según principios SOLID.",
+            "actions": [
+                {
+                    "type": "refactor",
+                    "language": ["javascript", "typescript", "php"],
+                    "context": "file",
+                    "instructions": [
+                        "Analizar el componente o módulo actual para detectar múltiples responsabilidades o mezclas de lógica.",
+                        "Dividir el código en subcomponentes, hooks o contextos cuando sea necesario, evitando la sobrefragmentación.",
+                        "Mantener consistencia con la estructura del proyecto y los estándares de codificación.",
+                        "Aplicar patrones de diseño pertinentes y principios SOLID.",
+                        "Agregar un bloque de comentario con formato:",
+                        "// 🔍 Refactor aplicado:",
+                        "// Patrón: <nombre del patrón>",
+                        "// Motivo: <por qué fue necesario>",
+                        "// Beneficio: <para qué mejora el código>"
+                    ]
+                }
+            ]
+        },
+        {
+            "trigger": "// @review:responsive",
+            "description": "Revisa y mejora el diseño responsivo del componente o vista actual.",
+            "actions": ["analyze", "suggest", "optimize", "document"],
+            "scope": ["jsx", "tsx", "blade.php", "html", "css", "scss"],
+            "behavior": {
+                "autoFixMinorIssues": true,
+                "explainChanges": true,
+                "respectTailwindConfig": true
+            }
+        }
+    ]
+}
