@@ -233,7 +233,7 @@ export function DepartmentHoursManager({
                                     <div className="flex items-center gap-2">
                                         <Switch
                                             checked={!dayHour.is_closed}
-                                            onCheckedChange={(checked) =>
+                                            onCheckedChange={(checked: unknown) =>
                                                 toggleDayClosed(
                                                     day.value,
                                                     !checked,
@@ -338,20 +338,20 @@ export function DepartmentHoursManager({
 
                                                         {dayHour.time_ranges
                                                             .length > 1 && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() =>
-                                                                    removeTimeRange(
-                                                                        day.value,
-                                                                        range.id,
-                                                                    )
-                                                                }
-                                                                className="text-destructive hover:text-destructive"
-                                                            >
-                                                                <Trash2 className="h-4 w-4" />
-                                                            </Button>
-                                                        )}
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    onClick={() =>
+                                                                        removeTimeRange(
+                                                                            day.value,
+                                                                            range.id,
+                                                                        )
+                                                                    }
+                                                                    className="text-destructive hover:text-destructive"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4" />
+                                                                </Button>
+                                                            )}
                                                     </div>
                                                 ),
                                             )}
@@ -413,18 +413,18 @@ export function DepartmentHoursManager({
                                 initialHours && initialHours.length > 0
                                     ? initialHours
                                     : DAYS_OF_WEEK.map((day) => ({
-                                          day_of_week: day.value,
-                                          time_ranges: [
-                                              {
-                                                  id: '',
-                                                  open_time: '09:00',
-                                                  close_time: '18:00',
-                                              },
-                                          ],
-                                          is_closed:
-                                              day.value === 0 ||
-                                              day.value === 6,
-                                      })),
+                                        day_of_week: day.value,
+                                        time_ranges: [
+                                            {
+                                                id: '',
+                                                open_time: '09:00',
+                                                close_time: '18:00',
+                                            },
+                                        ],
+                                        is_closed:
+                                            day.value === 0 ||
+                                            day.value === 6,
+                                    })),
                             );
                             setHasChanges(false);
                         }}
