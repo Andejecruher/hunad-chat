@@ -12,7 +12,7 @@ import {
     getRole,
     getRoleBadgeVariant,
     getStatusBadge,
-} from '@/utils/user-utils';
+} from '@/utils/users/user-utils';
 import { Calendar, Clock, Mail, Shield } from 'lucide-react';
 
 interface UserDetailsDialogProps {

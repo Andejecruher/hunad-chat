@@ -23,11 +23,11 @@ import {
     getRoleBadgeVariant,
     getStatusBadge,
     getStatusConectionBadge,
-} from '@/utils/user-utils';
+} from '@/utils/users/user-utils';
 import { router } from '@inertiajs/react';
 import { Clock, Loader2, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import { UserActions } from './user-actions';
 import { UserInvite } from './user-invite';
 
@@ -105,7 +105,7 @@ export function Users({
             },
             onError: (error) => {
                 toast.error(error.message);
-                setIsLoading(false)
+                setIsLoading(false);
             },
             onFinish: () => setIsLoading(false),
         });

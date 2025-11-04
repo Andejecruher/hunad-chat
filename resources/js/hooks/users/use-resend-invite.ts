@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { router } from '@inertiajs/react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 interface UseResendInviteReturn {
@@ -22,14 +22,18 @@ export function useResendInvite(): UseResendInviteReturn {
                     preserveState: true,
                     onSuccess: () => {
                         toast.success('Invitación reenviada exitosamente', {
-                            description: 'El usuario recibirá un nuevo correo con las credenciales de acceso.',
+                            description:
+                                'El usuario recibirá un nuevo correo con las credenciales de acceso.',
                         });
                         setIsLoading(false);
                         resolve();
                     },
                     onError: (errors) => {
                         console.error(errors);
-                        const errorMessage = errors.error || errors.message || 'Error al reenviar invitación';
+                        const errorMessage =
+                            errors.error ||
+                            errors.message ||
+                            'Error al reenviar invitación';
                         toast.error('Error al reenviar invitación', {
                             description: errorMessage,
                         });
@@ -39,7 +43,7 @@ export function useResendInvite(): UseResendInviteReturn {
                     onFinish: () => {
                         setIsLoading(false);
                     },
-                }
+                },
             );
         });
     };

@@ -1,7 +1,7 @@
 import { Users } from '@/features/configurations/users/users';
 import AppLayout from '@/layouts/app-layout';
 import users from '@/routes/users';
-import {BreadcrumbItem, PaginatedData, User, Filters} from '@/types';
+import { BreadcrumbItem, Filters, PaginatedData, User } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs: BreadcrumbItem[] = [

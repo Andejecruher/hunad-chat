@@ -2,12 +2,17 @@
  * Converts a time string from "HH:mm:ss" or "HH:mm" (24h) to 12-hour format with AM/PM.
  * Example: "16:30:00" → "04:30 PM"
  */
-export function to12HourFormat(time: string | undefined, options?: { fallback?: string }): string {
+export function to12HourFormat(
+    time: string | undefined,
+    options?: { fallback?: string },
+): string {
     if (!time || typeof time !== 'string') {
         return options?.fallback ?? '--:--';
     }
 
-    const match = time.match(/^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(?::[0-5][0-9])?$/);
+    const match = time.match(
+        /^([0-1]?[0-9]|2[0-3]):([0-5][0-9])(?::[0-5][0-9])?$/,
+    );
     if (!match) {
         return options?.fallback ?? time;
     }
@@ -24,7 +29,10 @@ export function to12HourFormat(time: string | undefined, options?: { fallback?: 
  * Converts a time string from 12-hour format with AM/PM to "HH:mm:ss" (24h format).
  * Example: "04:30 PM" → "16:30:00"
  */
-export function to24HourFormat(time12: string | undefined, options?: { fallback?: string }): string {
+export function to24HourFormat(
+    time12: string | undefined,
+    options?: { fallback?: string },
+): string {
     if (!time12 || typeof time12 !== 'string') {
         return options?.fallback ?? '--:--';
     }

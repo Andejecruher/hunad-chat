@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import company from '@/routes/company';
-import departments from "@/routes/departments";
+import departments from '@/routes/departments';
 import users from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';

@@ -8,22 +8,27 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { UserX } from "lucide-react"
+} from '@/components/ui/alert-dialog';
 import { User } from '@/types';
+import { UserX } from 'lucide-react';
 
 interface DeleteUserDialogProps {
-    user: User
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    onDelete: (userId: number) => void
+    user: User;
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onDelete: (userId: number) => void;
 }
 
-export function DeleteUserDialog({ user, open, onOpenChange, onDelete }: DeleteUserDialogProps) {
+export function DeleteUserDialog({
+    user,
+    open,
+    onOpenChange,
+    onDelete,
+}: DeleteUserDialogProps) {
     const handleDelete = () => {
-        onDelete(user.id)
-        onOpenChange(false)
-    }
+        onDelete(user.id);
+        onOpenChange(false);
+    };
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -34,12 +39,15 @@ export function DeleteUserDialog({ user, open, onOpenChange, onDelete }: DeleteU
                         Eliminar Usuario
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                        ¿Estás seguro de que deseas eliminar a <strong>{user.name}</strong> ({user.email})?
+                        ¿Estás seguro de que deseas eliminar a{' '}
+                        <strong>{user.name}</strong> ({user.email})?
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
                 <div className="mt-4 text-sm text-muted-foreground">
-                    <p className="mb-2">Esta acción no se puede deshacer. Se eliminarán:</p>
+                    <p className="mb-2">
+                        Esta acción no se puede deshacer. Se eliminarán:
+                    </p>
                     <ul className="list-inside list-disc space-y-1">
                         <li>Todos los datos del usuario</li>
                         <li>Historial de conversaciones asignadas</li>
@@ -58,5 +66,5 @@ export function DeleteUserDialog({ user, open, onOpenChange, onDelete }: DeleteU
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-    )
+    );
 }

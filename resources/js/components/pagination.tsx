@@ -49,7 +49,10 @@ export function Pagination({
                 )}
                 <div className="flex items-center space-x-1">
                     {links.map((link, index) => {
-                        if (link.label === '&laquo; Anterior' || link.label === '&laquo; Previous') {
+                        if (
+                            link.label === '&laquo; Anterior' ||
+                            link.label === '&laquo; Previous'
+                        ) {
                             return (
                                 <Tooltip key={index}>
                                     <TooltipTrigger asChild>
@@ -69,7 +72,10 @@ export function Pagination({
                                 </Tooltip>
                             );
                         }
-                        if (link.label === 'Siguiente &raquo;' || link.label === 'Next &raquo;') {
+                        if (
+                            link.label === 'Siguiente &raquo;' ||
+                            link.label === 'Next &raquo;'
+                        ) {
                             return (
                                 <Tooltip key={index}>
                                     <TooltipTrigger asChild>

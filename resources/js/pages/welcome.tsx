@@ -1,15 +1,14 @@
-
+import { AIAgentsSection } from '@/features/welcome/ai-agents-section';
+import { CTASection } from '@/features/welcome/cta-section';
+import { FeaturesSection } from '@/features/welcome/features-section';
+import { Footer } from '@/features/welcome/footer';
+import { Header } from '@/features/welcome/header';
+import { HeroSection } from '@/features/welcome/hero-section';
+import { IntegrationsSection } from '@/features/welcome/integrations-section';
+import { Pricing } from '@/features/welcome/pricing';
+import { Support } from '@/features/welcome/support';
+import { TestimonialsSection } from '@/features/welcome/testimonials-section';
 import { Head } from '@inertiajs/react';
-import { Header } from "@/features/welcome/header"
-import { HeroSection } from "@/features/welcome/hero-section"
-import { FeaturesSection } from "@/features/welcome/features-section"
-import { IntegrationsSection } from "@/features/welcome/integrations-section"
-import { AIAgentsSection } from "@/features/welcome/ai-agents-section"
-import { TestimonialsSection } from "@/features/welcome/testimonials-section"
-import { CTASection } from "@/features/welcome/cta-section"
-import { Support } from "@/features/welcome/support"
-import { Pricing } from "@/features/welcome/pricing"
-import { Footer } from "@/features/welcome/footer"
 
 export default function Welcome() {
     return (
@@ -22,7 +21,7 @@ export default function Welcome() {
                 />
             </Head>
             <div className="min-h-screen">
-            <Header />
+                <Header />
                 <main>
                     <HeroSection />
                     <FeaturesSection />
@@ -33,7 +32,7 @@ export default function Welcome() {
                     <Pricing />
                     <Support />
                 </main>
-            <Footer />
+                <Footer />
             </div>
         </>
     );

@@ -1,8 +1,11 @@
 // TypeScript
 // Reemplaza UserType por un genérico para usar con cualquier interfaz
 export const toFormData = <
-    T extends Record<string, unknown> = Record<string, unknown>
->(obj?: Partial<T>, method: string = 'POST'): FormData => {
+    T extends Record<string, unknown> = Record<string, unknown>,
+>(
+    obj?: Partial<T>,
+    method: string = 'POST',
+): FormData => {
     const fd = new FormData();
 
     if (!obj) {
