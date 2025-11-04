@@ -4,11 +4,6 @@ import users from '@/routes/users';
 import {BreadcrumbItem, PaginatedData, User, Filters} from '@/types';
 import { Head } from '@inertiajs/react';
 
-interface UserFilters {
-    search?: string;
-    role?: string;
-}
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Configurations',

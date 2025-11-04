@@ -16,7 +16,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import users from '@/routes/users';
-import {PaginatedData, User as UserType, Filters} from '@/types';
+import { Filters, PaginatedData, User as UserType } from '@/types';
+import { toFormData } from '@/utils/form-data-utils';
 import {
     getInitials,
     getRoleBadgeVariant,
@@ -26,10 +27,10 @@ import {
 import { router } from '@inertiajs/react';
 import { Clock, Loader2, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
+import { toast } from "sonner";
 import { UserActions } from './user-actions';
 import { UserInvite } from './user-invite';
-import {toast} from "sonner";
-import { toFormData } from '@/utils/form-data-utils';
+
 export function Users({
     usersData,
     filters,
@@ -102,7 +103,7 @@ export function Users({
                 setIsLoading(false);
                 toast.warning('User deleted successfully.');
             },
-            onError: (error   ) => {
+            onError: (error) => {
                 toast.error(error.message);
                 setIsLoading(false)
             },
@@ -303,9 +304,9 @@ export function Users({
                                                                     src={
                                                                         typeof user.logo_url ===
                                                                             'string' &&
-                                                                        user.logo_url.startsWith(
-                                                                            'http',
-                                                                        )
+                                                                            user.logo_url.startsWith(
+                                                                                'http',
+                                                                            )
                                                                             ? user.logo_url
                                                                             : `/storage/logos/${typeof user.logo_url === 'string' ? user.logo_url.replace(/^\/+/, '') : ''}`
                                                                     }
