@@ -29,7 +29,7 @@ export default function DepartmentsPage(props: {
     const { departments, filters } = props;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Configurations Company" />
+            <Head title="Departments" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
                 <div className="relative min-h-screen flex-1 overflow-x-auto md:min-h-min">
                     <Departments

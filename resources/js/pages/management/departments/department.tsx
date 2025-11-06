@@ -23,7 +23,7 @@ export default function DepartmentPage(props: { department: Department }) {
     const { department } = props;
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Configurations Company" />
+            <Head title={`${department.name}`} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
                 <div className="relative min-h-screen flex-1 overflow-x-auto md:min-h-min">
                     <DepartmentSchedule department={department} />
