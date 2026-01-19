@@ -3,9 +3,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
     Card,
     CardContent,
-    CardDescription,
     CardHeader,
-    CardTitle,
+    CardTitle
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import {
@@ -15,8 +14,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useFlashMessages } from '@/hooks/useFlashMessages';
 import users from '@/routes/users';
-import { Filters, PaginatedData, User as UserType } from '@/types';
+import { Filters, FlashPayload, PaginatedData, User as UserType } from '@/types';
 import { toFormData } from '@/utils/form-data-utils';
 import {
     getInitials,
@@ -24,7 +24,7 @@ import {
     getStatusBadge,
     getStatusConectionBadge,
 } from '@/utils/users/user-utils';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { Clock, Loader2, Search } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -38,6 +38,7 @@ export function Users({
     usersData: PaginatedData<UserType[]>;
     filters: Filters;
 }) {
+    const { props } = usePage();
     const [searchQuery, setSearchQuery] = useState<string>(
         filters.search ?? '',
     );
@@ -49,7 +50,9 @@ export function Users({
         filters.limit ?? '10',
     );
     const [isLoading, setIsLoading] = useState(false);
-    // Paginación
+
+    useFlashMessages(props.flash as FlashPayload['flash']);
+
     const handlePageChange = useCallback(
         (url: string | undefined) => {
             if (!url) return;
@@ -63,7 +66,7 @@ export function Users({
                 preserveState: true,
                 preserveScroll: true,
                 replace: true,
-                only: ['users'],
+                only: ['users', 'flash'],
                 onStart: () => setIsLoading(true),
                 onFinish: () => setIsLoading(false),
             });
@@ -80,15 +83,8 @@ export function Users({
             preserveState: true,
             preserveScroll: true,
             forceFormData: true,
+            only: ['users', 'flash'],
             onStart: () => setIsLoading(true),
-            onSuccess: () => {
-                setIsLoading(false);
-                toast.success('User updated successfully.');
-            },
-            onError: (error) => {
-                toast.error(error.message);
-                setIsLoading(false);
-            },
             onFinish: () => setIsLoading(false),
         });
     };
@@ -98,15 +94,8 @@ export function Users({
         router.delete(users.destroy(userId).url, {
             preserveState: true,
             preserveScroll: true,
+            only: ['users', 'flash'],
             onStart: () => setIsLoading(true),
-            onSuccess: () => {
-                setIsLoading(false);
-                toast.warning('User deleted successfully.');
-            },
-            onError: (error) => {
-                toast.error(error.message);
-                setIsLoading(false);
-            },
             onFinish: () => setIsLoading(false),
         });
     };
@@ -146,7 +135,7 @@ export function Users({
                     preserveState: true,
                     preserveScroll: true,
                     replace: true,
-                    only: ['users'],
+                    only: ['users', 'flash'],
                     onStart: () => setIsLoading(true),
                     onError: (error) => {
                         toast.error(error.message);
@@ -176,10 +165,7 @@ export function Users({
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Filtros</CardTitle>
-                    <CardDescription>
-                        Busca y filtra usuarios por rol
-                    </CardDescription>
+                    <CardTitle>Buscar Usuarios</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex flex-col gap-4 xl:flex-row">

@@ -27,7 +27,7 @@ class UserInviteMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Invitación para unirte a ' . config('app.name'))
+        return $this->subject('Invitation to join ' . config('app.name'))
             ->markdown('emails.user_invite')
             ->with([
                 'name' => $this->name,

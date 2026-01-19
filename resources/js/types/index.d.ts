@@ -97,8 +97,55 @@ export interface Filters {
     search?: string;
     role?: string;
     status?: string;
+    type?: string;
     limit?: string;
 }
 
+// src/types/flash.ts
+export type FlashMessageType = 'success' | 'error' | 'info' | 'warning';
+
+export interface FlashMessages {
+    success?: string | undefined;
+    error?: string | undefined;
+    warning?: string | undefined;
+    info?: string | undefined;
+}
+
+// Props template
+export interface ToastTemplateProps {
+    message: string;
+}
+
+// Tipo para templates por tipo
+export type ToastTemplate = (props: ToastTemplateProps) => JSX.Element;
+
+export interface ToastTemplatesMap {
+    success?: ToastTemplate;
+    error?: ToastTemplate;
+    info?: ToastTemplate;
+    warning?: ToastTemplate;
+}
+
+// Toast configuration types
+export interface ToastOptions {
+    dismissible?: boolean;
+    duration?: number;
+    position?: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
+}
+
+export interface ToastConfig {
+    success?: ToastOptions;
+    error?: ToastOptions;
+    warning?: ToastOptions;
+    info?: ToastOptions;
+    global?: ToastOptions;
+}
+
+export interface FlashPayload {
+    flash: FlashMessages;
+}
+
 // Add types for departments, tickets, conversations, etc. as needed
+export * from './channels';
 export * from './department';
+
