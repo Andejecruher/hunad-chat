@@ -30,7 +30,7 @@ class CompaniesController extends Controller
     {
         // Verificar que el usuario actual pertenezca a esta empresa
         if (auth()->user()->company_id !== $company->id) {
-            abort(403, 'No tienes permisos para editar esta empresa.');
+            abort(403, 'You do not have permission to edit this company.');
         }
 
         // Manejar el método spoofing para POST requests
@@ -107,13 +107,13 @@ class CompaniesController extends Controller
 
             DB::commit();
 
-            return back()->with('success', '¡Información de la empresa actualizada exitosamente!');
+            return back()->with('success', 'Company information updated successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            // Log del error para debugging
-            \Log::error('Error actualizando company:', [
+            // Log the error for debugging
+            \Log::error('Error updating company:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -123,7 +123,7 @@ class CompaniesController extends Controller
                 Storage::disk('public')->delete($logoPath);
             }
 
-            return back()->withErrors(['error' => 'Error durante la actualización: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error during update: ' . $e->getMessage()]);
         }
     }
 }
