@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\InviteUserRequest;
-use App\Http\Requests\UpdateUserRequest;
+use App\Http\Requests\User\InviteUserRequest;
+use App\Http\Requests\User\UpdateUserRequest;
 use App\Mail\UserInviteMail;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -23,8 +23,8 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        if (!$user) {
-            abort(403, 'Usuario no autenticado');
+        if (! $user) {
+            abort(403, 'User not authenticated');
         }
 
         $query = User::query()
@@ -62,7 +62,6 @@ class UserController extends Controller
         ]);
     }
 
-
     /**
      * Store a newly created resource in storage.
      */
@@ -76,7 +75,7 @@ class UserController extends Controller
             $tempPassword = Str::random(16);
 
             // Crear usuario asignando atributos explícitamente para evitar warnings de "guarded"
-            $newUser = new User();
+            $newUser = new User;
             $newUser->name = $data['name'];
             $newUser->email = $data['email'];
             $newUser->role = $data['role'];
@@ -103,30 +102,32 @@ class UserController extends Controller
                 )
             );
 
-            Log::info('Usuario invitado exitosamente', [
+            Log::info('User invited successfully', [
                 'invited_email' => $newUser->email,
                 'invited_by' => $authUser->email,
-                'role' => $data['role']
+                'role' => $data['role'],
             ]);
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Usuario invitado exitosamente'
+                    'message' => 'User invited successfully',
                 ], 201);
             }
-            return back()->with('success', '¡Usuario invitado correctamente!');
+
+            return back()->with('success', 'User invited successfully!');
         } catch (\Exception $e) {
-            Log::error('Error invitando usuario: ' . $e->getMessage(), [
+            Log::error('Error inviting user: '.$e->getMessage(), [
                 'email' => $data['email'] ?? 'unknown',
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
             if ($request->expectsJson()) {
                 return response()->json([
-                    'error' => 'Error al invitar usuario: ' . $e->getMessage()
+                    'error' => 'Error inviting user: '.$e->getMessage(),
                 ], 500);
             }
-            return back()->withErrors(['error' => 'Error al invitar usuario: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Error inviting user: '.$e->getMessage()]);
         }
     }
 
@@ -141,20 +142,20 @@ class UserController extends Controller
 
             $user = User::findOrFail($id);
 
-            Log::info('Actualizacion de datos', [
-                'auth_user' => $authUser->only(['id','name','company_id']),
-                'user' => $user->only(['id','name','company_id']),
+            Log::info('User data update', [
+                'auth_user' => $authUser->only(['id', 'name', 'company_id']),
+                'user' => $user->only(['id', 'name', 'company_id']),
             ]);
 
             // Authorization: only same company or admins can update
             if ($user->company_id !== $authUser->company_id) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'No autorizado para actualizar este usuario',
+                        'message' => 'Not authorized to update this user',
                         'user' => $user->fresh(),
                     ], 403);
                 }
-                abort(403, 'No autorizado para actualizar este usuario');
+                    abort(403, 'Not authorized to update this user');
             }
 
             // Evitar cambios en company_id desde el request
@@ -164,7 +165,7 @@ class UserController extends Controller
 
             // Manejar contraseña: si se envía, hashearla; si viene null/empty, removerla
             if (array_key_exists('password', $data)) {
-                if (!empty($data['password'])) {
+                if (! empty($data['password'])) {
                     $data['password'] = Hash::make($data['password']);
                 } else {
                     unset($data['password']);
@@ -181,7 +182,7 @@ class UserController extends Controller
 
             $changes = $user->getChanges();
 
-            Log::info('Usuario actualizado', [
+            Log::info('User updated', [
                 'user_id' => $user->id,
                 'updated_by' => $authUser->id,
                 'changes' => $changes,
@@ -193,28 +194,28 @@ class UserController extends Controller
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Usuario actualizado correctamente',
+                    'message' => 'User updated successfully',
                     'user' => $user->fresh(),
                 ], 200);
             }
 
-            return back()->with('success', 'Usuario actualizado correctamente');
+            return back()->with('success', 'User updated successfully');
         } catch (ModelNotFoundException $e) {
-            Log::warning('Usuario no encontrado al intentar actualizar', ['id' => $id]);
-            abort(404, 'Usuario no encontrado');
+            Log::warning('User not found when attempting update', ['id' => $id]);
+            abort(404, 'User not found');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error actualizando usuario: ' . $e->getMessage(), [
+            Log::error('Error updating user: '.$e->getMessage(), [
                 'id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             if ($request->expectsJson()) {
-                return response()->json(['error' => 'Error al actualizar usuario'], 500);
+                return response()->json(['error' => 'Error updating user'], 500);
             }
 
-            return back()->withErrors(['error' => 'Error al actualizar usuario']);
+            return back()->withErrors(['error' => 'Error updating user']);
         }
     }
 
@@ -231,20 +232,21 @@ class UserController extends Controller
             if ($user->company_id !== $authUser->company_id) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'No autorizado para reenviar invitación a este usuario'
+                        'message' => 'Not authorized to resend invitation for this user',
                     ], 403);
                 }
-                abort(403, 'No autorizado para reenviar invitación a este usuario');
+                abort(403, 'Not authorized to resend invitation for this user');
             }
 
             // Check if user already verified their email
             if ($user->email_verified_at) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'El usuario ya ha verificado su email'
+                        'message' => 'User has already verified their email',
                     ], 400);
                 }
-                return back()->withErrors(['error' => 'El usuario ya ha verificado su email']);
+
+                return back()->withErrors(['error' => 'User has already verified their email']);
             }
 
             // Generate new temporary password
@@ -270,43 +272,43 @@ class UserController extends Controller
                 )
             );
 
-            Log::info('Invitación reenviada exitosamente', [
+            Log::info('Invitation resent successfully', [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
                 'resent_by' => $authUser->email,
-                'role' => $user->role
+                'role' => $user->role,
             ]);
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Invitación reenviada exitosamente'
+                    'message' => 'Invitation resent successfully',
                 ], 200);
             }
 
-            return back()->with('success', 'Invitación reenviada exitosamente');
+            return back()->with('success', 'Invitation resent successfully');
         } catch (ModelNotFoundException $e) {
-            Log::warning('Usuario no encontrado al reenviar invitación', ['id' => $id]);
+            Log::warning('User not found when resending invitation', ['id' => $id]);
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Usuario no encontrado'
+                    'message' => 'User not found',
                 ], 404);
             }
-            abort(404, 'Usuario no encontrado');
+            abort(404, 'User not found');
         } catch (\Exception $e) {
-            Log::error('Error reenviando invitación: ' . $e->getMessage(), [
+            Log::error('Error resending invitation: '.$e->getMessage(), [
                 'user_id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             if ($request->expectsJson()) {
                 return response()->json([
-                    'message' => 'Error al reenviar invitación: ' . $e->getMessage()
+                    'message' => 'Error resending invitation: '.$e->getMessage(),
                 ], 500);
             }
 
-            return back()->withErrors(['error' => 'Error al reenviar invitación: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error resending invitation: '.$e->getMessage()]);
         }
     }
 
@@ -323,22 +325,22 @@ class UserController extends Controller
             if ($authUser->id === $user->id) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'No puedes eliminar tu propio usuario',
+                        'message' => 'You cannot delete your own user',
                         'user' => $user->fresh(),
                     ], 403);
                 }
-                abort(403, 'No puedes eliminar tu propio usuario');
+                abort(403, 'You cannot delete your own user');
             }
 
             // Authorization: only same company or admins can delete
             if ($user->company_id !== $authUser->company_id) {
                 if ($request->expectsJson()) {
                     return response()->json([
-                        'message' => 'No autorizado para eliminar este usuario',
+                        'message' => 'Not authorized to delete this user',
                         'user' => $user->fresh(),
                     ], 403);
                 }
-                abort(403, 'No autorizado para eliminar este usuario');
+                abort(403, 'Not authorized to delete this user');
             }
 
             DB::beginTransaction();
@@ -347,7 +349,7 @@ class UserController extends Controller
             // Actualmente realiza un delete físico
             $user->delete();
 
-            Log::info('Usuario eliminado', [
+            Log::info('User deleted', [
                 'user_id' => $user->id,
                 'deleted_by' => $authUser->id,
             ]);
@@ -355,26 +357,26 @@ class UserController extends Controller
             DB::commit();
 
             if ($request->expectsJson()) {
-                return response()->json(['message' => 'Usuario eliminado correctamente'], 200);
+                return response()->json(['message' => 'User deleted successfully'], 200);
             }
 
-            return back()->with('success', 'Usuario eliminado correctamente');
+            return back()->with('success', 'User deleted successfully');
         } catch (ModelNotFoundException $e) {
-            Log::warning('Usuario no encontrado al intentar eliminar', ['id' => $id]);
-            abort(404, 'Usuario no encontrado');
+            Log::warning('User not found when attempting to delete', ['id' => $id]);
+            abort(404, 'User not found');
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error eliminando usuario: ' . $e->getMessage(), [
+            Log::error('Error deleting user: '.$e->getMessage(), [
                 'id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
 
             if ($request->expectsJson()) {
-                return response()->json(['error' => 'Error al eliminar usuario'], 500);
+                return response()->json(['error' => 'Error deleting user'], 500);
             }
 
-            return back()->withErrors(['error' => 'Error al eliminar usuario']);
+            return back()->withErrors(['error' => 'Error deleting user']);
         }
     }
 }

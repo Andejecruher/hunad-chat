@@ -97,7 +97,7 @@ class RegisteredUserController extends Controller
 
             DB::commit();
 
-            return redirect()->route('dashboard')->with('success', '¡Registro completado exitosamente!');
+            return redirect()->route('dashboard')->with('success', 'Registration completed successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -107,7 +107,7 @@ class RegisteredUserController extends Controller
                 Storage::disk('public')->delete($logoPath);
             }
 
-            return back()->withErrors(['error' => 'Error durante el registro: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error during registration: ' . $e->getMessage()]);
         }
     }
 }
