@@ -35,4 +35,21 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Meta (WhatsApp Business) Services
+    |--------------------------------------------------------------------------
+    |
+    | Configuración para los servicios de Meta incluyendo WhatsApp Cloud API.
+    | Estos valores se utilizan para la validación de webhooks y autenticación.
+    |
+    */
+
+    'meta' => [
+        'app_secret' => env('META_APP_SECRET'),
+        'verify_token' => env('META_VERIFY_TOKEN'),
+        'api_version' => env('META_API_VERSION', 'v21.0'),
+        'graph_api_url' => env('META_GRAPH_API_URL', 'https://graph.facebook.com'),
+    ],
+
 ];

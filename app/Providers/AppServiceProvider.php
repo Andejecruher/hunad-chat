@@ -2,11 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\Event;
-use App\Listeners\UpdateUserLoginStatus;
-use App\Listeners\UpdateUserLogoutStatus;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
