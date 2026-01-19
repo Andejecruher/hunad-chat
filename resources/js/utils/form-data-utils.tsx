@@ -61,7 +61,7 @@ export const toFormData = <
 // const fd = toFormData<UserForm>(userForm, 'PUT');
 
 // 3) Enviar arrays, archivos y objetos anidados:
-// const fd = toFormData<{ tags: string[]; files: File[]; meta: Record<string,any> }>(
+// const fd = toFormData<{ tags: string[]; files: File[]; meta: Record<string,unknown> }>(
 //   { tags: ['a','b'], files: [file1, file2], meta: { active: true } },
 //   'PATCH'
 // );
