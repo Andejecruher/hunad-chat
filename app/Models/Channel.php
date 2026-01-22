@@ -9,7 +9,8 @@ class Channel extends Model
 {
     /** @use HasFactory<\Database\Factories\ChannelFactory> */
     use HasFactory;
-    protected $fillable = ['company_id', 'type', 'external_id', 'config'];
+
+    protected $fillable = ['name', 'description', 'company_id', 'type', 'status', 'external_id', 'config'];
 
     protected $casts = [
         'config' => 'array',

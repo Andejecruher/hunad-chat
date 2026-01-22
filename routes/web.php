@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\ChannelController;
+use App\Http\Controllers\CompaniesController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\CompaniesController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\DepartmentController;
 
 Route::get('/', function () {
     return Inertia::render('welcome');
@@ -24,9 +25,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/management/departments', DepartmentController::class);
     Route::get('/management/departments/stats', [DepartmentController::class, 'stats'])->name('departments.stats');
     Route::patch('/management/departments/{department}/toggle-status', [DepartmentController::class, 'toggleStatus'])->name('departments.toggle-status');
+    // Channels Routes
+    Route::resource('/channels', ChannelController::class)->except(['create']);
 
 });
-
 
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';

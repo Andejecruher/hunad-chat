@@ -17,11 +17,27 @@ class ChannelFactory extends Factory
      */
     public function definition(): array
     {
+        $type = $this->faker->randomElement(['whatsapp']);
+
+        // Generar configuraciones específicas por tipo siguiendo las interfaces TypeScript
+        $config = match ($type) {
+            'whatsapp' => [
+                // Campos compatibles con backend (legacy/service expectations)
+                'access_token' => $this->faker->sha1,
+                'phone_number_id' => (string) $this->faker->randomNumber(8),
+                'whatsapp_business_id' => (string) $this->faker->randomNumber(7),
+                'whatsapp_phone_number_id' => (string) $this->faker->randomNumber(8),
+            ],
+        };
+
         return [
             'company_id' => Company::factory(),
-            'type' => $this->faker->randomElement(['whatsapp', 'instagram', 'facebook', 'telegram']),
+            'name' => $this->faker->company.' '.ucfirst($type),
+            'description' => $this->faker->sentence,
+            'type' => $type,
             'external_id' => $this->faker->uuid,
-            'config' => ['api_key' => $this->faker->sha1],
+            'config' => $config,
+            'status' => $this->faker->randomElement(['active', 'inactive']),
         ];
     }
 }

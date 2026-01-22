@@ -13,7 +13,10 @@ return new class extends Migration
     {
         Schema::create('channels', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
+            $table->string('description')->nullable();
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
+            $table->enum('status', ['active', 'inactive'])->default('inactive');
             $table->enum('type', ['whatsapp', 'instagram', 'facebook', 'telegram']);
             $table->string('external_id')->nullable(); // ID de cuenta/línea específica
             $table->json('config')->nullable();

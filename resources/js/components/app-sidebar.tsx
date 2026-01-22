@@ -10,6 +10,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import channels from '@/routes/channels';
 import company from '@/routes/company';
 import departments from '@/routes/departments';
 import users from '@/routes/users';
@@ -46,7 +47,7 @@ export function AppSidebar() {
         {
             label: 'Canales',
             icon: 'Share2',
-            path: '#',
+            path: channels.index().url,
         },
         {
             label: 'Configuración',
