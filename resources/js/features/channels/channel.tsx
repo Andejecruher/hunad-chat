@@ -11,14 +11,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import type { Channel, ChannelType, TelegramConfig, WhatsAppConfig } from '@/types'
+import { useFlashMessages } from "@/hooks/useFlashMessages"
+import channelsRouter from "@/routes/channels"
+import type { Channel, ChannelType, FlashPayload, TelegramConfig, WhatsAppConfig } from '@/types'
 import { platformInfo } from '@/types/channels'
-import { router } from "@inertiajs/react"
+import { router, useForm, usePage } from "@inertiajs/react"
 import { AlertCircle, ArrowLeft, Save } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
-import channelsRouter from "@/routes/channels";
-import {toFormData} from "@/utils/form-data-utils";
 
 // Subcomponentes para configuraciones específicas por plataforma
 function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange: (c: unknown) => void }) {
@@ -137,7 +137,7 @@ function validateChannel(channel: Partial<Channel>) {
         const cfg = channel.config as Partial<WhatsAppConfig> | undefined
         if (!cfg?.phone_number_id) errors.phone_number_id = 'Número de WhatsApp requerido'
         if (!cfg?.access_token) errors.access_token = 'API Key de WhatsApp requerida'
-        if(!cfg?.whatsapp_business_id) errors.whatsapp_business_id = 'Business Account ID requerido'
+        if (!cfg?.whatsapp_business_id) errors.whatsapp_business_id = 'Business Account ID requerido'
         if (!cfg?.whatsapp_phone_number_id) errors.whatsapp_phone_number_id = 'Webhook URL requerido'
     }
 
@@ -155,26 +155,23 @@ function validateChannel(channel: Partial<Channel>) {
 }
 
 function ChannelDetails({ channel }: { channel: Channel }) {
-    const [formData, setFormData] = useState<Partial<Channel>>(channel || {})
+    const { props } = usePage();
     const [isSaving, setIsSaving] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
+    const form = useForm<Partial<Channel>>({ ...channel }) // inicializa con los valores del canal
 
-    // actualizar campo simple
+    useFlashMessages(props.flash as FlashPayload['flash']);
+    // actualizar campo simple usando useForm
     const updateField = useCallback((key: keyof Channel, value: unknown) => {
-        setFormData((prev) => ({ ...(prev || {}), [key]: value }))
-    }, [])
+        form.setData(key, String(value))
+    }, [form])
 
-    // actualizar config (objeto anidado)
+    // actualizar config (objeto anidado) usando useForm
     const updateConfig = useCallback((nextConfig: unknown) => {
-        setFormData((prev) => ({
-            ...(prev || {}),
-            config: ((): Channel['config'] => {
-                const base = (prev?.config ?? {}) as Record<string, unknown>
-                const merged = { ...base, ...(nextConfig as Record<string, unknown>) }
-                return merged as unknown as Channel['config']
-            })(),
-        }))
-    }, [])
+        const base = (form.data.config ?? {}) as Record<string, unknown>
+        const merged = { ...base, ...(nextConfig as Record<string, unknown>) }
+        form.setData('config', merged as unknown as Channel['config'])
+    }, [form])
 
     if (!channel) {
         return (
@@ -186,12 +183,12 @@ function ChannelDetails({ channel }: { channel: Channel }) {
         )
     }
 
-    const platform = (formData.type ?? channel.type) as ChannelType
+    const platform = (form.data.type ?? channel.type) as ChannelType
 
+    // ...existing code...
     const handleSave = async () => {
-        const allData = { ...channel, ...formData } as Partial<Channel>;
+        const allData = { ...channel, ...form.data } as Partial<Channel>;
         const validation = validateChannel(allData)
-
         setErrors(validation)
 
         if (Object.keys(validation).length > 0) {
@@ -204,27 +201,23 @@ function ChannelDetails({ channel }: { channel: Channel }) {
             return
         }
 
-        try {
-            const url = channelsRouter.update.url({ channel: channel.id })
+        const url = channelsRouter.update.url({ channel: channel.id })
 
-            const backendData = toFormData({...allData}, 'PUT')
-
-            router.put(url,
-                backendData,
-                {
-                    preserveState: true,
-                    preserveScroll: true,
-                    forceFormData: true,
-                    only: ['channels', 'flash'],
-                    onStart: () => setIsSaving(true),
-                    onFinish: () => setIsSaving(false),
-                })
-        } catch (e) {
-            console.error(e)
-            toast.error('Error al guardar')
-        } finally {
-            setIsSaving(false)
-        }
+        form.put(url, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ['channel', 'flash'],
+            onStart: () => {
+                setIsSaving(true)
+            },
+            onError: (errors) => {
+                // Inertia retorna errores de validación; actualizarlos en el estado local si es necesario
+                setErrors((errors ?? {}) as Record<string, string>)
+            },
+            onFinish: () => {
+                setIsSaving(false)
+            },
+        })
     }
 
     return (
@@ -236,7 +229,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                 <div>
                     <div className="flex items-center gap-2">
                         <div className={`h-3 w-3 rounded-full ${platformInfo[platform].color}`} />
-                        <h1 className="font-heading text-3xl font-bold text-foreground">{formData.name || channel.name}</h1>
+                        <h1 className="font-heading text-3xl font-bold text-foreground">{form.data.name || channel.name}</h1>
                     </div>
                     <p className="text-muted-foreground">{platformInfo[platform].name}</p>
                 </div>
@@ -261,7 +254,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     <Label htmlFor="name">Nombre</Label>
                                     <Input
                                         id="name"
-                                        value={formData.name ?? ''}
+                                        value={form.data.name ?? ''}
                                         onChange={(e) => updateField('name', e.target.value)}
                                         placeholder="Nombre del canal"
                                     />
@@ -272,7 +265,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     <Label htmlFor="type">Tipo de Canal</Label>
                                     <select
                                         id="type"
-                                        value={formData.type ?? channel.type}
+                                        value={form.data.type ?? channel.type}
                                         onChange={(e) => updateField('type', e.target.value as ChannelType)}
                                         className="w-full rounded-md border bg-background px-3 py-2"
                                     >
@@ -287,7 +280,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     <Label htmlFor="description">Descripción / ID</Label>
                                     <Input
                                         id="description"
-                                        value={formData.description ?? channel.description ?? ''}
+                                        value={form.data.description ?? channel.description ?? ''}
                                         onChange={(e) => updateField('description', e.target.value)}
                                         placeholder="ID o descripción del canal"
                                     />
@@ -298,7 +291,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     <Input
                                         id="company_id"
                                         type="number"
-                                        value={String(formData.company_id ?? channel.company_id ?? '')}
+                                        value={String(form.data.company_id ?? channel.company_id ?? '')}
                                         onChange={(e) => updateField('company_id', Number(e.target.value))}
                                         placeholder="Company ID"
                                     />
@@ -309,7 +302,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     <Label htmlFor="status">Estado</Label>
                                     <select
                                         id="status"
-                                        value={formData.status ?? channel.status}
+                                        value={form.data.status ?? channel.status}
                                         onChange={(e) => updateField('status', e.target.value as Channel['status'])}
                                         className="w-full rounded-md border bg-background px-3 py-2"
                                     >
@@ -332,16 +325,16 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {/* Renderizar editor específico según tipo */}
-                            {(formData.type ?? channel.type) === 'whatsapp' && (
-                                <WhatsAppConfigEditor config={formData.config ?? channel.config} onChange={updateConfig} />
+                            {(form.data.type ?? channel.type) === 'whatsapp' && (
+                                <WhatsAppConfigEditor config={form.data.config ?? channel.config} onChange={updateConfig} />
                             )}
 
-                            {(formData.type ?? channel.type) === 'telegram' && (
-                                <TelegramConfigEditor config={formData.config ?? channel.config} onChange={updateConfig} />
+                            {(form.data.type ?? channel.type) === 'telegram' && (
+                                <TelegramConfigEditor config={form.data.config ?? channel.config} onChange={updateConfig} />
                             )}
 
-                            {!['whatsapp', 'telegram'].includes((formData.type ?? channel.type) as string) && (
-                                <GenericConfigEditor config={formData.config ?? channel.config} onChange={updateConfig} />
+                            {!['whatsapp', 'telegram'].includes((form.data.type ?? channel.type) as string) && (
+                                <GenericConfigEditor config={form.data.config ?? channel.config} onChange={updateConfig} />
                             )}
 
                         </CardContent>
@@ -375,9 +368,43 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                 <Button variant="outline" onClick={() => router.visit(`/channels`)}>
                     Cancelar
                 </Button>
-                <Button onClick={handleSave} disabled={isSaving}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                <Button
+                    onClick={handleSave}
+                    disabled={isSaving}
+                    className="active:scale-95 transition-transform"
+                    aria-busy={isSaving}
+                >
+                    {isSaving ? (
+                        <span className="flex items-center gap-2">
+                            <svg
+                                className="h-4 w-4 animate-spin text-current"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
+                                aria-hidden="true"
+                            >
+                                <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                />
+                                <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                />
+                            </svg>
+                            Guardando...
+                        </span>
+                    ) : (
+                        <span className="flex items-center gap-2">
+                            <Save className="h-4 w-4" />
+                            Guardar Cambios
+                        </span>
+                    )}
                 </Button>
             </div>
 

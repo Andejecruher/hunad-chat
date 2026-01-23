@@ -3,12 +3,12 @@
 // typescript
 // Archivo sugerido: resources/js/utils/form-data-utils.ts
 export function toFormData(
-    obj: Record<string, any>,
+    obj: Record<string, unknown>,
     method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 ): FormData {
     const formData = new FormData();
 
-    function appendFormValue(key: string, value: any) {
+    function appendFormValue(key: string, value: unknown) {
         if (value === undefined || value === null) {
             return; // evita enviar valores nulos/undefined si no quieres
         }
@@ -19,16 +19,17 @@ export function toFormData(
         }
         // Arrays: anexar con índices o como múltiples keys (ej: tags[])
         if (Array.isArray(value)) {
-            value.forEach((v, idx) => {
+            value.forEach((v) => {
                 // usa key[] para que PHP lo convierta en array
                 appendFormValue(`${key}[]`, v);
             });
             return;
         }
         // Objetos: recorrer y usar notación con corchetes
-        if (typeof value === 'object') {
-            Object.keys(value).forEach((subKey) => {
-                appendFormValue(`${key}[${subKey}]`, value[subKey]);
+        if (typeof value === 'object' && value !== null) {
+            const objectValue = value as Record<string, unknown>;
+            Object.keys(objectValue).forEach((subKey) => {
+                appendFormValue(`${key}[${subKey}]`, objectValue[subKey]);
             });
             return;
         }

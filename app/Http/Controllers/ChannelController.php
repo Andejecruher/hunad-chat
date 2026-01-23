@@ -24,7 +24,7 @@ class ChannelController extends Controller
         $user = auth()->user();
 
         // Seguridad: asegurar que el usuario y su company existen
-        if (! $user || ! $user->company_id) {
+        if (!$user || !$user->company_id) {
             abort(403, 'Unauthorized.');
         }
 
@@ -34,7 +34,7 @@ class ChannelController extends Controller
         $query = Channel::query()->where('company_id', $user->company_id);
 
         // Filtro: búsqueda en name y description
-        if (! empty($filters['search'])) {
+        if (!empty($filters['search'])) {
             $search = trim($filters['search']);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -43,12 +43,12 @@ class ChannelController extends Controller
         }
 
         // Filtro por tipo
-        if (! empty($filters['type']) && $filters['type'] !== 'all') {
+        if (!empty($filters['type']) && $filters['type'] !== 'all') {
             $query->where('type', $filters['type']);
         }
 
         // Filtro por estado/status
-        if (! empty($filters['status']) && $filters['status'] !== 'all') {
+        if (!empty($filters['status']) && $filters['status'] !== 'all') {
             $query->where('status', $filters['status']);
         }
 
@@ -92,7 +92,7 @@ class ChannelController extends Controller
     {
         $user = auth()->user();
 
-        if (! $user || ! $user->company_id) {
+        if (!$user || !$user->company_id) {
             abort(403, 'Unauthorized.');
         }
 
@@ -134,7 +134,7 @@ class ChannelController extends Controller
             DB::rollBack();
             Log::error('Error creating channel', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
 
-            return back()->withInput()->withErrors(['error' => 'Error creating channel: '.$e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'Error creating channel: ' . $e->getMessage()]);
         }
     }
 
@@ -198,6 +198,8 @@ class ChannelController extends Controller
         // construct channel with decrypted config
         $channel->config = $config;
 
+        Log::info('channel show', ['channel' => $channel]);
+
         return Inertia::render('channels/channel', [
             'channel' => $channel,
         ]);
@@ -223,7 +225,7 @@ class ChannelController extends Controller
         // Intentar obtener token existente desencriptado (si existe)
         $existingTokenEncrypted = $existingConfig['access_token'] ?? null;
         $existingTokenPlain = null;
-        if (! empty($existingTokenEncrypted) && is_string($existingTokenEncrypted)) {
+        if (!empty($existingTokenEncrypted) && is_string($existingTokenEncrypted)) {
             try {
                 $existingTokenPlain = Crypt::decryptString($existingTokenEncrypted);
             } catch (\Exception $e) {
@@ -290,14 +292,14 @@ class ChannelController extends Controller
             $updates['status'] = $data['status'];
         }
         // Siempre setear config si hay cambios detectables
-        if (! empty($finalConfig)) {
+        if (!empty($finalConfig)) {
             $updates['config'] = $finalConfig;
         }
 
         try {
             DB::beginTransaction();
 
-            if (! empty($updates)) {
+            if (!empty($updates)) {
                 $channel->update($updates);
             }
 
@@ -342,7 +344,7 @@ class ChannelController extends Controller
         } catch (\Exception $e) {
             Log::error('Error deleting channel', ['error' => $e->getMessage()]);
 
-            return back()->withErrors(['error' => 'Could not delete channel: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Could not delete channel: ' . $e->getMessage()]);
         }
     }
 }
