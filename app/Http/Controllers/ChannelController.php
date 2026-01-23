@@ -165,6 +165,8 @@ class ChannelController extends Controller
         // construct channel with decrypted config
         $channel->config = $config;
 
+        Log::info('channel show', ['channel' => $channel]);
+
         return Inertia::render('channels/channel', [
             'channel' => $channel,
         ]);
@@ -206,13 +208,27 @@ class ChannelController extends Controller
      */
     public function update(UpdateChannelRequest $request, Channel $channel)
     {
+        $user = auth()->user();
         $data = $request->validated();
+
+        Log::info('Updating channel (raw config)', ['data' => $data]);
 
         // Recuperar config actual (asegura que sea array)
         $existingConfig = $channel->config ?? [];
         if (is_string($existingConfig)) {
             $decoded = json_decode($existingConfig, true);
             $existingConfig = is_array($decoded) ? $decoded : $existingConfig;
+        }
+
+        // Intentar obtener token existente desencriptado (si existe)
+        $existingTokenEncrypted = $existingConfig['access_token'] ?? null;
+        $existingTokenPlain = null;
+        if (! empty($existingTokenEncrypted) && is_string($existingTokenEncrypted)) {
+            try {
+                $existingTokenPlain = Crypt::decryptString($existingTokenEncrypted);
+            } catch (\Exception $e) {
+                $existingTokenPlain = null; // no se pudo desencriptar
+            }
         }
 
         // Config enviada explícitamente como objeto/array
@@ -239,13 +255,25 @@ class ChannelController extends Controller
         // Merge preservando valores existentes cuando no se envían
         $finalConfig = array_merge(is_array($existingConfig) ? $existingConfig : [], is_array($incomingConfig) ? $incomingConfig : []);
 
-        // Encriptar secretos si fueron provistos en la actualización
-        if (! empty($finalConfig['access_token'])) {
-            $finalConfig['access_token'] = Crypt::encryptString((string) $finalConfig['access_token']);
+        // Manejo específico de access_token:
+        if (array_key_exists('access_token', $data) || array_key_exists('access_token', $incomingConfig)) {
+            // Preferir valor top-level si existe, sino el enviado dentro de config
+            $incomingAccessToken = array_key_exists('access_token', $data) ? $data['access_token'] : ($incomingConfig['access_token'] ?? null);
+
+            if ($incomingAccessToken === null || $incomingAccessToken === '') {
+                // Si se envía explicitamente vacío o null, eliminamos el token (borrar)
+                unset($finalConfig['access_token']);
+            } else {
+                // Si existe token previo desencriptado y es igual al entrante, conservar el encriptado existente
+                if ($existingTokenPlain !== null && $incomingAccessToken === $existingTokenPlain) {
+                    $finalConfig['access_token'] = $existingTokenEncrypted;
+                } else {
+                    // Cambio real: encriptar el nuevo token
+                    $finalConfig['access_token'] = Crypt::encryptString((string) $incomingAccessToken);
+                }
+            }
         }
-        if (! empty($finalConfig['app_secret'])) {
-            $finalConfig['app_secret'] = Crypt::encryptString((string) $finalConfig['app_secret']);
-        }
+        // Si no se envió access_token en la request, dejamos el valor existente tal cual (ya quedó en $finalConfig)
 
         // Campos updatable (solo los permitidos)
         $updates = [];
@@ -258,7 +286,10 @@ class ChannelController extends Controller
         if (array_key_exists('type', $data)) {
             $updates['type'] = $data['type'];
         }
-        // Siempre setear config si hay cambios
+        if (array_key_exists('status', $data)) {
+            $updates['status'] = $data['status'];
+        }
+        // Siempre setear config si hay cambios detectables
         if (! empty($finalConfig)) {
             $updates['config'] = $finalConfig;
         }
@@ -272,7 +303,7 @@ class ChannelController extends Controller
 
             DB::commit();
 
-            Log::info('Channel updated', ['channel_id' => $channel->id, 'company_id' => $this->user()->company_id]);
+            Log::info('Channel updated', ['channel_id' => $channel->id, 'company_id' => $user->company_id]);
 
             if ($request->wantsJson() || $request->expectsJson()) {
                 return response()->json($channel->fresh(), 200);
@@ -290,6 +321,7 @@ class ChannelController extends Controller
             return back()->withInput()->withErrors(['error' => 'Error al actualizar el canal.']);
         }
     }
+
     /**
      * Remove the specified resource from storage.
      */

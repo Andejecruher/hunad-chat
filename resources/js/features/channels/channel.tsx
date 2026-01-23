@@ -17,12 +17,12 @@ import { router } from "@inertiajs/react"
 import { AlertCircle, ArrowLeft, Save } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
+import channelsRouter from "@/routes/channels";
+import {toFormData} from "@/utils/form-data-utils";
 
 // Subcomponentes para configuraciones específicas por plataforma
-// typescript
 function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange: (c: unknown) => void }) {
     const cfg = (config as Record<string, unknown>) ?? {}
-
     const value = (key: string) => String(cfg[key] ?? '')
 
     const handleChange = (key: string, v: string) => {
@@ -154,7 +154,7 @@ function validateChannel(channel: Partial<Channel>) {
     return errors
 }
 
-export function ChannelDetails({ channel }: { channel: Channel }) {
+function ChannelDetails({ channel }: { channel: Channel }) {
     const [formData, setFormData] = useState<Partial<Channel>>(channel || {})
     const [isSaving, setIsSaving] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
@@ -189,21 +189,36 @@ export function ChannelDetails({ channel }: { channel: Channel }) {
     const platform = (formData.type ?? channel.type) as ChannelType
 
     const handleSave = async () => {
-        const allData = { ...channel, ...formData } as Channel
+        const allData = { ...channel, ...formData } as Partial<Channel>;
         const validation = validateChannel(allData)
+
         setErrors(validation)
+
         if (Object.keys(validation).length > 0) {
             toast.error('Corrige los errores antes de guardar')
             return
         }
 
-        setIsSaving(true)
+        if (!allData) {
+            toast.error('No hay datos para guardar')
+            return
+        }
+
         try {
-            // En un flujo real: usar router.post/put con la URL y datos.
-            // Ejemplo: router.put(route('channels.update', channel.id), allData)
-            await new Promise((resolve) => setTimeout(resolve, 800))
-            toast.success('Cambios guardados', { description: 'La configuración del canal ha sido actualizada' })
-            // redirigir o refrescar datos si es necesario
+            const url = channelsRouter.update.url({ channel: channel.id })
+
+            const backendData = toFormData({...allData}, 'PUT')
+
+            router.put(url,
+                backendData,
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    forceFormData: true,
+                    only: ['channels', 'flash'],
+                    onStart: () => setIsSaving(true),
+                    onFinish: () => setIsSaving(false),
+                })
         } catch (e) {
             console.error(e)
             toast.error('Error al guardar')
@@ -369,3 +384,5 @@ export function ChannelDetails({ channel }: { channel: Channel }) {
         </div>
     )
 }
+
+export default ChannelDetails

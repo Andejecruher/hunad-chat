@@ -1,4 +1,4 @@
-import { ChannelDetails } from '@/features/channels/channel';
+import ChannelDetails from '@/features/channels/channel';
 import AppLayout from '@/layouts/app-layout';
 import channels from '@/routes/channels';
 import { type BreadcrumbItem, Channel as ChannelType } from '@/types';

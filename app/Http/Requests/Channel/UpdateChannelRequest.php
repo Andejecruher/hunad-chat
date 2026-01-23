@@ -95,6 +95,9 @@ class UpdateChannelRequest extends FormRequest
         $channel = $this->route('channel');
 
         return [
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'description' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'status' => ['sometimes', 'required', Rule::in(['active', 'inactive'])],
             'external_id' => [
                 'sometimes',
                 'nullable',
@@ -116,17 +119,6 @@ class UpdateChannelRequest extends FormRequest
             'config.app_secret' => ['sometimes', 'nullable', 'string', 'min:32'],
             'config.api_key' => ['sometimes', 'nullable', 'string'],
             'config.webhook_secret' => ['sometimes', 'nullable', 'string'],
-
-            // Campos específicos aceptados a primer nivel (compatibilidad hacia atrás)
-            'access_token' => ['sometimes', 'nullable', 'string', 'min:100'],
-            'phone_number_id' => ['sometimes', 'nullable', 'string', 'regex:/^\d+$/'],
-            'business_id' => ['sometimes', 'nullable', 'string', 'regex:/^\d+$/'],
-            'whatsapp_phone_number_id' => ['sometimes', 'nullable', 'string', 'regex:/^\d+$/'],
-            'app_secret' => ['sometimes', 'nullable', 'string', 'min:32'],
-
-            // Campos para otros canales
-            'api_key' => ['sometimes', 'nullable', 'string'],
-            'webhook_secret' => ['sometimes', 'nullable', 'string'],
         ];
     }
 
@@ -145,7 +137,6 @@ class UpdateChannelRequest extends FormRequest
             'config.phone_number_id.regex' => 'El ID del número de teléfono en `config` debe contener solo dígitos.',
             'business_id.regex' => 'El ID del negocio debe contener solo dígitos.',
             'config.whatsapp_business_id.regex' => 'El ID del negocio en `config` debe contener solo dígitos.',
-            'app_secret.min' => 'El app secret debe tener al menos :min caracteres.',
         ];
     }
 

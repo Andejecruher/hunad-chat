@@ -1,56 +1,53 @@
 // TypeScript
 // Reemplaza UserType por un genérico para usar con cualquier interfaz
-export const toFormData = <
-    T extends Record<string, unknown> = Record<string, unknown>,
->(
-    obj?: Partial<T>,
-    method: string = 'POST',
-): FormData => {
-    const fd = new FormData();
+// typescript
+// Archivo sugerido: resources/js/utils/form-data-utils.ts
+export function toFormData(
+    obj: Record<string, any>,
+    method?: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+): FormData {
+    const formData = new FormData();
 
-    if (!obj) {
-        if (method && method !== 'POST') fd.append('_method', method);
-        return fd;
-    }
-
-    Object.entries(obj).forEach(([key, value]) => {
-        if (value === undefined || value === null) return;
-
-        if (typeof value === 'boolean') {
-            fd.append(key, value ? '1' : '0');
-            return;
+    function appendFormValue(key: string, value: any) {
+        if (value === undefined || value === null) {
+            return; // evita enviar valores nulos/undefined si no quieres
         }
-
+        // Archivos o Blobs se anexan tal cual
         if (value instanceof File || value instanceof Blob) {
-            fd.append(key, value);
+            formData.append(key, value);
             return;
         }
-
+        // Arrays: anexar con índices o como múltiples keys (ej: tags[])
         if (Array.isArray(value)) {
-            value.forEach((v) => {
-                if (v === undefined || v === null) return;
-                if (v instanceof File || v instanceof Blob) {
-                    fd.append(`${key}[]`, v);
-                } else if (typeof v === 'object') {
-                    fd.append(`${key}[]`, JSON.stringify(v));
-                } else {
-                    fd.append(`${key}[]`, String(v));
-                }
+            value.forEach((v, idx) => {
+                // usa key[] para que PHP lo convierta en array
+                appendFormValue(`${key}[]`, v);
             });
             return;
         }
-
+        // Objetos: recorrer y usar notación con corchetes
         if (typeof value === 'object') {
-            fd.append(key, JSON.stringify(value));
+            Object.keys(value).forEach((subKey) => {
+                appendFormValue(`${key}[${subKey}]`, value[subKey]);
+            });
             return;
         }
+        // Valores primitivos
+        formData.append(key, String(value));
+    }
 
-        fd.append(key, String(value));
+    Object.keys(obj).forEach((k) => {
+        appendFormValue(k, obj[k]);
     });
 
-    if (method && method !== 'POST') fd.append('_method', method);
-    return fd;
-};
+    // Para métodos diferentes a POST, Laravel espera _method
+    if (method && method !== 'POST') {
+        formData.append('_method', method);
+    }
+
+    return formData;
+}
+
 
 // Ejemplos de uso:
 // 1) Dejar que TypeScript infiera el tipo
