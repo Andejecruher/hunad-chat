@@ -25,4 +25,17 @@ class Channel extends Model
     {
         return $this->hasMany(Conversation::class);
     }
+
+    // update created_at and updated_at on related conversations when the channel is created
+    protected static function boot()
+    {
+        parent::boot();
+        static::created(function ($channel) {
+            $channel->conversations()->update(['created_at' => now(), 'updated_at' => now()]);
+        });
+        static::updated(function ($channel) {
+            $channel->conversations()->update(['updated_at' => now()]);
+        });
+    }
+
 }

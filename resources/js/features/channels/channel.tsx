@@ -15,6 +15,7 @@ import { useFlashMessages } from "@/hooks/useFlashMessages"
 import channelsRouter from "@/routes/channels"
 import type { Channel, ChannelType, FlashPayload, TelegramConfig, WhatsAppConfig } from '@/types'
 import { platformInfo } from '@/types/channels'
+import { formatDate } from "@/utils/dateFormatter"
 import { router, useForm, usePage } from "@inertiajs/react"
 import { AlertCircle, ArrowLeft, Save } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
@@ -161,6 +162,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
     const form = useForm<Partial<Channel>>({ ...channel }) // inicializa con los valores del canal
 
     useFlashMessages(props.flash as FlashPayload['flash']);
+
     // actualizar campo simple usando useForm
     const updateField = useCallback((key: keyof Channel, value: unknown) => {
         form.setData(key, String(value))
@@ -290,10 +292,10 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     <Label htmlFor="company_id">Company ID</Label>
                                     <Input
                                         id="company_id"
-                                        type="number"
-                                        value={String(form.data.company_id ?? channel.company_id ?? '')}
-                                        onChange={(e) => updateField('company_id', Number(e.target.value))}
+                                        type="string"
+                                        value={channel && channel?.company?.name}
                                         placeholder="Company ID"
+                                        disabled
                                     />
                                     {errors.company_id && <p className="text-sm text-destructive">{errors.company_id}</p>}
                                 </div>
@@ -351,11 +353,11 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <Label>Creado</Label>
-                                    <p className="text-sm text-foreground">{channel.created_at}</p>
+                                    <p className="text-sm text-foreground">{formatDate(channel.created_at, { timeZone: 'local', dateStyle: 'medium', timeStyle: 'medium', hour12: true })}</p>
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Actualizado</Label>
-                                    <p className="text-sm text-foreground">{channel.updated_at}</p>
+                                    <p className="text-sm text-foreground">{formatDate(channel.updated_at, { timeZone: 'local', dateStyle: 'medium', timeStyle: 'medium', hour12: true })}</p>
                                 </div>
                             </div>
                         </CardContent>

@@ -145,7 +145,7 @@ class ChannelController extends Controller
     public function show(string $id)
     {
         $user = auth()->user();
-        $channel = Channel::findOrFail($id);
+        $channel = Channel::with('company')->findOrFail($id);
 
         // Verificar pertenencia a la misma empresa
         if ($channel->company_id !== $user->company_id) {
@@ -178,7 +178,7 @@ class ChannelController extends Controller
     public function edit(string $id)
     {
         $user = auth()->user();
-        $channel = Channel::findOrFail($id);
+        $channel = Channel::with('company')->findOrFail($id);
 
         // Verificar pertenencia a la misma empresa
         if ($channel->company_id !== $user->company_id) {

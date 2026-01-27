@@ -1,3 +1,4 @@
+import { CompanySettings } from '@/types';
 export type ChannelType = 'whatsapp' | 'instagram' | 'facebook' | 'telegram';
 
 // Configuraciones específicas por canal
@@ -48,6 +49,7 @@ export interface Channel {
     config: ChannelConfigMap[ChannelType]; // ← Se adapta según el tipo
     created_at: string;
     updated_at: string;
+    company?: CompanySettings;
 }
 
 export const platformInfo = {
