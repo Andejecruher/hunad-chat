@@ -17,7 +17,12 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->json('config');
+            $table->timestamp('last_executed_at')->nullable();
+            $table->json('last_error')->nullable();
+            $table->foreignId('created_by')->nullable();
+            $table->foreignId('updated_by')->nullable();
             $table->timestamps();
+            $table->unique(['company_id', 'slug']);
         });
     }
 
