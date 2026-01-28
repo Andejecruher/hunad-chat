@@ -21,7 +21,7 @@ import { AlertCircle, ArrowLeft, Save } from "lucide-react"
 import { useCallback, useMemo, useState } from "react"
 import { toast } from "sonner"
 
-// Subcomponentes para configuraciones específicas por plataforma
+// Subcomponents for platform-specific configurations
 function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange: (c: unknown) => void }) {
     const cfg = (config as Record<string, unknown>) ?? {}
     const value = (key: string) => String(cfg[key] ?? '')
@@ -33,7 +33,7 @@ function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-                <Label htmlFor="whatsappAccessToken">API Key (access_token)</Label>
+                <Label htmlFor="whatsappAccessToken">API Key</Label>
                 <Input
                     id="whatsappAccessToken"
                     value={value('access_token')}
@@ -43,7 +43,7 @@ function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="whatsappPhoneNumberId">Phone Number ID (phone_number_id)</Label>
+                <Label htmlFor="whatsappPhoneNumberId">Phone Number ID</Label>
                 <Input
                     id="whatsappPhoneNumberId"
                     value={value('phone_number_id')}
@@ -53,7 +53,7 @@ function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="whatsappBusinessId">Business Account ID (whatsapp_business_id)</Label>
+                <Label htmlFor="whatsappBusinessId">Business Account ID</Label>
                 <Input
                     id="whatsappBusinessId"
                     value={value('whatsapp_business_id')}
@@ -63,7 +63,7 @@ function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange
             </div>
 
             <div className="space-y-2">
-                <Label htmlFor="whatsappPhoneId">WhatsApp Phone ID (whatsapp_phone_number_id)</Label>
+                <Label htmlFor="whatsappPhoneId">WhatsApp Phone ID</Label>
                 <Input
                     id="whatsappPhoneId"
                     value={value('whatsapp_phone_number_id')}
@@ -102,14 +102,16 @@ function TelegramConfigEditor({ config, onChange }: { config?: unknown; onChange
 }
 
 function GenericConfigEditor({ config, onChange }: { config?: unknown; onChange: (c: unknown) => void }) {
-    // Muestra pares clave-valor simples para configuraciones desconocidas
+    // Shows simple key-value pairs for unknown configurations
     const cfg = useMemo(() => (config ?? {}) as Record<string, unknown>, [config])
     const keys = useMemo(() => Object.keys(cfg), [cfg])
 
     return (
         <div className="space-y-3">
             {keys.length === 0 && (
-                <p className="text-sm text-muted-foreground">No hay configuración adicional para este canal.</p>
+                <p className="text-sm text-muted-foreground">
+                    No specific configurations for this channel type.
+                </p>
             )}
             {keys.map((k) => (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4" key={k}>
@@ -123,33 +125,33 @@ function GenericConfigEditor({ config, onChange }: { config?: unknown; onChange:
     )
 }
 
-// Helper de validación mínima por tipo
+// Minimal validation helper by type
 function validateChannel(channel: Partial<Channel>) {
     const errors: Record<string, string> = {}
     if (!channel.name || channel.name.trim().length === 0) {
-        errors.name = 'El nombre es requerido'
+        errors.name = 'Name is required'
     }
     if (!channel.type) {
-        errors.type = 'El tipo de canal es requerido'
+        errors.type = 'Channel type is required'
     }
 
     // Validaciones por tipo
     if (channel.type === 'whatsapp') {
         const cfg = channel.config as Partial<WhatsAppConfig> | undefined
-        if (!cfg?.phone_number_id) errors.phone_number_id = 'Número de WhatsApp requerido'
-        if (!cfg?.access_token) errors.access_token = 'API Key de WhatsApp requerida'
-        if (!cfg?.whatsapp_business_id) errors.whatsapp_business_id = 'Business Account ID requerido'
-        if (!cfg?.whatsapp_phone_number_id) errors.whatsapp_phone_number_id = 'Webhook URL requerido'
+        if (!cfg?.phone_number_id) errors.phone_number_id = 'WhatsApp phone number required'
+        if (!cfg?.access_token) errors.access_token = 'WhatsApp API key required'
+        if (!cfg?.whatsapp_business_id) errors.whatsapp_business_id = 'Business Account ID required'
+        if (!cfg?.whatsapp_phone_number_id) errors.whatsapp_phone_number_id = 'Webhook URL required'
     }
 
     if (channel.type === 'telegram') {
         const cfg = channel.config as Partial<TelegramConfig> | undefined
-        if (!cfg?.botToken) errors.botToken = 'Bot token requerido'
+        if (!cfg?.botToken) errors.botToken = 'Bot token required'
     }
 
     // company_id es requerido en el modelo
     if (!channel.company_id) {
-        errors.company_id = 'company_id es requerido'
+        errors.company_id = 'company_id is required'
     }
 
     return errors
@@ -160,15 +162,16 @@ function ChannelDetails({ channel }: { channel: Channel }) {
     const [isSaving, setIsSaving] = useState(false)
     const [errors, setErrors] = useState<Record<string, string>>({})
     const form = useForm<Partial<Channel>>({ ...channel }) // inicializa con los valores del canal
+    // initialize with the channel values
 
     useFlashMessages(props.flash as FlashPayload['flash']);
 
-    // actualizar campo simple usando useForm
+    // update simple field using useForm
     const updateField = useCallback((key: keyof Channel, value: unknown) => {
         form.setData(key, String(value))
     }, [form])
 
-    // actualizar config (objeto anidado) usando useForm
+    // update config (nested object) using useForm
     const updateConfig = useCallback((nextConfig: unknown) => {
         const base = (form.data.config ?? {}) as Record<string, unknown>
         const merged = { ...base, ...(nextConfig as Record<string, unknown>) }
@@ -179,8 +182,8 @@ function ChannelDetails({ channel }: { channel: Channel }) {
         return (
             <div className="flex flex-col items-center justify-center py-12">
                 <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-                <p className="text-lg font-semibold text-foreground mb-4">Canal no encontrado</p>
-                <Button onClick={() => router.visit(`/channels`)}>Volver</Button>
+                <p className="text-lg font-semibold text-foreground mb-4">Channel not found</p>
+                <Button onClick={() => router.visit(`/channels`)}>Back</Button>
             </div>
         )
     }
@@ -194,12 +197,12 @@ function ChannelDetails({ channel }: { channel: Channel }) {
         setErrors(validation)
 
         if (Object.keys(validation).length > 0) {
-            toast.error('Corrige los errores antes de guardar')
+            toast.error('Fix errors before saving')
             return
         }
 
         if (!allData) {
-            toast.error('No hay datos para guardar')
+            toast.error('No data to save')
             return
         }
 
@@ -213,7 +216,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                 setIsSaving(true)
             },
             onError: (errors) => {
-                // Inertia retorna errores de validación; actualizarlos en el estado local si es necesario
+                // Inertia returns validation errors; update local state if needed
                 setErrors((errors ?? {}) as Record<string, string>)
             },
             onFinish: () => {
@@ -239,32 +242,32 @@ function ChannelDetails({ channel }: { channel: Channel }) {
 
             <Tabs defaultValue="general" className="space-y-4">
                 <TabsList>
-                    <TabsTrigger value="general">Información General</TabsTrigger>
-                    <TabsTrigger value="config">Configuración</TabsTrigger>
-                    <TabsTrigger value="meta">Metadatos</TabsTrigger>
+                    <TabsTrigger value="general">General Information</TabsTrigger>
+                    <TabsTrigger value="config">Configuration</TabsTrigger>
+                    <TabsTrigger value="meta">Metadata</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="general" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Información General</CardTitle>
-                            <CardDescription>Detalles básicos del canal</CardDescription>
+                            <CardTitle>General Information</CardTitle>
+                            <CardDescription>Basic channel details</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name">Nombre</Label>
+                                    <Label htmlFor="name">Name</Label>
                                     <Input
                                         id="name"
                                         value={form.data.name ?? ''}
                                         onChange={(e) => updateField('name', e.target.value)}
-                                        placeholder="Nombre del canal"
+                                        placeholder="Channel name"
                                     />
                                     {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="type">Tipo de Canal</Label>
+                                    <Label htmlFor="type">Channel Type</Label>
                                     <select
                                         id="type"
                                         value={form.data.type ?? channel.type}
@@ -279,12 +282,12 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">Descripción / ID</Label>
+                                    <Label htmlFor="description">Description / ID</Label>
                                     <Input
                                         id="description"
                                         value={form.data.description ?? channel.description ?? ''}
                                         onChange={(e) => updateField('description', e.target.value)}
-                                        placeholder="ID o descripción del canal"
+                                        placeholder="Channel ID or description"
                                     />
                                 </div>
 
@@ -301,20 +304,20 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="status">Estado</Label>
+                                    <Label htmlFor="status">Status</Label>
                                     <select
                                         id="status"
                                         value={form.data.status ?? channel.status}
                                         onChange={(e) => updateField('status', e.target.value as Channel['status'])}
                                         className="w-full rounded-md border bg-background px-3 py-2"
                                     >
-                                        <option value="active">Activo</option>
-                                        <option value="inactive">Inactivo</option>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
                                     </select>
                                 </div>
                             </div>
 
-                            {/* NOTA: los botones de acción se muestran fuera de las pestañas para tomar en cuenta todos los cambios */}
+                            {/* NOTE: action buttons are shown outside tabs to account for all changes */}
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -322,8 +325,8 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                 <TabsContent value="config" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Configuración</CardTitle>
-                            <CardDescription>Configuración específica por plataforma</CardDescription>
+                            <CardTitle>Configuration</CardTitle>
+                            <CardDescription>Platform-specific configuration</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             {/* Renderizar editor específico según tipo */}
@@ -346,17 +349,17 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                 <TabsContent value="meta" className="space-y-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Metadatos</CardTitle>
-                            <CardDescription>Fechas y datos inmutables</CardDescription>
+                            <CardTitle>Metadata</CardTitle>
+                            <CardDescription>Dates and immutable data</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label>Creado</Label>
+                                    <Label>Created</Label>
                                     <p className="text-sm text-foreground">{formatDate(channel.created_at, { timeZone: 'local', dateStyle: 'medium', timeStyle: 'medium', hour12: true })}</p>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Actualizado</Label>
+                                    <Label>Updated</Label>
                                     <p className="text-sm text-foreground">{formatDate(channel.updated_at, { timeZone: 'local', dateStyle: 'medium', timeStyle: 'medium', hour12: true })}</p>
                                 </div>
                             </div>
@@ -368,7 +371,7 @@ function ChannelDetails({ channel }: { channel: Channel }) {
             {/* Barra de acciones global: guarda/cancela fuera de las pestañas */}
             <div className="flex justify-end gap-2 pt-4 border-t">
                 <Button variant="outline" onClick={() => router.visit(`/channels`)}>
-                    Cancelar
+                    Cancel
                 </Button>
                 <Button
                     onClick={handleSave}
@@ -399,12 +402,12 @@ function ChannelDetails({ channel }: { channel: Channel }) {
                                     d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
                                 />
                             </svg>
-                            Guardando...
+                            Saving...
                         </span>
                     ) : (
                         <span className="flex items-center gap-2">
                             <Save className="h-4 w-4" />
-                            Guardar Cambios
+                            Save Changes
                         </span>
                     )}
                 </Button>

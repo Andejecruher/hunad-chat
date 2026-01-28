@@ -27,14 +27,18 @@ class Channel extends Model
     }
 
     // update created_at and updated_at on related conversations when the channel is created
-    protected static function boot()
+    protected static function boot(): void
     {
         parent::boot();
+
         static::created(function ($channel) {
-            $channel->conversations()->update(['created_at' => now(), 'updated_at' => now()]);
+            $ts = \Illuminate\Support\Carbon::now()->utc()->toDateTimeString();
+            $channel->conversations()->update(['created_at' => $ts, 'updated_at' => $ts]);
         });
+
         static::updated(function ($channel) {
-            $channel->conversations()->update(['updated_at' => now()]);
+            $ts = \Illuminate\Support\Carbon::now()->utc()->toDateTimeString();
+            $channel->conversations()->update(['updated_at' => $ts]);
         });
     }
 
