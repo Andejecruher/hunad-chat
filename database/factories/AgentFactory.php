@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use App\Models\Department;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -21,8 +21,6 @@ class AgentFactory extends Factory
         return [
             'user_id' => User::factory(),
             'department_id' => Department::factory(),
-            'is_ai' => $this->faker->boolean(30),
-            'config' => ['mcp_protocol' => 'v1'],
         ];
     }
 }

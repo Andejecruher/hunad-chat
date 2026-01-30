@@ -8,31 +8,22 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Tool extends Model
+class AiAgent extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'company_id',
         'name',
-        'slug',
-        'category',
-        'type',
-        'schema',
-        'config',
+        'context',
+        'rules',
         'enabled',
-        'last_executed_at',
-        'last_error',
-        'created_by',
-        'updated_by',
     ];
 
     protected $casts = [
-        'schema' => 'array',
-        'config' => 'array',
-        'last_error' => 'array',
+        'context' => 'array',
+        'rules' => 'array',
         'enabled' => 'boolean',
-        'last_executed_at' => 'datetime',
     ];
 
     /* ===========================
@@ -44,37 +35,27 @@ class Tool extends Model
         return $this->belongsTo(Company::class);
     }
 
-    public function agents(): BelongsToMany
+    public function tools(): BelongsToMany
     {
         return $this->belongsToMany(
-            AiAgent::class,
+            Tool::class,
             'ai_agent_tool',
-            'tool_id',
-            'agent_id'
+            'agent_id',
+            'tool_id'
         )->withTimestamps();
     }
 
-    public function executions(): HasMany
+    public function toolExecutions(): HasMany
     {
         return $this->hasMany(ToolExecution::class);
     }
 
     /* ===========================
-     | Scopes útiles
+     | Scopes
      =========================== */
 
     public function scopeEnabled($query)
     {
         return $query->where('enabled', true);
-    }
-
-    public function scopeInternal($query)
-    {
-        return $query->where('type', 'internal');
-    }
-
-    public function scopeExternal($query)
-    {
-        return $query->where('type', 'external');
     }
 }

@@ -15,8 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->foreignId('department_id')->constrained()->cascadeOnDelete();
-            $table->boolean('is_ai')->default(false);
-            $table->json('config')->nullable(); // Configuración MCP u otras integraciones
             $table->timestamps();
         });
     }
