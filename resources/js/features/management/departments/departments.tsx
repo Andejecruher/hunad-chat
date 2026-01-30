@@ -1,3 +1,4 @@
+import { DeleteConfirmationDialog } from '@/components/delete-confirmation-dialog';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,8 @@ export function Departments({
         Department | undefined
     >();
     const [isLoading, setIsLoading] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [departmentToDelete, setDepartmentToDelete] = useState<number | null>(null);
 
     const handleSaveDepartment = (department: Partial<Department>) => {
         if (editingDepartment && department && department.id) {
@@ -122,8 +125,15 @@ export function Departments({
 
     const handleDeleteDepartment = (id?: number) => {
         if (!id) return;
+        setDepartmentToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDeleteDepartment = () => {
+        if (departmentToDelete === null) return;
+
         setIsLoading(true);
-        router.delete(departmentsRouter.destroy(id).url, {
+        router.delete(departmentsRouter.destroy(departmentToDelete).url, {
             preserveState: true,
             preserveScroll: true,
             onStart: () => setIsLoading(true),
@@ -135,7 +145,11 @@ export function Departments({
                 toast.error(error.message);
                 setIsLoading(false);
             },
-            onFinish: () => setIsLoading(false),
+            onFinish: () => {
+                setIsLoading(false);
+                setDeleteDialogOpen(false);
+                setDepartmentToDelete(null);
+            },
         });
     };
 
@@ -352,7 +366,7 @@ export function Departments({
                                     </div>
                                     <Badge variant="secondary">
                                         {department.agents_count &&
-                                        department.agents_count > 5
+                                            department.agents_count > 5
                                             ? 'Grande'
                                             : 'Pequeño'}
                                     </Badge>
@@ -385,7 +399,7 @@ export function Departments({
                                                     ))}
                                                 {department?.agents_count &&
                                                     department.agents_count >
-                                                        3 && (
+                                                    3 && (
                                                         <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-background bg-muted text-xs font-medium">
                                                             +
                                                             {department.agents_count -
@@ -418,6 +432,16 @@ export function Departments({
                 }}
                 department={editingDepartment}
                 onSave={handleSaveDepartment}
+            />
+
+            {/* Modal de confirmación para eliminar */}
+            <DeleteConfirmationDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={confirmDeleteDepartment}
+                title="¿Eliminar departamento?"
+                description="El departamento y todos sus datos asociados serán eliminados permanentemente del sistema."
+                actionLabel="Eliminar departamento"
             />
         </div>
     );

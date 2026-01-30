@@ -1,8 +1,10 @@
+import { DeleteConfirmationDialog } from "@/components/delete-confirmation-dialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useFlashMessages } from '@/hooks/useFlashMessages'
 import channelsRouter from '@/routes/channels'
 import { type Channel, Filters, FlashPayload, PaginatedData } from '@/types'
 import { router, usePage } from "@inertiajs/react"
+import { Loader2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { ChannelAdd } from "./channel-add"
 import { ChannelFilter } from "./channel-filter"
@@ -18,6 +20,8 @@ export function Channels({ channelsData, filters }: {
     const [typeFilter, setTypeFilter] = useState(filters.type || "all")
     const [limitFilter, setLimitFilter] = useState(filters.limit || "10")
     const [isLoading, setIsLoading] = useState(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [channelToDelete, setChannelToDelete] = useState<number | null>(null)
 
     useFlashMessages(props.flash as FlashPayload['flash']);
 
@@ -41,11 +45,22 @@ export function Channels({ channelsData, filters }: {
     }
 
     const handleDeleteChannel = async (id: number) => {
-        const url = channelsRouter.destroy.url({ channel: id })
+        setChannelToDelete(id)
+        setDeleteDialogOpen(true)
+    }
+
+    const confirmDeleteChannel = () => {
+        if (channelToDelete === null) return
+
+        const url = channelsRouter.destroy.url({ channel: channelToDelete })
         router.delete(url, {
             preserveState: true,
             preserveScroll: true,
             only: ['channels', 'flash'],
+            onFinish: () => {
+                setDeleteDialogOpen(false)
+                setChannelToDelete(null)
+            }
         })
     }
 
@@ -120,8 +135,14 @@ export function Channels({ channelsData, filters }: {
                         onPlatformChange={setTypeFilter}
                     />
 
+                    {isLoading && (
+                        <div className="m-auto flex h-full w-full items-center justify-center py-4 text-gray-500">
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                            Cargando departamentos...
+                        </div>
+                    )}
                     {/* Tabla de Canales */}
-                    {channelsData.data && channelsData.data.length > 0 && (
+                    {!isLoading && channelsData.data && channelsData.data.length > 0 && (
                         <ChannelTable
                             channels={channelsData.data}
                             onEditChannel={handleEditChannel}
@@ -135,9 +156,18 @@ export function Channels({ channelsData, filters }: {
                         <p className="text-center text-muted-foreground">No se encontraron canales.</p>
                     )}
 
-                    {isLoading && <p className="text-center text-muted-foreground">Cargando canales...</p>}
                 </CardContent>
             </Card>
+
+            {/* Modal de confirmación para eliminar */}
+            <DeleteConfirmationDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                onConfirm={confirmDeleteChannel}
+                title="¿Eliminar canal?"
+                description="El canal y todos sus datos asociados serán eliminados permanentemente del sistema."
+                actionLabel="Eliminar canal"
+            />
         </div>
     )
 }
