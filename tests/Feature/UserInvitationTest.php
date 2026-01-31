@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Models\Company;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use PHPUnit\Framework\Attributes\Test;
@@ -25,7 +25,7 @@ class UserInvitationTest extends TestCase
         $company = Company::factory()->create();
         $admin = User::factory()->create([
             'company_id' => $company->id,
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         $this->actingAs($admin);
@@ -34,15 +34,14 @@ class UserInvitationTest extends TestCase
         $response = $this->postJson('/configurations/users', [
             'name' => 'Juan Pérez',
             'email' => 'newuser@example.com',
-            'role' => 'agent'
+            'role' => 'agent',
         ], [
-            'Accept' => 'application/json'
+            'Accept' => 'application/json',
         ]);
-
 
         $response->assertStatus(201);
         $response->assertJson([
-            'message' => 'Usuario invitado exitosamente'
+            'message' => 'User invited successfully',
         ]);
 
         $this->assertDatabaseHas('users', [
@@ -50,7 +49,7 @@ class UserInvitationTest extends TestCase
             'email' => 'newuser@example.com',
             'role' => 'agent',
             'company_id' => $company->id,
-            'email_verified_at' => null
+            'email_verified_at' => null,
         ]);
 
         Mail::assertSent(\Illuminate\Mail\Mailable::class);
@@ -62,14 +61,14 @@ class UserInvitationTest extends TestCase
         $company = Company::factory()->create();
         $admin = User::factory()->create([
             'company_id' => $company->id,
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         $this->actingAs($admin);
 
         $response = $this->postJson('/configurations/users', [
             'email' => 'andejecruher@gmail.com',
-            'role' => 'agent'
+            'role' => 'agent',
         ]);
 
         $response->assertStatus(422);
@@ -82,12 +81,12 @@ class UserInvitationTest extends TestCase
         $company = Company::factory()->create();
         $admin = User::factory()->create([
             'company_id' => $company->id,
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         User::factory()->create([
             'email' => 'existing@example.com',
-            'company_id' => $company->id
+            'company_id' => $company->id,
         ]);
 
         $this->actingAs($admin);
@@ -95,7 +94,7 @@ class UserInvitationTest extends TestCase
         $response = $this->postJson('/configurations/users', [
             'name' => 'Juan Pérez',
             'email' => 'existing@example.com',
-            'role' => 'agent'
+            'role' => 'agent',
         ]);
 
         $response->assertStatus(422);
@@ -108,7 +107,7 @@ class UserInvitationTest extends TestCase
         $company = Company::factory()->create();
         $admin = User::factory()->create([
             'company_id' => $company->id,
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         $this->actingAs($admin);
@@ -116,7 +115,7 @@ class UserInvitationTest extends TestCase
         $response = $this->postJson('/configurations/users', [
             'name' => 'Juan Pérez',
             'email' => 'newuser@example.com',
-            'role' => 'invalid_role'
+            'role' => 'invalid_role',
         ]);
 
         $response->assertStatus(422);
@@ -129,7 +128,7 @@ class UserInvitationTest extends TestCase
         $company = Company::factory()->create();
         $admin = User::factory()->create([
             'company_id' => $company->id,
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         $this->actingAs($admin);
@@ -137,7 +136,7 @@ class UserInvitationTest extends TestCase
         $response = $this->postJson('/configurations/users', [
             'name' => 'Juan Pérez',
             'email' => 'invalid-email',
-            'role' => 'agent'
+            'role' => 'agent',
         ]);
 
         $response->assertStatus(422);
@@ -150,7 +149,7 @@ class UserInvitationTest extends TestCase
         $response = $this->postJson('/configurations/users', [
             'name' => 'Juan Pérez',
             'email' => 'newuser@example.com',
-            'role' => 'agent'
+            'role' => 'agent',
         ]);
 
         $response->assertStatus(401);

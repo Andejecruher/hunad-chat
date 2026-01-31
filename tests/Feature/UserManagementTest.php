@@ -2,12 +2,9 @@
 
 namespace Tests\Feature;
 
-use App\Events\UserDeleted;
-use App\Events\UserUpdated;
 use App\Models\Company;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -31,7 +28,7 @@ class UserManagementTest extends TestCase
         $response = $this->patchJson("/configurations/users/{$user->id}", [
             'name' => 'Nombre Actualizado',
             'email' => 'updated-email@example.com',
-            'role' => 'agent'
+            'role' => 'agent',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(200);
@@ -72,7 +69,7 @@ class UserManagementTest extends TestCase
         $this->actingAs($admin);
 
         $response = $this->patchJson("/configurations/users/{$user->id}", [
-            'name' => 'No permitido'
+            'name' => 'No permitido',
         ], ['Accept' => 'application/json']);
 
         Log::info($response->getContent());
@@ -104,7 +101,7 @@ class UserManagementTest extends TestCase
         $this->actingAs($admin);
 
         $response = $this->patchJson("/configurations/users/{$user1->id}", [
-            'email' => 'user2@example.com'
+            'email' => 'user2@example.com',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(422);
@@ -122,7 +119,7 @@ class UserManagementTest extends TestCase
 
         $response = $this->patchJson("/configurations/users/{$user->id}", [
             'password' => 'newpassword123',
-            'password_confirmation' => 'newpassword123'
+            'password_confirmation' => 'newpassword123',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(200);
@@ -141,7 +138,7 @@ class UserManagementTest extends TestCase
         $this->actingAs($admin);
 
         $response = $this->patchJson("/configurations/users/{$user->id}", [
-            'role' => 'invalid-role'
+            'role' => 'invalid-role',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(422);
@@ -160,16 +157,16 @@ class UserManagementTest extends TestCase
         $this->actingAs($admin);
 
         $response = $this->patchJson("/configurations/users/{$user->id}", [
-            'name' => 'New Name'
+            'name' => 'New Name',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(200);
         $response->assertJson([
-            'message' => 'Usuario actualizado correctamente',
+            'message' => 'User updated successfully',
             'user' => [
                 'id' => $user->id,
-                'name' => 'New Name'
-            ]
+                'name' => 'New Name',
+            ],
         ]);
     }
 
@@ -196,7 +193,7 @@ class UserManagementTest extends TestCase
         $user = User::factory()->create(['company_id' => $company->id]);
 
         $response = $this->patchJson("/configurations/users/{$user->id}", [
-            'name' => 'Hacker'
+            'name' => 'Hacker',
         ], ['Accept' => 'application/json']);
 
         $response->assertStatus(401);
