@@ -73,7 +73,7 @@ class AiToolController extends Controller
         $limit = $request->input('limit', 15);
         $tools = $query->paginate($limit);
 
-        return inertia('management/ia-tools/index', [
+        return inertia('management/ai-tools/index', [
             'tools' => $tools,
             'filters' => $request->only(['search', 'status', 'type', 'category', 'limit']),
             'categories' => $this->getAvailableCategories(),
@@ -85,7 +85,7 @@ class AiToolController extends Controller
      */
     public function create()
     {
-        return inertia('management/ia-tools/create', [
+        return inertia('management/ai-tools/create', [
             'categories' => $this->getAvailableCategories(),
         ]);
     }
@@ -133,7 +133,7 @@ class AiToolController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        return redirect()->route('ia-tools.show', $tool)
+        return redirect()->route('ai-tools.show', $tool)
             ->with('success', 'Herramienta creada exitosamente.');
     }
 
@@ -153,7 +153,7 @@ class AiToolController extends Controller
             },
         ]);
 
-        return inertia('management/ia-tools/show', [
+        return inertia('management/ai-tools/show', [
             'tool' => $tool,
             'executionStats' => $this->getToolExecutionStats($tool),
         ]);
@@ -168,7 +168,7 @@ class AiToolController extends Controller
             abort(404);
         }
 
-        return inertia('management/ia-tools/edit', [
+        return inertia('management/ai-tools/edit', [
             'tool' => $tool,
             'categories' => $this->getAvailableCategories(),
         ]);
@@ -206,7 +206,7 @@ class AiToolController extends Controller
 
         $tool->update($validated);
 
-        return redirect()->route('ia-tools.show', $tool)
+        return redirect()->route('ai-tools.show', $tool)
             ->with('success', 'Herramienta actualizada exitosamente.');
     }
 
@@ -231,7 +231,7 @@ class AiToolController extends Controller
         $toolName = $tool->name;
         $tool->delete();
 
-        return redirect()->route('ia-tools.index')
+        return redirect()->route('ai-tools.index')
             ->with('success', "Herramienta '{$toolName}' eliminada exitosamente.");
     }
 

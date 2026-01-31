@@ -85,7 +85,7 @@ class ToolExecutorTest extends TestCase
             ->method('validatePayload');
     }
 
-    public function it_can_execute_tool_asynchronously()
+    public function test_it_can_execute_tool_asynchronously()
     {
         $payload = ['title' => 'Test ticket'];
 
@@ -101,7 +101,7 @@ class ToolExecutorTest extends TestCase
         Queue::assertPushed(\App\Jobs\ExecuteToolJob::class);
     }
 
-    public function it_throws_exception_for_nonexistent_tool()
+    public function test_it_throws_exception_for_nonexistent_tool()
     {
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
@@ -117,7 +117,7 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, 'nonexistent-tool', []);
     }
 
-    public function it_throws_exception_for_disabled_tool()
+    public function test_it_throws_exception_for_disabled_tool()
     {
         $disabledTool = Tool::factory()->create([
             'company_id' => $this->company->id,
@@ -138,7 +138,7 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, $disabledTool->slug, []);
     }
 
-    public function it_throws_exception_for_unauthorized_agent()
+    public function test_it_throws_exception_for_unauthorized_agent()
     {
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
@@ -157,7 +157,7 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, $this->tool->slug, []);
     }
 
-    public function it_validates_payload_before_execution()
+    public function test_it_validates_payload_before_execution()
     {
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
@@ -181,7 +181,7 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, $this->tool->slug, []);
     }
 
-    public function it_can_get_executions_with_filters()
+    public function test_it_can_get_executions_with_filters()
     {
         // Crear algunas ejecuciones de prueba
         $execution1 = ToolExecution::factory()->create([
@@ -208,7 +208,7 @@ class ToolExecutorTest extends TestCase
         $this->assertCount(1, $failedExecutions->items());
     }
 
-    public function it_can_get_execution_stats()
+    public function test_it_can_get_execution_stats()
     {
         // Crear ejecuciones de prueba
         ToolExecution::factory()->create([

@@ -26,7 +26,7 @@ class AiToolControllerTest extends TestCase
         ]);
     }
 
-    public function it_can_list_tools_for_authenticated_user()
+    public function test_it_can_list_tools_for_authenticated_user()
     {
         // Crear herramientas para la empresa del usuario
         $toolsForUser = Tool::factory()->count(3)->create([
@@ -49,7 +49,7 @@ class AiToolControllerTest extends TestCase
         );
     }
 
-    public function it_can_create_a_new_tool()
+    public function test_it_can_create_a_new_tool()
     {
         $toolData = [
             'name' => 'Test Tool',
@@ -92,7 +92,7 @@ class AiToolControllerTest extends TestCase
         ]);
     }
 
-    public function it_validates_required_fields_when_creating_tool()
+    public function test_it_validates_required_fields_when_creating_tool()
     {
         $response = $this->actingAs($this->user)
             ->post('/management/ai-tools', []);
@@ -102,7 +102,7 @@ class AiToolControllerTest extends TestCase
         ]);
     }
 
-    public function it_can_toggle_tool_status()
+    public function test_it_can_toggle_tool_status()
     {
         $tool = Tool::factory()->create([
             'company_id' => $this->company->id,
@@ -120,7 +120,7 @@ class AiToolControllerTest extends TestCase
         ]);
     }
 
-    public function it_requires_authentication_for_all_actions()
+    public function test_it_requires_authentication_for_all_actions()
     {
         $tool = Tool::factory()->create();
 
