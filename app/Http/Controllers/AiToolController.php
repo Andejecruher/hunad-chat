@@ -12,10 +12,10 @@ use Illuminate\Support\Str;
 
 /**
  * Controlador para la gestión de herramientas de IA desde la interfaz web
- * 
+ *
  * Maneja el CRUD completo de herramientas para administradores
  */
-class IaToolController extends Controller
+class AiToolController extends Controller
 {
     public function __construct(
         private ToolValidator $toolValidator
@@ -45,8 +45,8 @@ class IaToolController extends Controller
             $search = $request->input('search');
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('slug', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+                    ->orWhere('slug', 'like', "%{$search}%")
+                    ->orWhere('category', 'like', "%{$search}%");
             });
         }
 
@@ -101,7 +101,7 @@ class IaToolController extends Controller
         if (is_string($validated['schema'])) {
             $validated['schema'] = json_decode($validated['schema'], true);
         }
-        
+
         if (is_string($validated['config'])) {
             $validated['config'] = json_decode($validated['config'], true);
         }
@@ -112,9 +112,9 @@ class IaToolController extends Controller
         $counter = 1;
 
         while (Tool::where('company_id', Auth::user()->company_id)
-                  ->where('slug', $slug)
-                  ->exists()) {
-            $slug = $baseSlug . '-' . $counter;
+            ->where('slug', $slug)
+            ->exists()) {
+            $slug = $baseSlug.'-'.$counter;
             $counter++;
         }
 
@@ -150,7 +150,7 @@ class IaToolController extends Controller
         $tool->load([
             'executions' => function ($query) {
                 $query->latest()->limit(10);
-            }
+            },
         ]);
 
         return inertia('management/ia-tools/show', [
@@ -192,10 +192,10 @@ class IaToolController extends Controller
             $counter = 1;
 
             while (Tool::where('company_id', Auth::user()->company_id)
-                      ->where('slug', $slug)
-                      ->where('id', '!=', $tool->id)
-                      ->exists()) {
-                $slug = $baseSlug . '-' . $counter;
+                ->where('slug', $slug)
+                ->where('id', '!=', $tool->id)
+                ->exists()) {
+                $slug = $baseSlug.'-'.$counter;
                 $counter++;
             }
 
@@ -245,7 +245,7 @@ class IaToolController extends Controller
         }
 
         $tool->update([
-            'enabled' => !$tool->enabled,
+            'enabled' => ! $tool->enabled,
             'updated_by' => Auth::id(),
         ]);
 
@@ -327,8 +327,8 @@ class IaToolController extends Controller
             'failed_executions' => $executions->where('status', 'failed')->count(),
             'avg_execution_time' => $this->calculateAverageExecutionTime($executions),
             'last_execution' => $tool->last_executed_at,
-            'success_rate' => $executions->isNotEmpty() 
-                ? ($executions->where('status', 'success')->count() / $executions->count()) * 100 
+            'success_rate' => $executions->isNotEmpty()
+                ? ($executions->where('status', 'success')->count() / $executions->count()) * 100
                 : 0,
         ];
     }
@@ -339,7 +339,7 @@ class IaToolController extends Controller
     private function calculateAverageExecutionTime($executions): ?float
     {
         $completedExecutions = $executions->whereIn('status', ['success', 'failed']);
-        
+
         if ($completedExecutions->isEmpty()) {
             return null;
         }
