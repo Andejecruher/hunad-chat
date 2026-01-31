@@ -10,10 +10,10 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import iaTools from '@/routes/ai-tools';
 import channels from '@/routes/channels';
 import company from '@/routes/company';
 import departments from '@/routes/departments';
-import iaTools from '@/routes/ia-tools';
 import users from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
