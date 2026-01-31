@@ -31,7 +31,7 @@ interface AIToolsListProps {
     categories: string[];
 }
 
-export function AIToolsList({ toolsData, filters, categories }: AIToolsListProps) {
+export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
     const [searchQuery, setSearchQuery] = useState(filters.search || "")
     const [statusFilter, setStatusFilter] = useState(filters.status || "all")
     const [typeFilter, setTypeFilter] = useState(filters.type || "all")
