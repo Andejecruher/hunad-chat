@@ -148,4 +148,5 @@ export interface FlashPayload {
 // Add types for departments, tickets, conversations, etc. as needed
 export * from './channels';
 export * from './department';
+export * from './tool';
 
