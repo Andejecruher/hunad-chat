@@ -65,22 +65,6 @@ export function Channels({ channelsData, filters }: {
     }
 
     useEffect(() => {
-        const initial = {
-            search: filters.search ?? '',
-            limit: filters.limit ?? '10',
-            status: filters.status ?? 'all',
-            type: filters.type ?? 'all',
-        };
-
-        if (
-            searchQuery === initial.search &&
-            limitFilter === initial.limit &&
-            statusFilter === initial.status &&
-            typeFilter === initial.type
-        ) {
-            return;
-        }
-
         // Debounce para búsqueda
         const handler = setTimeout(() => {
             const params = {
