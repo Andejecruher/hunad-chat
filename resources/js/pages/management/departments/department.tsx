@@ -4,8 +4,6 @@ import departmentsRoutes from '@/routes/departments';
 import { type BreadcrumbItem, Department } from '@/types';
 import { Head } from '@inertiajs/react';
 
-
-
 export default function DepartmentPage(props: { department: Department }) {
     const { department } = props;
 

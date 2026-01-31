@@ -13,6 +13,7 @@ import { dashboard } from '@/routes';
 import channels from '@/routes/channels';
 import company from '@/routes/company';
 import departments from '@/routes/departments';
+import iaTools from '@/routes/ia-tools';
 import users from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -41,7 +42,7 @@ export function AppSidebar() {
                     path: departments.index().url,
                 },
                 { label: 'Agentes', icon: 'UserCog', path: '#' },
-                { label: 'Herramientas IA', icon: 'Bot', path: '#' },
+                { label: 'Herramientas IA', icon: 'Bot', path: iaTools.index().url },
             ],
         },
         {
