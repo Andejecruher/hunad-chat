@@ -4,23 +4,26 @@ import departmentsRoutes from '@/routes/departments';
 import { type BreadcrumbItem, Department } from '@/types';
 import { Head } from '@inertiajs/react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Management',
-        href: '#',
-    },
-    {
-        title: 'Departments',
-        href: departmentsRoutes.index().url,
-    },
-    {
-        title: 'Department',
-        href: '#',
-    },
-];
+
 
 export default function DepartmentPage(props: { department: Department }) {
     const { department } = props;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: 'Management',
+            href: '#',
+        },
+        {
+            title: 'Departments',
+            href: departmentsRoutes.index().url,
+        },
+        {
+            title: `${department.name}`,
+            href: '#',
+        },
+    ];
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`${department.name}`} />
