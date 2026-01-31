@@ -21,8 +21,11 @@ class ToolExecutorTest extends TestCase
     use RefreshDatabase;
 
     private ToolExecutor $toolExecutor;
+
     private Company $company;
+
     private AiAgent $agent;
+
     private Tool $tool;
 
     protected function setUp(): void
@@ -40,7 +43,7 @@ class ToolExecutorTest extends TestCase
         // Crear datos de prueba
         $this->company = Company::factory()->create();
         $user = User::factory()->create(['company_id' => $this->company->id]);
-        
+
         $this->agent = AiAgent::factory()->create([
             'company_id' => $this->company->id,
         ]);
@@ -73,7 +76,7 @@ class ToolExecutorTest extends TestCase
         // Configurar mocks
         $toolRegistry->method('getToolForAgent')
             ->willReturn($this->tool);
-        
+
         $toolRegistry->method('canAgentAccessTool')
             ->willReturn(true);
 
@@ -82,7 +85,6 @@ class ToolExecutorTest extends TestCase
             ->method('validatePayload');
     }
 
-    /** @test */
     public function it_can_execute_tool_asynchronously()
     {
         $payload = ['title' => 'Test ticket'];
@@ -99,12 +101,11 @@ class ToolExecutorTest extends TestCase
         Queue::assertPushed(\App\Jobs\ExecuteToolJob::class);
     }
 
-    /** @test */
     public function it_throws_exception_for_nonexistent_tool()
     {
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
-        
+
         $toolRegistry->method('getToolForAgent')
             ->willReturn(null);
 
@@ -116,7 +117,6 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, 'nonexistent-tool', []);
     }
 
-    /** @test */
     public function it_throws_exception_for_disabled_tool()
     {
         $disabledTool = Tool::factory()->create([
@@ -126,7 +126,7 @@ class ToolExecutorTest extends TestCase
 
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
-        
+
         $toolRegistry->method('getToolForAgent')
             ->willReturn($disabledTool);
 
@@ -138,15 +138,14 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, $disabledTool->slug, []);
     }
 
-    /** @test */
     public function it_throws_exception_for_unauthorized_agent()
     {
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
-        
+
         $toolRegistry->method('getToolForAgent')
             ->willReturn($this->tool);
-        
+
         $toolRegistry->method('canAgentAccessTool')
             ->willReturn(false);
 
@@ -158,15 +157,14 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, $this->tool->slug, []);
     }
 
-    /** @test */
     public function it_validates_payload_before_execution()
     {
         $toolRegistry = $this->createMock(ToolRegistry::class);
         $toolValidator = $this->createMock(ToolValidator::class);
-        
+
         $toolRegistry->method('getToolForAgent')
             ->willReturn($this->tool);
-        
+
         $toolRegistry->method('canAgentAccessTool')
             ->willReturn(true);
 
@@ -183,7 +181,6 @@ class ToolExecutorTest extends TestCase
         $executor->execute($this->agent, $this->tool->slug, []);
     }
 
-    /** @test */
     public function it_can_get_executions_with_filters()
     {
         // Crear algunas ejecuciones de prueba
@@ -211,7 +208,6 @@ class ToolExecutorTest extends TestCase
         $this->assertCount(1, $failedExecutions->items());
     }
 
-    /** @test */
     public function it_can_get_execution_stats()
     {
         // Crear ejecuciones de prueba

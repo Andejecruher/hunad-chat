@@ -2,17 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Models\Company;
 use App\Models\Tool;
 use App\Models\User;
-use App\Models\Company;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class IaToolControllerTest extends TestCase
+class AiToolControllerTest extends TestCase
 {
     use RefreshDatabase;
 
     private User $user;
+
     private Company $company;
 
     protected function setUp(): void
@@ -25,7 +26,6 @@ class IaToolControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function it_can_list_tools_for_authenticated_user()
     {
         // Crear herramientas para la empresa del usuario
@@ -40,17 +40,15 @@ class IaToolControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->get('/configurations/ia-tools');
+            ->get('/management/ai-tools');
 
         $response->assertOk();
-        $response->assertInertia(fn ($page) => 
-            $page->component('management/ia-tools/index')
-                ->has('tools.data', 3)
-                ->where('tools.data.0.company_id', $this->company->id)
+        $response->assertInertia(fn ($page) => $page->component('management/ai-tools/index')
+            ->has('tools.data', 3)
+            ->where('tools.data.0.company_id', $this->company->id)
         );
     }
 
-    /** @test */
     public function it_can_create_a_new_tool()
     {
         $toolData = [
@@ -64,25 +62,25 @@ class IaToolControllerTest extends TestCase
                         'name' => 'message',
                         'type' => 'string',
                         'required' => true,
-                        'description' => 'Message to process'
-                    ]
+                        'description' => 'Message to process',
+                    ],
                 ],
                 'outputs' => [
                     [
                         'name' => 'result',
                         'type' => 'string',
-                        'description' => 'Processed result'
-                    ]
-                ]
+                        'description' => 'Processed result',
+                    ],
+                ],
             ]),
             'config' => json_encode([
-                'action' => 'create_ticket'
+                'action' => 'create_ticket',
             ]),
             'enabled' => true,
         ];
 
         $response = $this->actingAs($this->user)
-            ->post('/configurations/ia-tools', $toolData);
+            ->post('/management/ai-tools', $toolData);
 
         $response->assertRedirect();
 
@@ -94,18 +92,16 @@ class IaToolControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function it_validates_required_fields_when_creating_tool()
     {
         $response = $this->actingAs($this->user)
-            ->post('/configurations/ia-tools', []);
+            ->post('/management/ai-tools', []);
 
         $response->assertSessionHasErrors([
-            'name', 'type', 'category', 'schema', 'config'
+            'name', 'type', 'category', 'schema', 'config',
         ]);
     }
 
-    /** @test */
     public function it_can_toggle_tool_status()
     {
         $tool = Tool::factory()->create([
@@ -114,7 +110,7 @@ class IaToolControllerTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user)
-            ->patch("/configurations/ia-tools/{$tool->id}/toggle-status");
+            ->patch("/management/ai-tools/{$tool->id}/toggle-status");
 
         $response->assertRedirect();
 
@@ -124,18 +120,17 @@ class IaToolControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function it_requires_authentication_for_all_actions()
     {
         $tool = Tool::factory()->create();
 
-        $this->get('/configurations/ia-tools')
+        $this->get('/management/ai-tools')
             ->assertRedirect('/login');
 
-        $this->post('/configurations/ia-tools', [])
+        $this->post('/management/ai-tools', [])
             ->assertRedirect('/login');
 
-        $this->delete("/configurations/ia-tools/{$tool->id}")
+        $this->delete("/management/ai-tools/{$tool->id}")
             ->assertRedirect('/login');
     }
 }

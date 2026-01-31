@@ -16,8 +16,11 @@ class ToolExecutionControllerTest extends TestCase
     use RefreshDatabase;
 
     private User $user;
+
     private Company $company;
+
     private AiAgent $agent;
+
     private Tool $tool;
 
     protected function setUp(): void
@@ -28,7 +31,7 @@ class ToolExecutionControllerTest extends TestCase
 
         $this->company = Company::factory()->create();
         $this->user = User::factory()->create(['company_id' => $this->company->id]);
-        
+
         $this->agent = AiAgent::factory()->create([
             'company_id' => $this->company->id,
         ]);
@@ -62,7 +65,6 @@ class ToolExecutionControllerTest extends TestCase
         $this->actingAs($this->user);
     }
 
-    /** @test */
     public function it_can_execute_tool_asynchronously()
     {
         $payload = ['title' => 'Test execution'];
@@ -98,7 +100,6 @@ class ToolExecutionControllerTest extends TestCase
         Queue::assertPushed(\App\Jobs\ExecuteToolJob::class);
     }
 
-    /** @test */
     public function it_validates_payload_structure()
     {
         $response = $this->postJson("/api/ai/agents/{$this->agent->id}/tools/{$this->tool->slug}/execute", [
@@ -112,7 +113,6 @@ class ToolExecutionControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
     public function it_rejects_execution_for_nonexistent_tool()
     {
         $response = $this->postJson("/api/ai/agents/{$this->agent->id}/tools/nonexistent-tool/execute", [
@@ -126,7 +126,6 @@ class ToolExecutionControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
     public function it_rejects_execution_for_agent_from_different_company()
     {
         $otherCompany = Company::factory()->create();
@@ -142,7 +141,6 @@ class ToolExecutionControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
     public function it_can_get_execution_details()
     {
         $execution = ToolExecution::factory()->create([
@@ -171,7 +169,6 @@ class ToolExecutionControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
     public function it_can_list_agent_executions()
     {
         ToolExecution::factory()->count(3)->create([
@@ -192,7 +189,6 @@ class ToolExecutionControllerTest extends TestCase
             ->assertJsonCount(3, 'data');
     }
 
-    /** @test */
     public function it_can_filter_executions_by_status()
     {
         ToolExecution::factory()->create([
@@ -213,7 +209,6 @@ class ToolExecutionControllerTest extends TestCase
             ->assertJsonCount(1, 'data');
     }
 
-    /** @test */
     public function it_can_get_execution_stats()
     {
         ToolExecution::factory()->create([
@@ -242,7 +237,6 @@ class ToolExecutionControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
     public function it_can_cancel_pending_execution()
     {
         $execution = ToolExecution::factory()->create([
@@ -263,7 +257,6 @@ class ToolExecutionControllerTest extends TestCase
         $this->assertEquals('cancelled', $execution->status);
     }
 
-    /** @test */
     public function it_cannot_cancel_completed_execution()
     {
         $execution = ToolExecution::factory()->create([
@@ -281,7 +274,6 @@ class ToolExecutionControllerTest extends TestCase
             ]);
     }
 
-    /** @test */
     public function it_can_retry_failed_execution()
     {
         $failedExecution = ToolExecution::factory()->create([

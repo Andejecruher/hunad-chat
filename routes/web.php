@@ -29,12 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Channels Routes
     Route::resource('/channels', ChannelController::class)->except(['create']);
     // IA Tools Routes
-    Route::resource('/management/ia-tools', AiToolController::class)->except(['create']);
-    Route::get('/management/ia-tools/create', function () {
-        return inertia('management/ia-tools/create');
-    })->name('ia-tools.create');
-    Route::patch('/management/ia-tools/{tool}/toggle-status', [AiToolController::class, 'toggleStatus'])->name('ia-tools.toggle-status');
-    Route::post('/management/ia-tools/{tool}/test', [AiToolController::class, 'test'])->name('ia-tools.test');
+    Route::resource('/management/ai-tools', AiToolController::class)->except(['create']);
+    Route::get('/management/ai-tools/create', function () {
+        return inertia('management/ai-tools/create');
+    })->name('ai-tools.create');
+    Route::patch('/management/ai-tools/{tool}/toggle-status', [AiToolController::class, 'toggleStatus'])->name('ai-tools.toggle-status');
+    Route::post('/management/ai-tools/{tool}/test', [AiToolController::class, 'test'])->name('ai-tools.test');
 
 });
 

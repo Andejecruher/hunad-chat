@@ -1,4 +1,4 @@
-import { CreateTool } from "@/features/management/ai-tools/ia-tool";
+import { CreateTool } from "@/features/management/ai-tools/ai-tool";
 import AppLayout from '@/layouts/app-layout';
 import iaToolsRoutes from '@/routes/ia-tools';
 import { type BreadcrumbItem } from '@/types';

@@ -15,23 +15,28 @@ class ToolRegistryTest extends TestCase
     use RefreshDatabase;
 
     private ToolRegistry $toolRegistry;
+
     private Company $company;
+
     private AiAgent $agent;
+
     private Tool $internalTool;
+
     private Tool $externalTool;
+
     private Tool $disabledTool;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->toolRegistry = new ToolRegistry();
+        $this->toolRegistry = new ToolRegistry;
 
         // Crear datos de prueba
         $this->company = Company::factory()->create();
-        
+
         $user = User::factory()->create(['company_id' => $this->company->id]);
-        
+
         $this->agent = AiAgent::factory()->create([
             'company_id' => $this->company->id,
         ]);
@@ -61,7 +66,6 @@ class ToolRegistryTest extends TestCase
         ]);
     }
 
-    /** @test */
     public function it_can_get_available_tools_for_agent()
     {
         $tools = $this->toolRegistry->getAvailableToolsForAgent($this->agent);
@@ -73,17 +77,16 @@ class ToolRegistryTest extends TestCase
         $this->assertFalse($tools->contains($this->disabledTool));
     }
 
-    /** @test */
     public function it_filters_tools_by_company()
     {
         $otherCompany = Company::factory()->create();
         $otherAgent = AiAgent::factory()->create(['company_id' => $otherCompany->id]);
-        
+
         $otherTool = Tool::factory()->create([
             'company_id' => $otherCompany->id,
             'enabled' => true,
         ]);
-        
+
         $otherAgent->tools()->attach($otherTool->id);
 
         $tools = $this->toolRegistry->getAvailableToolsForAgent($this->agent);
@@ -91,7 +94,6 @@ class ToolRegistryTest extends TestCase
         $this->assertFalse($tools->contains($otherTool));
     }
 
-    /** @test */
     public function it_can_get_specific_tool_for_agent()
     {
         $tool = $this->toolRegistry->getToolForAgent($this->agent, $this->internalTool->slug);
@@ -100,7 +102,6 @@ class ToolRegistryTest extends TestCase
         $this->assertEquals($this->internalTool->id, $tool->id);
     }
 
-    /** @test */
     public function it_returns_null_for_disabled_tool()
     {
         $tool = $this->toolRegistry->getToolForAgent($this->agent, $this->disabledTool->slug);
@@ -108,7 +109,6 @@ class ToolRegistryTest extends TestCase
         $this->assertNull($tool);
     }
 
-    /** @test */
     public function it_returns_null_for_unassigned_tool()
     {
         $unassignedTool = Tool::factory()->create([
@@ -121,14 +121,12 @@ class ToolRegistryTest extends TestCase
         $this->assertNull($tool);
     }
 
-    /** @test */
     public function it_can_check_agent_access_to_tool()
     {
         $this->assertTrue($this->toolRegistry->canAgentAccessTool($this->agent, $this->internalTool));
         $this->assertFalse($this->toolRegistry->canAgentAccessTool($this->agent, $this->disabledTool));
     }
 
-    /** @test */
     public function it_denies_access_to_tools_from_different_companies()
     {
         $otherCompany = Company::factory()->create();
@@ -140,18 +138,17 @@ class ToolRegistryTest extends TestCase
         $this->assertFalse($this->toolRegistry->canAgentAccessTool($this->agent, $otherTool));
     }
 
-    /** @test */
     public function it_can_normalize_tools_for_ai()
     {
         $tools = $this->agent->tools()
             ->where('enabled', true)
             ->where('company_id', $this->company->id)
             ->get();
-        
+
         $normalized = $this->toolRegistry->normalizeToolsForAI($tools);
 
         $this->assertCount(2, $normalized);
-        
+
         $firstTool = $normalized[0];
         $this->assertArrayHasKey('name', $firstTool);
         $this->assertArrayHasKey('description', $firstTool);
@@ -161,7 +158,6 @@ class ToolRegistryTest extends TestCase
         $this->assertArrayHasKey('type', $firstTool);
     }
 
-    /** @test */
     public function it_can_get_tools_by_category()
     {
         $this->internalTool->update(['category' => 'tickets']);
@@ -177,7 +173,6 @@ class ToolRegistryTest extends TestCase
         $this->assertTrue($externalTools->contains($this->externalTool));
     }
 
-    /** @test */
     public function it_can_get_tool_stats()
     {
         $stats = $this->toolRegistry->getToolStats($this->agent);

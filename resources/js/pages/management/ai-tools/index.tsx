@@ -1,6 +1,6 @@
-import { AIToolsList } from "@/features/management/ai-tools/ia-tools";
+import { AIToolsList } from "@/features/management/ai-tools/ai-tools";
 import AppLayout from '@/layouts/app-layout';
-import iaToolsRoutes from '@/routes/ia-tools';
+import iaToolsRoutes from '@/routes/ai-tools';
 import { type BreadcrumbItem, type PaginatedData, type Tool } from '@/types';
 import { Head } from '@inertiajs/react';
 
