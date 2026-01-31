@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\CreateToolRequest;
-use App\Http\Requests\UpdateToolRequest;
+use App\Http\Requests\Tool\CreateToolRequest;
+use App\Http\Requests\Tool\UpdateToolRequest;
 use App\Models\Tool;
 use App\Services\AI\ToolValidator;
 use Illuminate\Http\Request;
@@ -134,7 +134,7 @@ class AiToolController extends Controller
         ]);
 
         return redirect()->route('ai-tools.show', $tool)
-            ->with('success', 'Herramienta creada exitosamente.');
+            ->with('success', 'Tool created successfully.');
     }
 
     /**
@@ -207,7 +207,7 @@ class AiToolController extends Controller
         $tool->update($validated);
 
         return redirect()->route('ai-tools.show', $tool)
-            ->with('success', 'Herramienta actualizada exitosamente.');
+            ->with('success', 'Tool updated successfully.');
     }
 
     /**
@@ -225,14 +225,14 @@ class AiToolController extends Controller
             ->exists();
 
         if ($recentExecutions) {
-            return back()->with('error', 'No se puede eliminar una herramienta con ejecuciones recientes.');
+            return back()->with('error', 'Cannot delete a tool with recent executions.');
         }
 
         $toolName = $tool->name;
         $tool->delete();
 
         return redirect()->route('ai-tools.index')
-            ->with('success', "Herramienta '{$toolName}' eliminada exitosamente.");
+            ->with('success', "Tool '{$toolName}' deleted successfully.");
     }
 
     /**
@@ -249,9 +249,9 @@ class AiToolController extends Controller
             'updated_by' => Auth::id(),
         ]);
 
-        $status = $tool->enabled ? 'habilitada' : 'deshabilitada';
+        $status = $tool->enabled ? 'enabled' : 'disabled';
 
-        return back()->with('success', "Herramienta {$status} exitosamente.");
+        return back()->with('success', "Tool {$status} successfully.");
     }
 
     /**
@@ -276,13 +276,13 @@ class AiToolController extends Controller
                 // TODO: Implementar test de herramienta externa
                 return response()->json([
                     'success' => true,
-                    'message' => 'Configuración válida (test real pendiente de implementar)',
+                    'message' => 'Valid configuration (actual test pending implementation)',
                 ]);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Configuración de herramienta válida',
+                'message' => 'Valid tool configuration',
             ]);
 
         } catch (\Exception $e) {

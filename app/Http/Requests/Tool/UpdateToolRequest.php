@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Tool;
 
 use App\Services\AI\ToolValidator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,7 +13,7 @@ class UpdateToolRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Solo usuarios autenticados pueden actualizar herramientas
+        // Only authenticated users can update tools
         return Auth::check();
     }
 
@@ -47,25 +47,25 @@ class UpdateToolRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.required' => 'El nombre de la herramienta es requerido.',
-            'name.max' => 'El nombre no puede exceder los 255 caracteres.',
-            'category.required' => 'La categoría es requerida.',
-            'type.required' => 'El tipo de herramienta es requerido.',
-            'type.in' => 'El tipo debe ser interno o externo.',
-            'schema.required' => 'El schema es requerido.',
-            'schema.inputs.required' => 'Los campos de entrada son requeridos.',
-            'schema.outputs.required' => 'Los campos de salida son requeridos.',
-            'config.required' => 'La configuración es requerida.',
+            'name.required' => 'The tool name is required.',
+            'name.max' => 'The name cannot exceed 255 characters.',
+            'category.required' => 'The category is required.',
+            'type.required' => 'The tool type is required.',
+            'type.in' => 'The type must be internal or external.',
+            'schema.required' => 'The schema is required.',
+            'schema.inputs.required' => 'The input fields are required.',
+            'schema.outputs.required' => 'The output fields are required.',
+            'config.required' => 'The configuration is required.',
         ];
     }
 
     /**
-     * Configurar validación adicional después de la validación estándar
+     * Configure additional validation after standard validation
      */
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {
-            // Validar schema completo usando el ToolValidator si está presente
+            // Validate complete schema using ToolValidator if present
             if ($this->has('schema')) {
                 $toolValidator = app(ToolValidator::class);
                 $schemaErrors = $toolValidator->validateToolSchema($this->input('schema'));
@@ -77,7 +77,7 @@ class UpdateToolRequest extends FormRequest
                 }
             }
 
-            // Validación específica por tipo de herramienta si el tipo está siendo actualizado
+            // Specific validation by tool type if type is being updated
             if ($this->has('type')) {
                 if ($this->input('type') === 'internal') {
                     $this->validateInternalConfig($validator);
@@ -89,56 +89,56 @@ class UpdateToolRequest extends FormRequest
     }
 
     /**
-     * Validar configuración de herramientas internas
+     * Validate internal tool configuration
      */
     private function validateInternalConfig($validator): void
     {
         if (!$this->has('config')) {
-            return; // Si no se está actualizando la config, no validar
+            return; // If config is not being updated, do not validate
         }
 
         $config = $this->input('config', []);
 
         if (!isset($config['action'])) {
-            $validator->errors()->add('config.action', 'La acción es requerida para herramientas internas.');
+            $validator->errors()->add('config.action', 'The action is required for internal tools.');
         } elseif (!in_array($config['action'], ['create_ticket', 'transfer_department', 'send_message', 'close_conversation', 'assign_agent'])) {
-            $validator->errors()->add('config.action', 'Acción inválida para herramienta interna.');
+            $validator->errors()->add('config.action', 'Invalid action for internal tool.');
         }
     }
 
     /**
-     * Validar configuración de herramientas externas
+     * Validate external tool configuration
      */
     private function validateExternalConfig($validator): void
     {
         if (!$this->has('config')) {
-            return; // Si no se está actualizando la config, no validar
+            return; // If config is not being updated, do not validate
         }
 
         $config = $this->input('config', []);
 
-        // URL requerida
+        // URL required
         if (!isset($config['url']) || empty($config['url'])) {
-            $validator->errors()->add('config.url', 'La URL es requerida para herramientas externas.');
+            $validator->errors()->add('config.url', 'The URL is required for external tools.');
         } elseif (!filter_var($config['url'], FILTER_VALIDATE_URL)) {
-            $validator->errors()->add('config.url', 'La URL debe ser válida.');
+            $validator->errors()->add('config.url', 'The URL must be valid.');
         }
 
-        // Método HTTP requerido
+        // HTTP method required
         if (!isset($config['method']) || empty($config['method'])) {
-            $validator->errors()->add('config.method', 'El método HTTP es requerido para herramientas externas.');
+            $validator->errors()->add('config.method', 'The HTTP method is required for external tools.');
         } elseif (!in_array(strtoupper($config['method']), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
-            $validator->errors()->add('config.method', 'Método HTTP inválido.');
+            $validator->errors()->add('config.method', 'Invalid HTTP method.');
         }
 
-        // Timeout opcional pero debe ser numérico
+        // Timeout optional but must be numeric
         if (isset($config['timeout']) && (!is_numeric($config['timeout']) || $config['timeout'] < 1)) {
-            $validator->errors()->add('config.timeout', 'El timeout debe ser un número mayor a 0.');
+            $validator->errors()->add('config.timeout', 'The timeout must be a number greater than 0.');
         }
 
-        // Headers opcional pero debe ser array
+        // Headers optional but must be array
         if (isset($config['headers']) && !is_array($config['headers'])) {
-            $validator->errors()->add('config.headers', 'Los headers deben ser un array.');
+            $validator->errors()->add('config.headers', 'The headers must be an array.');
         }
     }
 }
