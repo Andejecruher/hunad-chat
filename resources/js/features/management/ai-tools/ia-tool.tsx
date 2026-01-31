@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { ConfigBuilder } from "@/features/management/ia-tools/config-builder"
-import { SchemaBuilder } from "@/features/management/ia-tools/schema-builder"
+import { ConfigBuilder } from "@/features/management/ai-tools/config-builder"
+import { SchemaBuilder } from "@/features/management/ai-tools/schema-builder"
 import {
     ExternalConfigComplete,
     InternalConfigComplete,

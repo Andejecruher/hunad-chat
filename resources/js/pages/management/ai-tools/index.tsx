@@ -1,4 +1,4 @@
-import { AIToolsList } from "@/features/management/ia-tools/ia-tools";
+import { AIToolsList } from "@/features/management/ai-tools/ia-tools";
 import AppLayout from '@/layouts/app-layout';
 import iaToolsRoutes from '@/routes/ia-tools';
 import { type BreadcrumbItem, type PaginatedData, type Tool } from '@/types';
