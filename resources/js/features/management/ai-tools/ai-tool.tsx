@@ -197,7 +197,7 @@ export function CreateTool() {
                     variant="outline"
                     onClick={() => {
                         // TODO: Reemplazar navegación mock por router real
-                        window.location.href = "/admin/ai-tools"
+                        window.location.href = "/management/ai-tools"
                     }}
                 >
                     Cancelar

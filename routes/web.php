@@ -29,10 +29,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Channels Routes
     Route::resource('/channels', ChannelController::class)->except(['create']);
     // IA Tools Routes
-    Route::resource('/management/ai-tools', AiToolController::class)->except(['create']);
-    Route::get('/management/ai-tools/create', function () {
-        return inertia('management/ai-tools/create');
-    })->name('ai-tools.create');
+    Route::resource('/management/ai-tools', AiToolController::class);
     Route::patch('/management/ai-tools/{tool}/toggle-status', [AiToolController::class, 'toggleStatus'])->name('ai-tools.toggle-status');
     Route::post('/management/ai-tools/{tool}/test', [AiToolController::class, 'test'])->name('ai-tools.test');
 

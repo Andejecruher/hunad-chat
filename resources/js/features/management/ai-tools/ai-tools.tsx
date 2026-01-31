@@ -9,6 +9,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import aiTools from "@/routes/ai-tools"
 import { type PaginatedData, type Tool } from "@/types"
 import { router } from '@inertiajs/react'
 import { CheckCircle2, Code, Edit, MoreVertical, Plus, Settings, Trash2, XCircle } from "lucide-react"
@@ -75,7 +76,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
     }
 
     const handleToggleStatus = (tool: Tool) => {
-        router.patch(`/configurations/ia-tools/${tool.id}/toggle-status`, {}, {
+        router.patch(`/management/ai-tools/${tool.id}/toggle-status`, {}, {
             preserveState: true,
             onSuccess: () => {
                 toast.success(`Herramienta ${tool.enabled ? 'deshabilitada' : 'habilitada'} exitosamente`)
@@ -87,7 +88,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
     }
 
     const handleEdit = (tool: Tool) => {
-        router.visit(`/configurations/ia-tools/${tool.id}/edit`)
+        router.visit(`/management/ai-tools/${tool.id}/edit`)
     }
 
     const handleDelete = (tool: Tool) => {
@@ -97,7 +98,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
     const confirmDelete = () => {
         if (!deleteDialog.tool) return
 
-        router.delete(`/configurations/ia-tools/${deleteDialog.tool.id}`, {
+        router.delete(`/management/ai-tools/${deleteDialog.tool.id}`, {
             preserveState: true,
             onSuccess: () => {
                 toast.success("Herramienta eliminada exitosamente")
@@ -122,7 +123,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                     </p>
                 </div>
                 <Button
-                    onClick={() => router.visit('/configurations/ia-tools/create')}
+                    onClick={() => router.visit(aiTools.create.url())}
                     className="flex items-center gap-2"
                 >
                     <Plus className="h-4 w-4" />

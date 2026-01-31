@@ -3,25 +3,26 @@ import AppLayout from '@/layouts/app-layout';
 import iaToolsRoutes from '@/routes/ai-tools';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Management',
         href: '#',
     },
     {
-        title: 'AI Tools',
+        title: 'IA Tools',
         href: iaToolsRoutes.index().url,
     },
     {
-        title: 'Name AI Tool',
-        href: iaToolsRoutes.index().url,
+        title: 'Edit Tool',
+        href: '#',
     },
 ];
 
-export default function AIToolsPage() {
+export default function EditAIToolPage() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="AI Tools" />
+            <Head title="Edit AI Tool" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
                 <div className="relative min-h-screen flex-1 overflow-x-auto md:min-h-min">
                     <CreateTool />

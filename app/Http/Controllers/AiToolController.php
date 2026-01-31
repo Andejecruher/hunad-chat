@@ -162,11 +162,11 @@ class AiToolController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Tool $tool)
+    public function edit(string $id)
     {
-        if ($tool->company_id !== Auth::user()->company_id) {
-            abort(404);
-        }
+        $tool = Tool::where('id', $id)
+            ->where('company_id', Auth::user()->company_id)
+            ->firstOrFail();
 
         return inertia('management/ai-tools/edit', [
             'tool' => $tool,
