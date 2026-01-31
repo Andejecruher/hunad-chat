@@ -40,9 +40,13 @@ class UserController extends Controller
             ->when($request->filled('role') && $request->input('role') !== 'all', function ($q) use ($request) {
                 $role = $request->input('role');
                 $q->where('role', $role);
+            })
+            ->when($request->filled('status') && $request->input('status') !== 'all', function ($q) use ($request) {
+                $q->where('status', $request->input('status'));
             });
 
         $limit = $request->input('limit');
+
         if ($limit === 'all') {
             $users = $query->orderBy('id', 'desc')->get();
             $users = new \Illuminate\Pagination\LengthAwarePaginator(
@@ -58,7 +62,7 @@ class UserController extends Controller
 
         return inertia('configurations/users', [
             'users' => $users,
-            'filters' => $request->only(['search', 'role', 'limit']),
+            'filters' => $request->only(['search', 'role', 'status', 'limit']),
         ]);
     }
 
@@ -155,7 +159,7 @@ class UserController extends Controller
                         'user' => $user->fresh(),
                     ], 403);
                 }
-                    abort(403, 'Not authorized to update this user');
+                abort(403, 'Not authorized to update this user');
             }
 
             // Evitar cambios en company_id desde el request

@@ -102,23 +102,6 @@ export function Users({
 
     // Debounce para búsqueda
     useEffect(() => {
-        // Evitar ejecución en el primer render si los valores son iguales a los filtros iniciales
-        const initial = {
-            search: filters.search ?? '',
-            role: filters.role ?? 'all',
-            limit: filters.limit ?? '10',
-            status: filters.status ?? 'all',
-        };
-
-        if (
-            searchQuery === initial.search &&
-            roleFilter === initial.role &&
-            limitFilter === initial.limit &&
-            statusFilter === initial.status
-        ) {
-            return;
-        }
-
         // Debounce para búsqueda
         const handler = setTimeout(() => {
             const params = {
