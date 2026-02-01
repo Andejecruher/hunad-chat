@@ -1,3 +1,4 @@
+import { Pagination } from '@/components/pagination'
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +14,7 @@ import aiTools from "@/routes/ai-tools"
 import { type PaginatedData, type Tool } from "@/types"
 import { router } from '@inertiajs/react'
 import { CheckCircle2, Code, Edit, MoreVertical, Plus, Settings, Trash2, XCircle } from "lucide-react"
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { toast } from "sonner"
 import { DeleteToolDialog } from "./delete-tool-dialog"
 import { ToolFilter } from "./tool-filter"
@@ -33,9 +34,24 @@ interface AIToolsListProps {
 }
 
 export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
+    const getUrl = (route: unknown, params?: unknown) => {
+        try {
+            if (!route) return ''
+            if (typeof route === 'function') {
+                const res = params !== undefined ? route(params) : route()
+                if (!res) return ''
+                return typeof res === 'string' ? res : (res as { url?: string }).url ?? String(res)
+            }
+            if (typeof route === 'object') return (route as { url?: string }).url ?? String(route)
+            return String(route)
+        } catch {
+            return String(route)
+        }
+    }
     const [searchQuery, setSearchQuery] = useState(filters.search || "")
     const [statusFilter, setStatusFilter] = useState(filters.status || "all")
     const [typeFilter, setTypeFilter] = useState(filters.type || "all")
+    const [limitFilter, setLimitFilter] = useState(filters.limit ?? '15')
     const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; tool: Tool | null }>({
         open: false,
         tool: null,
@@ -43,7 +59,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
 
     const handleSearch = (value: string) => {
         setSearchQuery(value)
-        router.get(window.location.pathname, { ...filters, search: value || undefined }, {
+        router.get(getUrl(aiTools.index), { ...filters, search: value || undefined }, {
             preserveState: true,
             preserveScroll: true,
         })
@@ -51,7 +67,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
 
     const handleStatusChange = (value: string) => {
         setStatusFilter(value)
-        router.get(window.location.pathname, { ...filters, status: value === 'all' ? undefined : value }, {
+        router.get(getUrl(aiTools.index), { ...filters, status: value === 'all' ? undefined : value }, {
             preserveState: true,
             preserveScroll: true,
         })
@@ -59,7 +75,15 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
 
     const handleTypeChange = (value: string) => {
         setTypeFilter(value)
-        router.get(window.location.pathname, { ...filters, type: value === 'all' ? undefined : value }, {
+        router.get(getUrl(aiTools.index), { ...filters, type: value === 'all' ? undefined : value }, {
+            preserveState: true,
+            preserveScroll: true,
+        })
+    }
+
+    const handleLimitChange = (value: string) => {
+        setLimitFilter(value)
+        router.get(getUrl(aiTools.index), { ...filters, limit: value === 'all' ? undefined : value }, {
             preserveState: true,
             preserveScroll: true,
         })
@@ -69,17 +93,18 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
         setSearchQuery("")
         setStatusFilter("all")
         setTypeFilter("all")
-        router.get(window.location.pathname, {}, {
+        setLimitFilter(filters.limit ?? '15')
+        router.get(getUrl(aiTools.index), {}, {
             preserveState: true,
             preserveScroll: true,
         })
     }
 
     const handleToggleStatus = (tool: Tool) => {
-        router.patch(`/management/ai-tools/${tool.id}/toggle-status`, {}, {
+        router.patch(getUrl(aiTools.toggleStatus, tool.id), {}, {
             preserveState: true,
             onSuccess: () => {
-                toast.success(`Herramienta ${tool.enabled ? 'deshabilitada' : 'habilitada'} exitosamente`)
+                toast.success(`Herramienta ${!tool.enabled ? 'habilitada' : 'deshabilitada'} exitosamente`)
             },
             onError: () => {
                 toast.error("Error al cambiar el estado de la herramienta")
@@ -88,7 +113,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
     }
 
     const handleEdit = (tool: Tool) => {
-        router.visit(`/management/ai-tools/${tool.id}/edit`)
+        router.visit(getUrl(aiTools.edit, tool.id))
     }
 
     const handleDelete = (tool: Tool) => {
@@ -98,7 +123,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
     const confirmDelete = () => {
         if (!deleteDialog.tool) return
 
-        router.delete(`/management/ai-tools/${deleteDialog.tool.id}`, {
+        router.delete(getUrl(aiTools.destroy, deleteDialog.tool.id), {
             preserveState: true,
             onSuccess: () => {
                 toast.success("Herramienta eliminada exitosamente")
@@ -110,7 +135,17 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
         })
     }
 
-    const hasActiveFilters = searchQuery !== "" || statusFilter !== "all" || typeFilter !== "all"
+    const handlePageChange = useCallback((url?: string) => {
+        if (!url) return
+        router.get(url, {}, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+            only: ['tools', 'flash'],
+        })
+    }, [])
+
+    const hasActiveFilters = searchQuery !== "" || statusFilter !== "all" || typeFilter !== "all" || limitFilter !== (filters.limit ?? '15')
 
     return (
         <div className="space-y-6">
@@ -123,7 +158,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                     </p>
                 </div>
                 <Button
-                    onClick={() => router.visit(aiTools.create.url())}
+                    onClick={() => router.visit(getUrl(aiTools.create))}
                     className="flex items-center gap-2"
                 >
                     <Plus className="h-4 w-4" />
@@ -139,6 +174,8 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                 onStatusChange={handleStatusChange}
                 typeFilter={typeFilter}
                 onTypeChange={handleTypeChange}
+                limitFilter={limitFilter}
+                onLimitChange={handleLimitChange}
                 onClearFilters={handleClearFilters}
                 hasActiveFilters={hasActiveFilters}
             />
@@ -233,6 +270,21 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                 ))}
             </div>
 
+            {/* Pagination */}
+            {toolsData.links && toolsData.data.length > 0 && (
+                <div>
+                    <Pagination
+                        links={toolsData.links}
+                        onChange={handlePageChange}
+                        showInfo={true}
+                        position="center"
+                        to={toolsData.to}
+                        from={toolsData.from}
+                        total={toolsData.total}
+                    />
+                </div>
+            )}
+
             {/* Empty State */}
             {toolsData.data.length === 0 && (
                 <Card className="py-12">
@@ -248,7 +300,7 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                         {!hasActiveFilters && (
                             <Button
                                 className="mt-4"
-                                onClick={() => router.visit('/configurations/ia-tools/create')}
+                                onClick={() => router.visit(getUrl(aiTools.create))}
                             >
                                 <Plus className="mr-2 h-4 w-4" />
                                 Crear primera herramienta

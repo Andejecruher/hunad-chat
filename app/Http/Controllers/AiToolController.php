@@ -38,7 +38,7 @@ class AiToolController extends Controller
             ->where('company_id', Auth::user()->company_id)
             ->with(['executions' => function ($query) {
                 $query->latest()->limit(5);
-            }]);
+            }, 'company']);
 
         // Filtro por búsqueda
         if ($request->filled('search')) {

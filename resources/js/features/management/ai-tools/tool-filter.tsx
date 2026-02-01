@@ -11,6 +11,8 @@ interface ToolFilterProps {
     onStatusChange: (value: string) => void
     typeFilter: string
     onTypeChange: (value: string) => void
+    limitFilter: string
+    onLimitChange: (value: string) => void
     onClearFilters: () => void
     hasActiveFilters: boolean
 }
@@ -22,6 +24,8 @@ export function ToolFilter({
     onStatusChange,
     typeFilter,
     onTypeChange,
+    limitFilter,
+    onLimitChange,
     onClearFilters,
     hasActiveFilters,
 }: ToolFilterProps) {
@@ -37,7 +41,7 @@ export function ToolFilter({
                 )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
                 <div className="space-y-2">
                     <Label htmlFor="search">Buscar</Label>
                     <div className="relative">
@@ -60,8 +64,8 @@ export function ToolFilter({
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Todos</SelectItem>
-                            <SelectItem value="active">Activo</SelectItem>
-                            <SelectItem value="inactive">Inactivo</SelectItem>
+                            <SelectItem value="enabled">Activo</SelectItem>
+                            <SelectItem value="disabled">Inactivo</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -76,6 +80,23 @@ export function ToolFilter({
                             <SelectItem value="all">Todos</SelectItem>
                             <SelectItem value="internal">Interna</SelectItem>
                             <SelectItem value="external">Externa</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="limit">Items por página</Label>
+                    <Select value={limitFilter} onValueChange={onLimitChange}>
+                        <SelectTrigger id="limit">
+                            <SelectValue placeholder="Items" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="15">15</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                            <SelectItem value="all">Todos</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>

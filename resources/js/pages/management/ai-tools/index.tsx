@@ -19,7 +19,19 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
     {
         title: 'AI Tools',
-        href: aiToolsRoutes.index().url,
+        href: (function getUrl(route: unknown) {
+            try {
+                if (!route) return ''
+                if (typeof route === 'function') {
+                    const res = route()
+                    return typeof res === 'string' ? res : res.url ?? String(res)
+                }
+                if (typeof route === 'object') return (route as { url?: string }).url ?? String(route)
+                return String(route)
+            } catch {
+                return String(route)
+            }
+        })(aiToolsRoutes.index),
     },
 ];
 
@@ -29,6 +41,7 @@ export default function AIToolsPage(props: {
     categories: string[];
 }) {
     const { tools, filters, categories } = props;
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="AI Tools" />
