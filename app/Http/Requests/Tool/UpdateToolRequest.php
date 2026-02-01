@@ -5,6 +5,7 @@ namespace App\Http\Requests\Tool;
 use App\Services\AI\ToolValidator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class UpdateToolRequest extends FormRequest
 {
@@ -23,20 +24,12 @@ class UpdateToolRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required|string|max:255',
+            'name' => 'required|string|max:255',
             'category' => 'sometimes|required|string|max:100',
             'type' => 'sometimes|required|in:internal,external',
-            'schema' => 'sometimes|required|array',
-            'schema.inputs' => 'sometimes|required|array',
-            'schema.inputs.*.name' => 'required|string|max:100',
-            'schema.inputs.*.type' => 'required|in:string,number,integer,boolean,array,object',
-            'schema.inputs.*.required' => 'boolean',
-            'schema.inputs.*.description' => 'nullable|string|max:500',
-            'schema.outputs' => 'sometimes|required|array',
-            'schema.outputs.*.name' => 'required|string|max:100',
-            'schema.outputs.*.type' => 'required|in:string,number,integer,boolean,array,object',
-            'schema.outputs.*.description' => 'nullable|string|max:500',
-            'config' => 'sometimes|required|array',
+            'description' => 'nullable|string|max:1000',
+            'schema' => 'sometimes|required|string|json',
+            'config' => 'sometimes|required|string|json',
             'enabled' => 'sometimes|boolean',
         ];
     }
@@ -53,9 +46,9 @@ class UpdateToolRequest extends FormRequest
             'type.required' => 'The tool type is required.',
             'type.in' => 'The type must be internal or external.',
             'schema.required' => 'The schema is required.',
-            'schema.inputs.required' => 'The input fields are required.',
-            'schema.outputs.required' => 'The output fields are required.',
+            'schema.json' => 'The schema must be valid JSON.',
             'config.required' => 'The configuration is required.',
+            'config.json' => 'The configuration must be valid JSON.',
         ];
     }
 
@@ -68,12 +61,24 @@ class UpdateToolRequest extends FormRequest
             // Validate complete schema using ToolValidator if present
             if ($this->has('schema')) {
                 $toolValidator = app(ToolValidator::class);
-                $schemaErrors = $toolValidator->validateToolSchema($this->input('schema'));
+                $schema = $this->input('schema');
+                
+                // Convert JSON string to array if needed
+                if (is_string($schema)) {
+                    $schema = json_decode($schema, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        $validator->errors()->add('schema', 'El schema debe ser un JSON válido.');
+                        return;
+                    }
+                }
+                
+                $schemaErrors = $toolValidator->validateToolSchema($schema);
                 
                 if (!empty($schemaErrors)) {
                     foreach ($schemaErrors as $error) {
                         $validator->errors()->add('schema', $error);
                     }
+                    Log::debug('Tool schema validation errors', ['errors' => $schemaErrors]);
                 }
             }
 
@@ -84,6 +89,10 @@ class UpdateToolRequest extends FormRequest
                 } elseif ($this->input('type') === 'external') {
                     $this->validateExternalConfig($validator);
                 }
+            }
+            // Log any validation errors after custom checks
+            if ($validator->errors()->any()) {
+                Log::debug('UpdateToolRequest validation errors', ['errors' => $validator->errors()->all()]);
             }
         });
     }
@@ -98,11 +107,21 @@ class UpdateToolRequest extends FormRequest
         }
 
         $config = $this->input('config', []);
+        
+        // Convert JSON string to array if needed
+        if (is_string($config)) {
+            $config = json_decode($config, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $validator->errors()->add('config', 'El config debe ser un JSON válido.');
+                return;
+            }
+        }
 
-        if (!isset($config['action'])) {
-            $validator->errors()->add('config.action', 'The action is required for internal tools.');
-        } elseif (!in_array($config['action'], ['create_ticket', 'transfer_department', 'send_message', 'close_conversation', 'assign_agent'])) {
-            $validator->errors()->add('config.action', 'Invalid action for internal tool.');
+        // If action is provided, validate it; do not require it on update to keep updates flexible
+        if (isset($config['action'])) {
+            if (!in_array($config['action'], ['create_ticket', 'transfer_department', 'send_message', 'close_conversation', 'assign_agent'])) {
+                $validator->errors()->add('config.action', 'Invalid action for internal tool.');
+            }
         }
     }
 
@@ -116,19 +135,28 @@ class UpdateToolRequest extends FormRequest
         }
 
         $config = $this->input('config', []);
-
-        // URL required
-        if (!isset($config['url']) || empty($config['url'])) {
-            $validator->errors()->add('config.url', 'The URL is required for external tools.');
-        } elseif (!filter_var($config['url'], FILTER_VALIDATE_URL)) {
-            $validator->errors()->add('config.url', 'The URL must be valid.');
+        
+        // Convert JSON string to array if needed
+        if (is_string($config)) {
+            $config = json_decode($config, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $validator->errors()->add('config', 'El config debe ser un JSON válido.');
+                return;
+            }
         }
 
-        // HTTP method required
-        if (!isset($config['method']) || empty($config['method'])) {
-            $validator->errors()->add('config.method', 'The HTTP method is required for external tools.');
-        } elseif (!in_array(strtoupper($config['method']), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
-            $validator->errors()->add('config.method', 'Invalid HTTP method.');
+        // If URL is provided, validate it (do not require on update)
+        if (isset($config['url'])) {
+            if (empty($config['url']) || !filter_var($config['url'], FILTER_VALIDATE_URL)) {
+                $validator->errors()->add('config.url', 'The URL must be valid.');
+            }
+        }
+
+        // If method is provided, validate it
+        if (isset($config['method'])) {
+            if (!in_array(strtoupper($config['method']), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
+                $validator->errors()->add('config.method', 'Invalid HTTP method.');
+            }
         }
 
         // Timeout optional but must be numeric

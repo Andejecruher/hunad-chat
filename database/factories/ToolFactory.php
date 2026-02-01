@@ -28,14 +28,11 @@ class ToolFactory extends Factory
             ]),
             'type' => $this->faker->randomElement(['internal', 'external']),
             'schema' => [
-                'input' => [
-                    'example_field' => [
-                        'type' => 'string',
-                        'required' => true,
-                    ],
+                'inputs' => [
+                    ['name' => 'example_field', 'type' => 'string', 'required' => true, 'description' => 'Example field'],
                 ],
-                'output' => [
-                    'success' => 'boolean',
+                'outputs' => [
+                    ['name' => 'success', 'type' => 'boolean', 'description' => 'Success flag'],
                 ],
             ],
             'config' => [

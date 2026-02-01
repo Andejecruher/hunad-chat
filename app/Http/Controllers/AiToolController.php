@@ -6,6 +6,7 @@ use App\Http\Requests\Tool\CreateToolRequest;
 use App\Http\Requests\Tool\UpdateToolRequest;
 use App\Models\Tool;
 use App\Services\AI\ToolValidator;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -140,10 +141,13 @@ class AiToolController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Tool $tool)
+    public function show($toolId)
     {
-        // Verificar que pertenece a la empresa del usuario
-        if ($tool->company_id !== Auth::user()->company_id) {
+        $tool = Tool::where('id', $toolId)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+        if (!$tool) {
             abort(404);
         }
 
@@ -162,11 +166,15 @@ class AiToolController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(string $id)
+    public function edit($toolId)
     {
-        $tool = Tool::where('id', $id)
+        $tool = Tool::where('id', $toolId)
             ->where('company_id', Auth::user()->company_id)
-            ->firstOrFail();
+            ->first();
+
+        if (!$tool) {
+            abort(404);
+        }
 
         return inertia('management/ai-tools/edit', [
             'tool' => $tool,
@@ -177,16 +185,29 @@ class AiToolController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateToolRequest $request, Tool $tool)
+    public function update(UpdateToolRequest $request, $toolId)
     {
-        if ($tool->company_id !== Auth::user()->company_id) {
+        $tool = Tool::where('id', $toolId)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+        if (!$tool) {
             abort(404);
         }
 
         $validated = $request->validated();
 
+        // Decodificar JSON si vienen como strings
+        if (isset($validated['schema']) && is_string($validated['schema'])) {
+            $validated['schema'] = json_decode($validated['schema'], true);
+        }
+
+        if (isset($validated['config']) && is_string($validated['config'])) {
+            $validated['config'] = json_decode($validated['config'], true);
+        }
+
         // Si el nombre cambió, regenerar slug
-        if ($validated['name'] !== $tool->name) {
+        if (isset($validated['name']) && $validated['name'] !== $tool->name) {
             $baseSlug = Str::slug($validated['name']);
             $slug = $baseSlug;
             $counter = 1;
@@ -213,9 +234,13 @@ class AiToolController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Tool $tool)
+    public function destroy($toolId)
     {
-        if ($tool->company_id !== Auth::user()->company_id) {
+        $tool = Tool::where('id', $toolId)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+        if (!$tool) {
             abort(404);
         }
 
@@ -238,9 +263,13 @@ class AiToolController extends Controller
     /**
      * Toggle tool enabled status
      */
-    public function toggleStatus(Tool $tool)
+    public function toggleStatus($toolId)
     {
-        if ($tool->company_id !== Auth::user()->company_id) {
+        $tool = Tool::where('id', $toolId)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+        if (!$tool) {
             abort(404);
         }
 
@@ -257,9 +286,13 @@ class AiToolController extends Controller
     /**
      * Test a tool configuration
      */
-    public function test(Tool $tool, Request $request)
+    public function test($toolId, Request $request)
     {
-        if ($tool->company_id !== Auth::user()->company_id) {
+        $tool = Tool::where('id', $toolId)
+            ->where('company_id', Auth::user()->company_id)
+            ->first();
+
+        if (!$tool) {
             abort(404);
         }
 
@@ -344,10 +377,22 @@ class AiToolController extends Controller
             return null;
         }
 
-        $totalTime = $completedExecutions->sum(function ($execution) {
-            return $execution->updated_at->diffInMilliseconds($execution->created_at);
-        });
+        $totalTime = 0;
+        $validExecutions = 0;
 
-        return $totalTime / $completedExecutions->count();
+        foreach ($completedExecutions as $execution) {
+            // Verificar que ambas fechas existen y son válidas
+            if ($execution->created_at && $execution->updated_at) {
+                try {
+                    $totalTime += $execution->updated_at->diffInMilliseconds($execution->created_at);
+                    $validExecutions++;
+                } catch (Exception $e) {
+                    // Si hay error al calcular la diferencia, saltar esta ejecución
+                    continue;
+                }
+            }
+        }
+
+        return $validExecutions > 0 ? $totalTime / $validExecutions : null;
     }
 }

@@ -35,6 +35,14 @@ class Tool extends Model
         'last_executed_at' => 'datetime',
     ];
 
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'id';
+    }
+
     /* ===========================
      | Relaciones
      =========================== */
