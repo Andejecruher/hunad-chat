@@ -1,4 +1,4 @@
-import { EditTool } from "@/features/management/ai-tools/edit-tool";
+import { ShowTool } from "@/features/management/ai-tools/show-tool";
 import AppLayout from '@/layouts/app-layout';
 import aiToolsRoutes from '@/routes/ai-tools';
 import { type BreadcrumbItem, type Tool } from '@/types';
@@ -15,26 +15,22 @@ const breadcrumbs = (tool: Tool): BreadcrumbItem[] => [
     },
     {
         title: tool.name,
-        href: aiToolsRoutes.show({ ai_tool: tool.id }).url,
-    },
-    {
-        title: 'Edit',
         href: '#',
     },
 ];
 
-export default function EditAIToolPage(props: {
+export default function ShowAIToolPage(props: {
     tool: Tool;
-    categories: string[];
+    executionStats: any;
 }) {
-    const { tool, categories } = props;
+    const { tool, executionStats } = props;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs(tool)}>
-            <Head title={`Edit ${tool.name}`} />
+            <Head title={`AI Tool: ${tool.name}`} />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-hidden rounded-xl p-4">
                 <div className="relative min-h-screen flex-1 overflow-x-auto md:min-h-min">
-                    <EditTool tool={tool} categories={categories} />
+                    <ShowTool tool={tool} executionStats={executionStats} />
                 </div>
             </div>
         </AppLayout>

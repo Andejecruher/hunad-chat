@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,7 +20,7 @@ import {
     ToolType,
 } from "@/types/tool"
 import { router } from '@inertiajs/react'
-import { ArrowLeft, Save } from "lucide-react"
+import { Save } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -74,7 +72,7 @@ export function CreateTool() {
                 enabled: form.enabled,
             }
 
-            router.post('/configurations/ia-tools', formData, {
+            router.post('/management/ai-tools', formData, {
                 onSuccess: () => {
                     toast.success("Herramienta creada exitosamente")
                 },
@@ -100,21 +98,6 @@ export function CreateTool() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                                // TODO: Reemplazar navegación mock por router real
-                                window.location.href = "/admin/ai-tools"
-                            }}
-                        >
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Herramientas de IA
-                        </Button>
-                        <span>/</span>
-                        <span>Crear</span>
-                    </div>
                     <h1 className="font-heading text-3xl font-bold text-foreground">Crear herramienta de IA</h1>
                     <p className="text-muted-foreground">
                         Configura una nueva herramienta que los agentes de IA podrán usar para realizar acciones

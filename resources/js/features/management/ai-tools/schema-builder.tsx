@@ -1,5 +1,3 @@
-"use client"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -120,7 +118,7 @@ export function SchemaBuilder({ value, onChange }: SchemaBuilderProps) {
                             </Button>
                         </div>
 
-                        {value.inputs.length > 0 ? (
+                        {value && value?.inputs && value.inputs.length > 0 ? (
                             <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
@@ -193,7 +191,7 @@ export function SchemaBuilder({ value, onChange }: SchemaBuilderProps) {
                             </Button>
                         </div>
 
-                        {value.outputs.length > 0 ? (
+                        {value && value.outputs && value.outputs.length > 0 ? (
                             <div className="rounded-md border">
                                 <Table>
                                     <TableHeader>
