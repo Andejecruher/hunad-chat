@@ -46,16 +46,16 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
     const safeHours =
         hours.length === 0
             ? DAYS_OF_WEEK.map((day) => ({
-                  day_of_week: day.value,
-                  time_ranges: [
-                      {
-                          id: 'default',
-                          open_time: '09:00',
-                          close_time: '18:00',
-                      },
-                  ],
-                  is_closed: day.value === 0 || day.value === 6,
-              }))
+                day_of_week: day.value,
+                time_ranges: [
+                    {
+                        id: 'default',
+                        open_time: '09:00',
+                        close_time: '18:00',
+                    },
+                ],
+                is_closed: day.value === 0 || day.value === 6,
+            }))
             : hours;
 
     const monthStart = startOfMonth(currentDate);
@@ -243,7 +243,7 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                                 </CardTitle>
                                 <p className="mt-1 text-xs text-muted-foreground">
                                     {hours.length === 0 &&
-                                    exceptions.length === 0
+                                        exceptions.length === 0
                                         ? 'Configura horarios y excepciones para ver la vista previa'
                                         : `${exceptions.length} excepción${exceptions.length !== 1 ? 'es' : ''} aplicada${exceptions.length !== 1 ? 's' : ''}`}
                                 </p>
@@ -287,7 +287,7 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                 <CardContent className="space-y-6">
                     <div className="space-y-3">
                         {/* Legend */}
-                        <div className="from-brand-green/5 to-brand-gold/5 border-brand-green/10 flex flex-wrap gap-6 rounded-lg border bg-gradient-to-r p-4">
+                        <div className="from-brand-green/5 to-brand-gold/5 border-brand-green/10 flex flex-wrap gap-6 rounded-lg border bg-linear-to-r p-4">
                             <div className="flex items-center gap-2">
                                 <div className="h-3 w-3 rounded-full bg-green-500" />
                                 <span className="text-sm font-medium">
@@ -311,7 +311,7 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                         {/* Calendar Grid */}
                         <div className="border-brand-green/10 overflow-hidden rounded-xl border shadow-sm">
                             {/* Day headers */}
-                            <div className="from-brand-green/5 to-brand-teal/5 border-brand-green/10 grid grid-cols-7 gap-0 border-b bg-gradient-to-r">
+                            <div className="from-brand-green/5 to-brand-teal/5 border-brand-green/10 grid grid-cols-7 gap-0 border-b bg-linear-to-r">
                                 {dayNames.map((day) => (
                                     <div
                                         key={day}
@@ -374,14 +374,14 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                                                             {dayNumber}
                                                         </span>
                                                         <div
-                                                            className={`h-2 w-2 rounded-full bg-gradient-to-br ${getStatusColor()} shadow-sm`}
+                                                            className={`h-2 w-2 rounded-full bg-linear-to-br ${getStatusColor()} shadow-sm`}
                                                         />
                                                     </div>
 
                                                     {/* Exception badge if exists */}
                                                     {exception && (
                                                         <div className="mb-2 flex items-start gap-1">
-                                                            <AlertCircle className="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-600" />
+                                                            <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
                                                             <div className="truncate text-left text-xs leading-tight font-semibold">
                                                                 <div className="truncate text-amber-900">
                                                                     {
@@ -395,14 +395,13 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                                                     {/* Time info */}
                                                     <div className="space-y-1 text-xs">
                                                         <div
-                                                            className={`font-semibold ${
-                                                                type === 'open'
-                                                                    ? 'text-green-700'
-                                                                    : type ===
-                                                                        'special'
-                                                                      ? 'text-amber-700'
-                                                                      : 'text-slate-600'
-                                                            }`}
+                                                            className={`font-semibold ${type === 'open'
+                                                                ? 'text-green-700'
+                                                                : type ===
+                                                                    'special'
+                                                                    ? 'text-amber-700'
+                                                                    : 'text-slate-600'
+                                                                }`}
                                                         >
                                                             {status}
                                                         </div>
@@ -447,14 +446,13 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                                                             </h3>
                                                         </div>
                                                         <div
-                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                                type === 'open'
-                                                                    ? 'bg-green-100 text-green-700'
-                                                                    : type ===
-                                                                        'special'
-                                                                      ? 'bg-amber-100 text-amber-700'
-                                                                      : 'bg-slate-100 text-slate-700'
-                                                            }`}
+                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${type === 'open'
+                                                                ? 'bg-green-100 text-green-700'
+                                                                : type ===
+                                                                    'special'
+                                                                    ? 'bg-amber-100 text-amber-700'
+                                                                    : 'bg-slate-100 text-slate-700'
+                                                                }`}
                                                         >
                                                             {status}
                                                         </div>
@@ -462,9 +460,9 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
 
                                                     {/* Exception details if exists */}
                                                     {exception && (
-                                                        <div className="space-y-3 rounded-lg border border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4">
+                                                        <div className="space-y-3 rounded-lg border border-amber-200 bg-linear-to-r from-amber-50 to-orange-50 p-4">
                                                             <div className="flex items-start gap-3">
-                                                                <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600" />
+                                                                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
                                                                 <div className="flex-1">
                                                                     <h4 className="font-semibold text-amber-900">
                                                                         {
@@ -487,12 +485,12 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                                                                     </span>
                                                                     <span className="font-medium text-amber-900">
                                                                         {exception.type ===
-                                                                        'annual'
+                                                                            'annual'
                                                                             ? 'Anual'
                                                                             : exception.type ===
                                                                                 'monthly'
-                                                                              ? 'Mensual'
-                                                                              : 'Específica'}
+                                                                                ? 'Mensual'
+                                                                                : 'Específica'}
                                                                     </span>
                                                                 </div>
                                                                 <div className="flex justify-between">
@@ -501,45 +499,45 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                                                                     </span>
                                                                     <span className="font-medium text-amber-900">
                                                                         {exception.behavior ===
-                                                                        'fully_closed'
+                                                                            'fully_closed'
                                                                             ? 'Completamente Cerrado'
                                                                             : exception.behavior ===
                                                                                 'partially_closed'
-                                                                              ? 'Horario Reducido'
-                                                                              : 'Parcialmente Abierto'}
+                                                                                ? 'Horario Reducido'
+                                                                                : 'Parcialmente Abierto'}
                                                                     </span>
                                                                 </div>
                                                                 {exception.behavior ===
                                                                     'partially_closed' && (
-                                                                    <div className="flex justify-between border-t border-amber-200 pt-2">
-                                                                        <span className="text-amber-800/70">
-                                                                            Horario
-                                                                            Especial:
-                                                                        </span>
-                                                                        <span className="flex items-center gap-1 font-semibold text-amber-900">
-                                                                            <Clock className="h-3.5 w-3.5" />
-                                                                            {
-                                                                                exception.special_open_time
-                                                                            }{' '}
-                                                                            -{' '}
-                                                                            {
-                                                                                exception.special_close_time
-                                                                            }
-                                                                        </span>
-                                                                    </div>
-                                                                )}
+                                                                        <div className="flex justify-between border-t border-amber-200 pt-2">
+                                                                            <span className="text-amber-800/70">
+                                                                                Horario
+                                                                                Especial:
+                                                                            </span>
+                                                                            <span className="flex items-center gap-1 font-semibold text-amber-900">
+                                                                                <Clock className="h-3.5 w-3.5" />
+                                                                                {
+                                                                                    exception.special_open_time
+                                                                                }{' '}
+                                                                                -{' '}
+                                                                                {
+                                                                                    exception.special_close_time
+                                                                                }
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
                                                             </div>
                                                         </div>
                                                     )}
 
                                                     {/* Regular hours */}
                                                     {!exception && (
-                                                        <div className="space-y-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-cyan-50 p-4">
+                                                        <div className="space-y-3 rounded-lg border border-blue-200 bg-linear-to-r from-blue-50 to-cyan-50 p-4">
                                                             <h4 className="font-semibold text-blue-900">
                                                                 Horario Regular
                                                             </h4>
                                                             {type ===
-                                                            'closed' ? (
+                                                                'closed' ? (
                                                                 <p className="text-sm text-blue-700">
                                                                     Este día
                                                                     está cerrado
@@ -593,7 +591,7 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
 
                     {/* Summary Stats */}
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div className="rounded-lg border border-green-200/50 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
+                        <div className="rounded-lg border border-green-200/50 bg-linear-to-br from-green-50 to-emerald-50 p-4">
                             <div className="mb-2 flex items-center justify-between">
                                 <span className="text-sm font-medium text-green-700">
                                     Días Abiertos
@@ -608,7 +606,7 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                             </p>
                         </div>
 
-                        <div className="rounded-lg border border-amber-200/50 bg-gradient-to-br from-amber-50 to-orange-50 p-4">
+                        <div className="rounded-lg border border-amber-200/50 bg-linear-to-br from-amber-50 to-orange-50 p-4">
                             <div className="mb-2 flex items-center justify-between">
                                 <span className="text-sm font-medium text-amber-700">
                                     Excepciones
@@ -624,11 +622,10 @@ export function CalendarPreview({ hours, exceptions }: CalendarPreviewProps) {
                         </div>
 
                         <div
-                            className={`rounded-lg border bg-gradient-to-br p-4 ${
-                                safeHours.some((h) => !h.is_closed)
-                                    ? 'border-blue-200/50 from-blue-50 to-cyan-50'
-                                    : 'border-slate-200/50 from-slate-50 to-gray-50'
-                            }`}
+                            className={`rounded-lg border bg-linear-to-br p-4 ${safeHours.some((h) => !h.is_closed)
+                                ? 'border-blue-200/50 from-blue-50 to-cyan-50'
+                                : 'border-slate-200/50 from-slate-50 to-gray-50'
+                                }`}
                         >
                             <div className="mb-2 flex items-center justify-between">
                                 <span
