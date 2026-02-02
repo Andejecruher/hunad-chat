@@ -101,6 +101,15 @@ export interface ToolFormComplete {
     config: ConfigBuilderStateComplete
 }
 
+export interface ExecutionStats {
+    total_executions: number;
+    successful_executions: number;
+    failed_executions: number;
+    avg_execution_time: number | null;
+    last_execution: string | null;
+    success_rate: number;
+}
+
 // Mock data
 export const mockTools: ToolComplete[] = [
     {
