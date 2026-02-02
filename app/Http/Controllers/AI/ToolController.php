@@ -11,10 +11,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Controlador para exponer herramientas disponibles a agentes de IA
- * 
- * Endpoints destinados al consumo por agentes de IA y sistemas MCP
- * NO para interfaz de usuario web
+ * Controller to expose available tools to AI agents
+ *
+ * Endpoints intended for consumption by AI agents and MCP systems
+ * NOT for the web user interface
  */
 class ToolController extends Controller
 {
@@ -24,24 +24,20 @@ class ToolController extends Controller
     ) {}
 
     /**
-     * Listar herramientas disponibles para un agente específico
-     * 
+     * List available tools for a specific agent
+     *
      * GET /api/ai/agents/{agent}/tools
-     * 
-     * @param AiAgent $agent
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(AiAgent $agent, Request $request): JsonResponse
     {
-        // Verificar que el agente pertenece a la empresa del usuario autenticado
+        // Verify that the agent belongs to the authenticated user's company
         if ($agent->company_id !== Auth::user()->company_id) {
             return response()->json(['error' => 'Agent not found'], 404);
         }
 
         $tools = $this->toolRegistry->getAvailableToolsForAgent($agent);
 
-        // Determinar formato de respuesta
+        // Determine response format
         $format = $request->get('format', 'standard');
 
         $response = match ($format) {
@@ -76,13 +72,8 @@ class ToolController extends Controller
 
     /**
      * Obtener una herramienta específica
-     * 
+     *
      * GET /api/ai/agents/{agent}/tools/{toolSlug}
-     * 
-     * @param AiAgent $agent
-     * @param string $toolSlug
-     * @param Request $request
-     * @return JsonResponse
      */
     public function show(AiAgent $agent, string $toolSlug, Request $request): JsonResponse
     {
@@ -93,7 +84,7 @@ class ToolController extends Controller
 
         $tool = $this->toolRegistry->getToolForAgent($agent, $toolSlug);
 
-        if (!$tool) {
+        if (! $tool) {
             return response()->json([
                 'error' => 'Tool not found or not accessible',
                 'tool_slug' => $toolSlug,
@@ -130,13 +121,8 @@ class ToolController extends Controller
 
     /**
      * Listar herramientas por categoría
-     * 
+     *
      * GET /api/ai/agents/{agent}/tools/category/{category}
-     * 
-     * @param AiAgent $agent
-     * @param string $category
-     * @param Request $request
-     * @return JsonResponse
      */
     public function byCategory(AiAgent $agent, string $category, Request $request): JsonResponse
     {
@@ -176,11 +162,8 @@ class ToolController extends Controller
 
     /**
      * Obtener estadísticas de herramientas para un agente
-     * 
+     *
      * GET /api/ai/agents/{agent}/tools/stats
-     * 
-     * @param AiAgent $agent
-     * @return JsonResponse
      */
     public function stats(AiAgent $agent): JsonResponse
     {
@@ -203,12 +186,8 @@ class ToolController extends Controller
 
     /**
      * Generar manifest MCP para un agente
-     * 
+     *
      * GET /api/ai/agents/{agent}/mcp/manifest
-     * 
-     * @param AiAgent $agent
-     * @param Request $request
-     * @return JsonResponse
      */
     public function mcpManifest(AiAgent $agent, Request $request): JsonResponse
     {
@@ -217,7 +196,7 @@ class ToolController extends Controller
         }
 
         $tools = $this->toolRegistry->getAvailableToolsForAgent($agent);
-        
+
         $serverInfo = [
             'name' => "HunadChat Tools for {$agent->name}",
             'description' => "Tool server for AI agent {$agent->name}",
@@ -232,16 +211,13 @@ class ToolController extends Controller
 
     /**
      * Sanitizar configuración para no exponer secretos
-     * 
-     * @param array $config
-     * @return array
      */
     private function sanitizeConfig(array $config): array
     {
-        // Clonar la configuración
+        // Clone the configuration
         $sanitized = $config;
 
-        // Ocultar campos sensibles
+        // Hide sensitive fields
         if (isset($sanitized['headers'])) {
             foreach ($sanitized['headers'] as &$header) {
                 if (isset($header['key']) && str_contains(strtolower($header['key']), 'auth')) {

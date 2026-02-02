@@ -37,6 +37,7 @@ class UserController extends Controller
                 });
             })
             // Solo filtrar por rol si el valor es distinto de 'all' y no vacío
+                // Only filter by role if the value is different than 'all' and not empty
             ->when($request->filled('role') && $request->input('role') !== 'all', function ($q) use ($request) {
                 $role = $request->input('role');
                 $q->where('role', $role);
@@ -155,9 +156,11 @@ class UserController extends Controller
             if ($user->company_id !== $authUser->company_id) {
                 if ($request->expectsJson()) {
                     return response()->json([
+                        // Generate secure temporary password
                         'message' => 'Not authorized to update this user',
                         'user' => $user->fresh(),
                     ], 403);
+                        // Create user by assigning attributes explicitly to avoid "guarded" warnings
                 }
                 abort(403, 'Not authorized to update this user');
             }
@@ -168,6 +171,7 @@ class UserController extends Controller
             }
 
             // Manejar contraseña: si se envía, hashearla; si viene null/empty, removerla
+                        // Generate verification URL
             if (array_key_exists('password', $data)) {
                 if (! empty($data['password'])) {
                     $data['password'] = Hash::make($data['password']);
@@ -175,6 +179,7 @@ class UserController extends Controller
                     unset($data['password']);
                 }
             }
+                        // Send email using Mailable
 
             // Registrar cambios en transacción para mantener consistencia
             DB::beginTransaction();
@@ -242,11 +247,13 @@ class UserController extends Controller
                 abort(403, 'Not authorized to resend invitation for this user');
             }
 
+                        // Prevent changes to company_id from the request
             // Check if user already verified their email
             if ($user->email_verified_at) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'message' => 'User has already verified their email',
+                        // Handle password: if provided, hash it; if null/empty, remove it
                     ], 400);
                 }
 
@@ -256,6 +263,7 @@ class UserController extends Controller
             // Generate new temporary password
             $tempPassword = Str::random(16);
             $user->password = Hash::make($tempPassword);
+                        // Record changes inside a transaction to maintain consistency
             $user->save();
 
             // Generate new verification URL
@@ -337,6 +345,8 @@ class UserController extends Controller
             }
 
             // Authorization: only same company or admins can delete
+                        // If soft deletes are desired, enable SoftDeletes on the model
+                        // Currently performs a physical delete
             if ($user->company_id !== $authUser->company_id) {
                 if ($request->expectsJson()) {
                     return response()->json([

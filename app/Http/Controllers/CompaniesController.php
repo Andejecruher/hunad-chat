@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class CompaniesController extends Controller
@@ -17,6 +17,7 @@ class CompaniesController extends Controller
     public function show()
     {
         $user = auth()->user();
+
         return inertia('configurations/company', [
             'user' => $user,
             'company' => $user->company,
@@ -28,12 +29,12 @@ class CompaniesController extends Controller
      */
     public function update(Request $request, Company $company)
     {
-        // Verificar que el usuario actual pertenezca a esta empresa
+        // verificated permission
         if (auth()->user()->company_id !== $company->id) {
             abort(403, 'You do not have permission to edit this company.');
         }
 
-        // Manejar el método spoofing para POST requests
+        // management of PUT method in form-data
         if ($request->isMethod('post') && $request->has('_method') && $request->input('_method') === 'PUT') {
             $request->setMethod('PUT');
         }
@@ -55,12 +56,12 @@ class CompaniesController extends Controller
         try {
             DB::beginTransaction();
 
-            // Procesar logo si existe
+            // Handle branding logo upload
             $logoPath = $company->branding['logo_url'] ?? null;
             $oldLogoPath = $logoPath;
 
             if ($request->hasFile('branding_logo')) {
-                // Eliminar logo anterior si existe
+                // delete old logo if exists
                 if ($oldLogoPath && Storage::disk('public')->exists($oldLogoPath)) {
                     Storage::disk('public')->delete($oldLogoPath);
                 }
@@ -68,10 +69,10 @@ class CompaniesController extends Controller
                 $logoPath = $request->file('branding_logo')->store('logos', 'public');
             }
 
-            // Preparar datos de branding manteniendo la estructura existente o creando nueva
+            // Get existing branding data
             $existingBranding = $company->branding ?? [];
 
-            // Decodificar el tema si viene como string
+            // Decode theme if it comes as a string
             $themeData = $request->branding_theme;
             if (is_string($themeData)) {
                 $themeData = json_decode($themeData, true);
@@ -97,7 +98,7 @@ class CompaniesController extends Controller
                 'default_theme' => $request->branding_default_theme,
             ];
 
-            // Actualizar la empresa
+            // update company data
             $company->update([
                 'name' => $request->company_name,
                 'slug' => $request->company_slug,
@@ -115,15 +116,15 @@ class CompaniesController extends Controller
             // Log the error for debugging
             \Log::error('Error updating company:', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
-            // Eliminar archivo de logo nuevo si se subió pero falló la transacción
+            // Delete new logo file if uploaded but transaction failed
             if ($request->hasFile('branding_logo') && $logoPath && Storage::disk('public')->exists($logoPath)) {
                 Storage::disk('public')->delete($logoPath);
             }
 
-            return back()->withErrors(['error' => 'Error during update: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Error during update: '.$e->getMessage()]);
         }
     }
 }

@@ -62,19 +62,20 @@ class UpdateToolRequest extends FormRequest
             if ($this->has('schema')) {
                 $toolValidator = app(ToolValidator::class);
                 $schema = $this->input('schema');
-                
+
                 // Convert JSON string to array if needed
                 if (is_string($schema)) {
                     $schema = json_decode($schema, true);
                     if (json_last_error() !== JSON_ERROR_NONE) {
                         $validator->errors()->add('schema', 'El schema debe ser un JSON válido.');
+
                         return;
                     }
                 }
-                
+
                 $schemaErrors = $toolValidator->validateToolSchema($schema);
-                
-                if (!empty($schemaErrors)) {
+
+                if (! empty($schemaErrors)) {
                     foreach ($schemaErrors as $error) {
                         $validator->errors()->add('schema', $error);
                     }
@@ -102,24 +103,25 @@ class UpdateToolRequest extends FormRequest
      */
     private function validateInternalConfig($validator): void
     {
-        if (!$this->has('config')) {
+        if (! $this->has('config')) {
             return; // If config is not being updated, do not validate
         }
 
         $config = $this->input('config', []);
-        
+
         // Convert JSON string to array if needed
         if (is_string($config)) {
             $config = json_decode($config, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $validator->errors()->add('config', 'El config debe ser un JSON válido.');
+
                 return;
             }
         }
 
         // If action is provided, validate it; do not require it on update to keep updates flexible
         if (isset($config['action'])) {
-            if (!in_array($config['action'], ['create_ticket', 'transfer_department', 'send_message', 'close_conversation', 'assign_agent'])) {
+            if (! in_array($config['action'], ['create_ticket', 'transfer_department', 'send_message', 'close_conversation', 'assign_agent'])) {
                 $validator->errors()->add('config.action', 'Invalid action for internal tool.');
             }
         }
@@ -130,42 +132,43 @@ class UpdateToolRequest extends FormRequest
      */
     private function validateExternalConfig($validator): void
     {
-        if (!$this->has('config')) {
+        if (! $this->has('config')) {
             return; // If config is not being updated, do not validate
         }
 
         $config = $this->input('config', []);
-        
+
         // Convert JSON string to array if needed
         if (is_string($config)) {
             $config = json_decode($config, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 $validator->errors()->add('config', 'El config debe ser un JSON válido.');
+
                 return;
             }
         }
 
         // If URL is provided, validate it (do not require on update)
         if (isset($config['url'])) {
-            if (empty($config['url']) || !filter_var($config['url'], FILTER_VALIDATE_URL)) {
+            if (empty($config['url']) || ! filter_var($config['url'], FILTER_VALIDATE_URL)) {
                 $validator->errors()->add('config.url', 'The URL must be valid.');
             }
         }
 
         // If method is provided, validate it
         if (isset($config['method'])) {
-            if (!in_array(strtoupper($config['method']), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
+            if (! in_array(strtoupper($config['method']), ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'])) {
                 $validator->errors()->add('config.method', 'Invalid HTTP method.');
             }
         }
 
         // Timeout optional but must be numeric
-        if (isset($config['timeout']) && (!is_numeric($config['timeout']) || $config['timeout'] < 1)) {
+        if (isset($config['timeout']) && (! is_numeric($config['timeout']) || $config['timeout'] < 1)) {
             $validator->errors()->add('config.timeout', 'The timeout must be a number greater than 0.');
         }
 
         // Headers optional but must be array
-        if (isset($config['headers']) && !is_array($config['headers'])) {
+        if (isset($config['headers']) && ! is_array($config['headers'])) {
             $validator->errors()->add('config.headers', 'The headers must be an array.');
         }
     }

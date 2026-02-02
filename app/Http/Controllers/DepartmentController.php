@@ -409,7 +409,7 @@ class DepartmentController extends Controller
             $isClosed = $daySchedule['is_closed'] ?? false;
             $timeRanges = $daySchedule['time_ranges'] ?? [];
 
-            // Traer rangos existentes para este día
+            // Fetch existing ranges for this day
             $existingRanges = $department->hours()
                 ->where('day_of_week', $dayOfWeek)
                 ->get()
@@ -417,12 +417,12 @@ class DepartmentController extends Controller
 
             $processedIds = [];
 
-            // Si el día está cerrado y no hay rangos, crear/actualizar un registro cerrado
+            // If the day is closed and there are no ranges, create/update a closed record
             if ($isClosed && empty($timeRanges)) {
-                // Primero eliminar todos los rangos existentes para este día
+                // First delete all existing ranges for this day
                 $department->hours()->where('day_of_week', $dayOfWeek)->delete();
 
-                // Crear un registro que indique que el día está cerrado
+                // Create a record that indicates the day is closed
                 $department->hours()->create([
                     'day_of_week' => $dayOfWeek,
                     'open_time' => null,
@@ -430,23 +430,23 @@ class DepartmentController extends Controller
                     'is_closed' => true,
                 ]);
 
-                continue; // Pasar al siguiente día
+                continue; // Move to the next day
             }
 
-            // Si hay rangos de tiempo para procesar
+            // If there are time ranges to process
             if (! empty($timeRanges)) {
                 foreach ($timeRanges as $range) {
-                    // Validar que el rango tenga los datos necesarios
+                    // Validate the range has the required data
                     if (empty($range['open_time']) || empty($range['close_time'])) {
                         continue;
                     }
 
-                    // Normalizar formato de tiempo agregando segundos si no los tiene
+                    // Normalize time format by adding seconds if missing
                     $openTime = $this->normalizeTime($range['open_time']);
                     $closeTime = $this->normalizeTime($range['close_time']);
 
                     if (isset($range['id']) && $range['id'] && $existingRanges->has($range['id'])) {
-                        // Actualizar rango existente
+                        // Update existing range
                         $existing = $existingRanges[$range['id']];
                         $existing->update([
                             'open_time' => $openTime,
@@ -455,7 +455,7 @@ class DepartmentController extends Controller
                         ]);
                         $processedIds[] = $existing->id;
                     } else {
-                        // Crear nuevo rango
+                        // Create new range
                         $new = $department->hours()->create([
                             'day_of_week' => $dayOfWeek,
                             'open_time' => $openTime,
@@ -467,13 +467,13 @@ class DepartmentController extends Controller
                 }
             }
 
-            // Eliminar rangos que ya no vienen en la request para este día específico
+            // Delete ranges not present in the request for this specific day
             $toDelete = $existingRanges->whereNotIn('id', $processedIds);
             if ($toDelete->isNotEmpty()) {
                 $department->hours()->whereIn('id', $toDelete->pluck('id'))->delete();
             }
 
-            // Si no hay rangos y el día no está marcado como cerrado, eliminar registros existentes
+            // If no ranges and the day isn't marked closed, delete existing records
             if (empty($timeRanges) && ! $isClosed) {
                 $department->hours()->where('day_of_week', $dayOfWeek)->delete();
             }
@@ -485,7 +485,7 @@ class DepartmentController extends Controller
      */
     protected function syncDepartmentExceptions(Department $department, array $exceptions): void
     {
-        // Obtener excepciones existentes
+        // Get existing exceptions
         $existingExceptions = $department->exceptions()->get()->keyBy('id');
         $processedIds = [];
 
@@ -510,18 +510,18 @@ class DepartmentController extends Controller
                 'partial_hours' => $exceptionData['partial_hours'] ?? null,
             ];
 
-            // Si tiene ID, actualizar excepción existente
+            // If it has an ID, update existing exception
             if ($exceptionId && $existingExceptions->has($exceptionId)) {
                 $existingExceptions[$exceptionId]->update($data);
                 $processedIds[] = $exceptionId;
             } else {
-                // Crear nueva excepción
+                // Create new exception
                 $newException = $department->exceptions()->create($data);
                 $processedIds[] = $newException->id;
             }
         }
 
-        // Eliminar excepciones que ya no están en la request
+        // Delete exceptions not present in the request
         $toDelete = $existingExceptions->whereNotIn('id', $processedIds);
         if ($toDelete->isNotEmpty()) {
             $department->exceptions()->whereIn('id', $toDelete->keys())->delete();
@@ -546,24 +546,24 @@ class DepartmentController extends Controller
      */
     private function normalizeTime(string $time): string
     {
-        // Si ya tiene formato HH:MM:SS, dejarlo como está
+        // If it already has HH:MM:SS format, leave it as is
         if (preg_match('/^\d{2}:\d{2}:\d{2}$/', $time)) {
             return $time;
         }
 
-        // Si tiene formato HH:MM, agregar :00
+        // If it has HH:MM format, append :00
         if (preg_match('/^\d{2}:\d{2}$/', $time)) {
             return $time.':00';
         }
 
-        // Si el formato es diferente, intentar parsearlo y devolver en formato estándar
+        // If format differs, attempt to parse and return standardized format
         try {
             $dateTime = \DateTime::createFromFormat('H:i', $time);
             if ($dateTime !== false) {
                 return $dateTime->format('H:i:s');
             }
         } catch (\Exception $e) {
-            // Si falla, devolver el tiempo original
+            // If parsing fails, return original time
         }
 
         return $time;

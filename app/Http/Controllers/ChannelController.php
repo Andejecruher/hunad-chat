@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Channel\StoreChannelRequest;
+use App\Http\Requests\Channel\UpdateChannelRequest;
 use App\Models\Channel;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -9,10 +11,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use App\Http\Requests\Channel\StoreChannelRequest;
-use App\Http\Requests\Channel\UpdateChannelRequest;
 
 class ChannelController extends Controller
 {
@@ -23,18 +22,18 @@ class ChannelController extends Controller
     {
         $user = auth()->user();
 
-        // Seguridad: asegurar que el usuario y su company existen
-        if (!$user || !$user->company_id) {
+        // verificated user and company
+        if (! $user || ! $user->company_id) {
             abort(403, 'Unauthorized.');
         }
 
         $filters = request()->only(['search', 'type', 'status', 'limit']);
 
-        // Base query: solo canales de la empresa del usuario
+        // Base query: channels of the user's company
         $query = Channel::query()->where('company_id', $user->company_id);
 
-        // Filtro: búsqueda en name y description
-        if (!empty($filters['search'])) {
+        // filter by search term
+        if (! empty($filters['search'])) {
             $search = trim($filters['search']);
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
@@ -42,22 +41,22 @@ class ChannelController extends Controller
             });
         }
 
-        // Filtro por tipo
-        if (!empty($filters['type']) && $filters['type'] !== 'all') {
+        // filter by type
+        if (! empty($filters['type']) && $filters['type'] !== 'all') {
             $query->where('type', $filters['type']);
         }
 
-        // Filtro por estado/status
-        if (!empty($filters['status']) && $filters['status'] !== 'all') {
+        // filter by status
+        if (! empty($filters['status']) && $filters['status'] !== 'all') {
             $query->where('status', $filters['status']);
         }
 
-        // Normalizar 'limit' que puede llegar como string (ej. "all", "  ALL ", "10")
+        // Normalize 'limit' which can come as a string (e.g., "all", "  ALL ", "10")
         $rawLimit = $filters['limit'] ?? null;
         $limit = is_string($rawLimit) ? strtolower(trim($rawLimit)) : $rawLimit;
 
         if ($limit === 'all') {
-            // devolver todos pero con estructura de paginación
+            // return all but with pagination structure
             $items = $query->orderBy('created_at', 'desc')->get()->values();
             $total = $items->count();
             $perPage = $total > 0 ? $total : 1;
@@ -74,7 +73,7 @@ class ChannelController extends Controller
                 ]
             );
         } else {
-            // sanitizar limit numérico (puede venir como string) y aplicar tope (máx 100)
+            // sanitize numeric limit (can come as string) and apply cap (max 100)
             $perPage = is_numeric($limit) ? max(1, min((int) $limit, 100)) : 10;
             $channels = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
         }
@@ -92,7 +91,7 @@ class ChannelController extends Controller
     {
         $user = auth()->user();
 
-        if (!$user || !$user->company_id) {
+        if (! $user || ! $user->company_id) {
             abort(403, 'Unauthorized.');
         }
 
@@ -103,7 +102,7 @@ class ChannelController extends Controller
         try {
             DB::beginTransaction();
 
-            // Normalizar y encriptar secretos dentro de config si vienen presentes
+            // Normalize and encrypt secrets within config if present
             $config = $data['config'] ?? [];
 
             if (isset($config['access_token']) && $config['access_token'] !== '') {
@@ -134,10 +133,9 @@ class ChannelController extends Controller
             DB::rollBack();
             Log::error('Error creating channel', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
 
-            return back()->withInput()->withErrors(['error' => 'Error creating channel: ' . $e->getMessage()]);
+            return back()->withInput()->withErrors(['error' => 'Error creating channel: '.$e->getMessage()]);
         }
     }
-
 
     /**
      * Display the specified resource.
@@ -147,7 +145,7 @@ class ChannelController extends Controller
         $user = auth()->user();
         $channel = Channel::with('company')->findOrFail($id);
 
-        // Verificar pertenencia a la misma empresa
+        // Verify belonging to the same company
         if ($channel->company_id !== $user->company_id) {
             abort(403, 'Unauthorized.');
         }
@@ -180,7 +178,7 @@ class ChannelController extends Controller
         $user = auth()->user();
         $channel = Channel::with('company')->findOrFail($id);
 
-        // Verificar pertenencia a la misma empresa
+        // Verify belonging to the same company
         if ($channel->company_id !== $user->company_id) {
             abort(403, 'Unauthorized.');
         }
@@ -215,17 +213,17 @@ class ChannelController extends Controller
 
         Log::info('Updating channel (raw config)', ['data' => $data]);
 
-        // Recuperar config actual (asegura que sea array)
+        // Retrieve current config (ensure it's an array)
         $existingConfig = $channel->config ?? [];
         if (is_string($existingConfig)) {
             $decoded = json_decode($existingConfig, true);
             $existingConfig = is_array($decoded) ? $decoded : $existingConfig;
         }
 
-        // Intentar obtener token existente desencriptado (si existe)
+        // Try to get existing decrypted token (if any)
         $existingTokenEncrypted = $existingConfig['access_token'] ?? null;
         $existingTokenPlain = null;
-        if (!empty($existingTokenEncrypted) && is_string($existingTokenEncrypted)) {
+        if (! empty($existingTokenEncrypted) && is_string($existingTokenEncrypted)) {
             try {
                 $existingTokenPlain = Crypt::decryptString($existingTokenEncrypted);
             } catch (\Exception $e) {
@@ -233,10 +231,10 @@ class ChannelController extends Controller
             }
         }
 
-        // Config enviada explícitamente como objeto/array
+        // Config explicitly sent as object/array
         $incomingConfig = $data['config'] ?? [];
 
-        // Mapear campos top-level hacia config (compatibilidad)
+        // Map top-level fields to config (compatibility)
         $topLevelKeys = [
             'access_token',
             'phone_number_id',
@@ -254,30 +252,30 @@ class ChannelController extends Controller
             }
         }
 
-        // Merge preservando valores existentes cuando no se envían
+        // Merge existing config with incoming config
         $finalConfig = array_merge(is_array($existingConfig) ? $existingConfig : [], is_array($incomingConfig) ? $incomingConfig : []);
 
-        // Manejo específico de access_token:
+        // Specific handling of access_token:
         if (array_key_exists('access_token', $data) || array_key_exists('access_token', $incomingConfig)) {
-            // Preferir valor top-level si existe, sino el enviado dentro de config
+            // Prefer top-level value if exists, otherwise the one sent within config
             $incomingAccessToken = array_key_exists('access_token', $data) ? $data['access_token'] : ($incomingConfig['access_token'] ?? null);
 
             if ($incomingAccessToken === null || $incomingAccessToken === '') {
-                // Si se envía explicitamente vacío o null, eliminamos el token (borrar)
+                // If explicitly sent as empty or null, remove the token (delete)
                 unset($finalConfig['access_token']);
             } else {
-                // Si existe token previo desencriptado y es igual al entrante, conservar el encriptado existente
+                // If there is a previously decrypted token and it is equal to the incoming one, keep the existing encrypted token
                 if ($existingTokenPlain !== null && $incomingAccessToken === $existingTokenPlain) {
                     $finalConfig['access_token'] = $existingTokenEncrypted;
                 } else {
-                    // Cambio real: encriptar el nuevo token
+                    // Real change: encrypt the new token
                     $finalConfig['access_token'] = Crypt::encryptString((string) $incomingAccessToken);
                 }
             }
         }
-        // Si no se envió access_token en la request, dejamos el valor existente tal cual (ya quedó en $finalConfig)
+        // If access_token was not sent in the request, keep the existing value as is (already in $finalConfig)
 
-        // Campos updatable (solo los permitidos)
+        // Updatable fields (only allowed ones)
         $updates = [];
         if (array_key_exists('name', $data)) {
             $updates['name'] = $data['name'];
@@ -292,14 +290,14 @@ class ChannelController extends Controller
             $updates['status'] = $data['status'];
         }
         // Siempre setear config si hay cambios detectables
-        if (!empty($finalConfig)) {
+        if (! empty($finalConfig)) {
             $updates['config'] = $finalConfig;
         }
 
         try {
             DB::beginTransaction();
 
-            if (!empty($updates)) {
+            if (! empty($updates)) {
                 $channel->update($updates);
             }
 
@@ -344,7 +342,7 @@ class ChannelController extends Controller
         } catch (\Exception $e) {
             Log::error('Error deleting channel', ['error' => $e->getMessage()]);
 
-            return back()->withErrors(['error' => 'Could not delete channel: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Could not delete channel: '.$e->getMessage()]);
         }
     }
 }

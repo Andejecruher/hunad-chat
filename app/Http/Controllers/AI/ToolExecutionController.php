@@ -14,12 +14,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Controlador para la ejecución de herramientas por agentes de IA
- * 
- * Maneja:
- * - Ejecución asíncrona y síncrona de herramientas
- * - Consulta de resultados de ejecuciones
- * - Estadísticas de ejecución
+ * Controller for executing tools by AI agents
+ *
+ * Handles:
+ * - Asynchronous and synchronous tool execution
+ * - Querying execution results
+ * - Execution statistics
  */
 class ToolExecutionController extends Controller
 {
@@ -28,18 +28,13 @@ class ToolExecutionController extends Controller
     ) {}
 
     /**
-     * Ejecutar una herramienta de forma asíncrona
-     * 
+     * Execute a tool (async or sync)
+     *
      * POST /api/ai/agents/{agent}/tools/{toolSlug}/execute
-     * 
-     * @param AiAgent $agent
-     * @param string $toolSlug
-     * @param Request $request
-     * @return JsonResponse
      */
     public function execute(AiAgent $agent, string $toolSlug, Request $request): JsonResponse
     {
-        // Verificar acceso
+        // Verify access
         if ($agent->company_id !== Auth::user()->company_id) {
             return response()->json(['error' => 'Agent not found'], 404);
         }
@@ -53,8 +48,8 @@ class ToolExecutionController extends Controller
             $payload = $request->input('payload', []);
             $sync = $request->boolean('sync', false);
 
-            // Ejecutar herramienta
-            $execution = $sync 
+            // Execute tool
+            $execution = $sync
                 ? $this->toolExecutor->executeSync($agent, $toolSlug, $payload)
                 : $this->toolExecutor->execute($agent, $toolSlug, $payload);
 
@@ -107,12 +102,8 @@ class ToolExecutionController extends Controller
 
     /**
      * Obtener resultado de una ejecución específica
-     * 
+     *
      * GET /api/ai/agents/{agent}/executions/{execution}
-     * 
-     * @param AiAgent $agent
-     * @param ToolExecution $execution
-     * @return JsonResponse
      */
     public function show(AiAgent $agent, ToolExecution $execution): JsonResponse
     {
@@ -149,12 +140,8 @@ class ToolExecutionController extends Controller
 
     /**
      * Listar ejecuciones de un agente con filtros
-     * 
+     *
      * GET /api/ai/agents/{agent}/executions
-     * 
-     * @param AiAgent $agent
-     * @param Request $request
-     * @return JsonResponse
      */
     public function index(AiAgent $agent, Request $request): JsonResponse
     {
@@ -189,12 +176,8 @@ class ToolExecutionController extends Controller
 
     /**
      * Obtener estadísticas de ejecución para un agente
-     * 
+     *
      * GET /api/ai/agents/{agent}/executions/stats
-     * 
-     * @param AiAgent $agent
-     * @param Request $request
-     * @return JsonResponse
      */
     public function stats(AiAgent $agent, Request $request): JsonResponse
     {
@@ -222,12 +205,8 @@ class ToolExecutionController extends Controller
 
     /**
      * Cancelar una ejecución pendiente (si es posible)
-     * 
+     *
      * DELETE /api/ai/agents/{agent}/executions/{execution}
-     * 
-     * @param AiAgent $agent
-     * @param ToolExecution $execution
-     * @return JsonResponse
      */
     public function cancel(AiAgent $agent, ToolExecution $execution): JsonResponse
     {
@@ -267,13 +246,8 @@ class ToolExecutionController extends Controller
 
     /**
      * Reejecutar una herramienta fallida
-     * 
+     *
      * POST /api/ai/agents/{agent}/executions/{execution}/retry
-     * 
-     * @param AiAgent $agent
-     * @param ToolExecution $execution
-     * @param Request $request
-     * @return JsonResponse
      */
     public function retry(AiAgent $agent, ToolExecution $execution, Request $request): JsonResponse
     {
@@ -295,7 +269,7 @@ class ToolExecutionController extends Controller
             $tool = $execution->tool;
 
             // Crear nueva ejecución con el mismo payload
-            $newExecution = $sync 
+            $newExecution = $sync
                 ? $this->toolExecutor->executeSync($agent, $tool->slug, $execution->payload)
                 : $this->toolExecutor->execute($agent, $tool->slug, $execution->payload);
 
@@ -311,7 +285,7 @@ class ToolExecutionController extends Controller
                 ],
             ], $sync && $newExecution->status === 'success' ? 200 : 202);
 
-        } catch (ToolExecutionException | ToolSchemaValidationException $e) {
+        } catch (ToolExecutionException|ToolSchemaValidationException $e) {
             return response()->json([
                 'success' => false,
                 'error' => 'Retry failed',

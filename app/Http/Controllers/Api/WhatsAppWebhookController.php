@@ -13,22 +13,22 @@ use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Controlador para manejar webhooks de WhatsApp Cloud API.
+ * Controller to handle WhatsApp Cloud API webhooks.
  *
- * Procesa eventos entrantes de WhatsApp incluyendo mensajes, estados de entrega,
- * y actualizaciones de plantillas. Valida la firma del webhook y despacha
- * jobs para procesamiento asíncrono.
+ * Processes incoming WhatsApp events including messages, delivery statuses,
+ * and template updates. Validates webhook signature and dispatches
+ * jobs for asynchronous processing.
  */
 class WhatsAppWebhookController extends Controller
 {
     /**
-     * Maneja la verificación del webhook de WhatsApp.
+     * Handle WhatsApp webhook verification.
      *
-     * Este endpoint es llamado por WhatsApp durante la configuración
-     * del webhook para verificar que el endpoint es válido.
+     * This endpoint is called by WhatsApp during webhook setup to verify
+     * that the endpoint is valid.
      *
-     * @param  Request  $request  Petición con parámetros de verificación
-     * @return JsonResponse|string Challenge token o error
+     * @param  Request  $request  Request with verification parameters
+     * @return JsonResponse|string Challenge token or error
      */
     public function verify(Request $request): JsonResponse|string
     {
@@ -71,7 +71,7 @@ class WhatsAppWebhookController extends Controller
     public function handleWebhook(Request $request): JsonResponse
     {
         try {
-            // Validar firma del webhook
+            // Validate webhook signature
             if (! $this->validateSignature($request)) {
                 Log::warning('WhatsApp webhook signature validation failed', [
                     'ip' => $request->ip(),
@@ -83,21 +83,21 @@ class WhatsAppWebhookController extends Controller
 
             $payload = $request->json()->all();
 
-            // Log del evento entrante (sin datos sensibles)
+            // Log incoming event (without sensitive data)
             Log::info('WhatsApp webhook received', [
                 'object' => $payload['object'] ?? null,
                 'entries_count' => count($payload['entry'] ?? []),
                 'ip' => $request->ip(),
             ]);
 
-            // Verificar que es un evento de WhatsApp
+            // Verify this is a WhatsApp event
             if (($payload['object'] ?? null) !== 'whatsapp_business_account') {
                 Log::warning('WhatsApp webhook: Invalid object type', ['object' => $payload['object'] ?? null]);
 
                 return response()->json(['error' => 'Invalid object type'], Response::HTTP_BAD_REQUEST);
             }
 
-            // Procesar cada entrada del webhook
+            // Process each entry in the webhook
             foreach ($payload['entry'] ?? [] as $entry) {
                 $this->processWebhookEntry($entry);
             }
@@ -117,9 +117,9 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
-     * Procesa una entrada individual del webhook.
+     * Process a single webhook entry.
      *
-     * @param  array  $entry  Datos de la entrada del webhook
+     * @param  array  $entry  Webhook entry data
      */
     private function processWebhookEntry(array $entry): void
     {
@@ -138,9 +138,9 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
-     * Procesa cambios relacionados con mensajes.
+     * Process message-related changes.
      *
-     * @param  array  $value  Datos del cambio de mensaje
+     * @param  array  $value  Message change data
      */
     private function processMessageChanges(array $value): void
     {
@@ -152,7 +152,7 @@ class WhatsAppWebhookController extends Controller
             return;
         }
 
-        // Buscar el canal correspondiente
+        // Find the corresponding channel
         $channel = Channel::where('type', 'whatsapp')
             ->whereJsonContains('config->phone_number_id', $phoneNumberId)
             ->first();
@@ -163,14 +163,14 @@ class WhatsAppWebhookController extends Controller
             return;
         }
 
-        // Procesar mensajes entrantes
+        // Process incoming messages
         if (isset($value['messages'])) {
             foreach ($value['messages'] as $message) {
                 ProcessIncomingWhatsAppMessage::dispatch($channel, $message, $value['contacts'] ?? []);
             }
         }
 
-        // Procesar estados de mensajes
+        // Process message statuses
         if (isset($value['statuses'])) {
             foreach ($value['statuses'] as $status) {
                 $this->processMessageStatus($channel, $status);
@@ -212,9 +212,9 @@ class WhatsAppWebhookController extends Controller
     }
 
     /**
-     * Procesa actualizaciones de estado de plantillas.
+     * Process template status updates.
      *
-     * @param  array  $value  Datos de la actualización de plantilla
+     * @param  array  $value  Template update data
      */
     private function processTemplateStatusUpdate(array $value): void
     {
@@ -226,15 +226,15 @@ class WhatsAppWebhookController extends Controller
             'status' => $status,
         ]);
 
-        // Aquí puedes implementar lógica adicional para manejar
-        // actualizaciones de estado de plantillas si es necesario
+        // Optional: implement additional logic to handle
+        // template status updates if needed
     }
 
     /**
-     * Valida la firma del webhook usando el app secret.
+     * Validate the webhook signature using the app secret.
      *
-     * @param  Request  $request  Petición del webhook
-     * @return bool True si la firma es válida
+     * @param  Request  $request  Webhook request
+     * @return bool True if the signature is valid
      */
     private function validateSignature(Request $request): bool
     {
@@ -252,7 +252,7 @@ class WhatsAppWebhookController extends Controller
             return false;
         }
 
-        // Remover el prefijo 'sha256=' de la firma
+        // Remove the 'sha256=' prefix from the signature
         $signature = str_replace('sha256=', '', $signature);
 
         // Calcular la firma esperada
