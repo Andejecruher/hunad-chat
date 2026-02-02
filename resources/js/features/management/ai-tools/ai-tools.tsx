@@ -13,7 +13,7 @@ import {
 import aiTools from "@/routes/ai-tools"
 import { type PaginatedData, type Tool } from "@/types"
 import { router } from '@inertiajs/react'
-import { CheckCircle2, Code, Edit, MoreVertical, Plus, Settings, Trash2, XCircle } from "lucide-react"
+import { CheckCircle2, Code, Edit, Eye, MoreVertical, Plus, Settings, Trash2, XCircle } from "lucide-react"
 import { useCallback, useState } from "react"
 import { toast } from "sonner"
 import { DeleteToolDialog } from "./delete-tool-dialog"
@@ -110,6 +110,10 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                 toast.error("Error al cambiar el estado de la herramienta")
             }
         })
+    }
+
+    const handleViewTool = (tool: Tool) => {
+        router.visit(getUrl(aiTools.show, tool.id))
     }
 
     const handleEdit = (tool: Tool) => {
@@ -218,6 +222,10 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                        <DropdownMenuItem onClick={() => handleViewTool(tool)}>
+                                            <Eye className="mr-2 h-4 w-4" />
+                                            Ver
+                                        </DropdownMenuItem>
                                         <DropdownMenuItem onClick={() => handleEdit(tool)}>
                                             <Edit className="mr-2 h-4 w-4" />
                                             Editar
@@ -247,7 +255,11 @@ export function AIToolsList({ toolsData, filters }: AIToolsListProps) {
 
                             <div className="space-y-3 text-sm">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Categoría:</span>
+                                    <span className="text-muted-foreground">Type:</span>
+                                    <Badge variant="outline">{tool.type}</Badge>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">category:</span>
                                     <Badge variant="outline">{tool.category}</Badge>
                                 </div>
 

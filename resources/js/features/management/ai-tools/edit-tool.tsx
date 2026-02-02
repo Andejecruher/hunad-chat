@@ -17,7 +17,7 @@ import {
 } from '@/types';
 import { router } from '@inertiajs/react';
 import { Save } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { ConfigBuilder } from "./config-builder";
 import { SchemaBuilder } from "./schema-builder";
@@ -109,11 +109,6 @@ export function EditTool({ tool }: EditToolProps) {
             setIsSaving(false);
         }
     };
-
-    useEffect(() => {
-        console.log("Tool prop changed:", tool);
-        console.log("Form state:", form);
-    }, [form, tool]);
 
     return (
         <div className="space-y-6">
