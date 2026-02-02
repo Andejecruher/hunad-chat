@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Orquestador principal de ejecución de herramientas
- * 
+ *
  * Se encarga de:
  * - Validar acceso del agente a la herramienta
  * - Validar payload contra schema
@@ -28,11 +28,7 @@ class ToolExecutor
 
     /**
      * Ejecutar una herramienta de forma asíncrona
-     * 
-     * @param AiAgent $agent
-     * @param string $toolSlug
-     * @param array $payload
-     * @return ToolExecution
+     *
      * @throws ToolExecutionException
      * @throws ToolSchemaValidationException
      */
@@ -40,17 +36,17 @@ class ToolExecutor
     {
         // 1. Obtener la herramienta
         $tool = $this->toolRegistry->getToolForAgent($agent, $toolSlug);
-        if (!$tool) {
+        if (! $tool) {
             throw ToolExecutionException::toolNotFound($toolSlug);
         }
 
         // 2. Verificar que está habilitada
-        if (!$tool->enabled) {
+        if (! $tool->enabled) {
             throw ToolExecutionException::toolDisabled($tool->name);
         }
 
         // 3. Verificar acceso del agente
-        if (!$this->toolRegistry->canAgentAccessTool($agent, $tool)) {
+        if (! $this->toolRegistry->canAgentAccessTool($agent, $tool)) {
             throw ToolExecutionException::agentNotAuthorized($agent->id, $tool->name);
         }
 
@@ -75,16 +71,11 @@ class ToolExecutor
 
     /**
      * Ejecutar herramienta de forma síncrona (para testing principalmente)
-     * 
-     * @param AiAgent $agent
-     * @param string $toolSlug
-     * @param array $payload
-     * @return ToolExecution
      */
     public function executeSync(AiAgent $agent, string $toolSlug, array $payload): ToolExecution
     {
         $execution = $this->execute($agent, $toolSlug, $payload);
-        
+
         // Ejecutar inmediatamente
         $job = new ExecuteToolJob($execution);
         $job->handle();
@@ -95,11 +86,6 @@ class ToolExecutor
 
     /**
      * Crear registro de ejecución
-     * 
-     * @param Tool $tool
-     * @param AiAgent $agent
-     * @param array $payload
-     * @return ToolExecution
      */
     private function createExecution(Tool $tool, AiAgent $agent, array $payload): ToolExecution
     {
@@ -115,9 +101,7 @@ class ToolExecutor
 
     /**
      * Obtener ejecuciones de un agente con filtros opcionales
-     * 
-     * @param AiAgent $agent
-     * @param array $filters
+     *
      * @return \Illuminate\Pagination\LengthAwarePaginator
      */
     public function getExecutions(AiAgent $agent, array $filters = [])
@@ -143,7 +127,7 @@ class ToolExecutor
         if (isset($filters['from'])) {
             $query->where('created_at', '>=', $filters['from']);
         }
-        
+
         if (isset($filters['to'])) {
             $query->where('created_at', '<=', $filters['to']);
         }
@@ -153,10 +137,6 @@ class ToolExecutor
 
     /**
      * Obtener estadísticas de ejecuciones para un agente
-     * 
-     * @param AiAgent $agent
-     * @param string|null $period
-     * @return array
      */
     public function getExecutionStats(AiAgent $agent, ?string $period = null): array
     {
@@ -181,27 +161,26 @@ class ToolExecutor
 
     /**
      * Calcular tasa de éxito
-     * 
-     * @param \Illuminate\Support\Collection $executions
-     * @return float
+     *
+     * @param  \Illuminate\Support\Collection  $executions
      */
     private function calculateSuccessRate($executions): float
     {
         $completed = $executions->whereIn('status', ['success', 'failed']);
-        
+
         if ($completed->isEmpty()) {
             return 0.0;
         }
 
         $successful = $completed->where('status', 'success');
+
         return ($successful->count() / $completed->count()) * 100;
     }
 
     /**
      * Obtener herramientas más utilizadas
-     * 
-     * @param \Illuminate\Support\Collection $executions
-     * @return array
+     *
+     * @param  \Illuminate\Support\Collection  $executions
      */
     private function getMostUsedTools($executions): array
     {

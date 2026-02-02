@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Servicio para consulta y exposición de herramientas disponibles para agentes IA
- * 
+ *
  * Se encarga de:
  * - Listar tools habilitadas para un agente específico
  * - Filtrar por company_id para multi-tenancy
@@ -18,8 +18,7 @@ class ToolRegistry
 {
     /**
      * Obtener todas las herramientas disponibles para un agente
-     * 
-     * @param AiAgent $agent
+     *
      * @return Collection<Tool>
      */
     public function getAvailableToolsForAgent(AiAgent $agent): Collection
@@ -32,10 +31,6 @@ class ToolRegistry
 
     /**
      * Obtener una herramienta específica para un agente
-     * 
-     * @param AiAgent $agent
-     * @param string $toolSlug
-     * @return Tool|null
      */
     public function getToolForAgent(AiAgent $agent, string $toolSlug): ?Tool
     {
@@ -48,10 +43,6 @@ class ToolRegistry
 
     /**
      * Verificar si un agente tiene acceso a una herramienta específica
-     * 
-     * @param AiAgent $agent
-     * @param Tool $tool
-     * @return bool
      */
     public function canAgentAccessTool(AiAgent $agent, Tool $tool): bool
     {
@@ -61,7 +52,7 @@ class ToolRegistry
         }
 
         // Verificar que la herramienta esté habilitada
-        if (!$tool->enabled) {
+        if (! $tool->enabled) {
             return false;
         }
 
@@ -72,9 +63,8 @@ class ToolRegistry
     /**
      * Normalizar herramientas para consumo por IA
      * Formato estándar para diferentes providers (no específico de OpenAI)
-     * 
-     * @param \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection $tools
-     * @return array
+     *
+     * @param  \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection  $tools
      */
     public function normalizeToolsForAI($tools): array
     {
@@ -92,9 +82,6 @@ class ToolRegistry
 
     /**
      * Normalizar schema de entrada
-     * 
-     * @param array $inputs
-     * @return array
      */
     private function normalizeInputSchema(array $inputs): array
     {
@@ -121,9 +108,6 @@ class ToolRegistry
 
     /**
      * Normalizar schema de salida
-     * 
-     * @param array $outputs
-     * @return array
      */
     private function normalizeOutputSchema(array $outputs): array
     {
@@ -144,9 +128,7 @@ class ToolRegistry
 
     /**
      * Buscar herramientas por categoría para un agente
-     * 
-     * @param AiAgent $agent
-     * @param string $category
+     *
      * @return Collection<Tool>
      */
     public function getToolsByCategory(AiAgent $agent, string $category): Collection
@@ -160,9 +142,6 @@ class ToolRegistry
 
     /**
      * Obtener estadísticas de herramientas para un agente
-     * 
-     * @param AiAgent $agent
-     * @return array
      */
     public function getToolStats(AiAgent $agent): array
     {
