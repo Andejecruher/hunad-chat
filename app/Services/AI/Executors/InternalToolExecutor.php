@@ -3,13 +3,12 @@
 namespace App\Services\AI\Executors;
 
 use App\Exceptions\ToolExecutionException;
-use App\Models\Tool;
 use App\Models\ToolExecution;
 use Illuminate\Support\Facades\Log;
 
 /**
  * Ejecutor de herramientas internas del sistema
- * 
+ *
  * Se encarga de ejecutar acciones internas como:
  * - Crear tickets
  * - Cerrar conversaciones
@@ -20,9 +19,9 @@ class InternalToolExecutor
 {
     /**
      * Ejecutar herramienta interna
-     * 
-     * @param ToolExecution $execution
+     *
      * @return array Resultado de la ejecución
+     *
      * @throws ToolExecutionException
      */
     public function execute(ToolExecution $execution): array
@@ -46,7 +45,7 @@ class InternalToolExecutor
                 'assign_agent' => $this->assignAgent($payload, $config),
                 default => throw ToolExecutionException::internalExecutionFailed(
                     $tool->name,
-                    "Unknown internal action: " . ($config['action'] ?? 'none')
+                    'Unknown internal action: '.($config['action'] ?? 'none')
                 ),
             };
 
@@ -72,16 +71,12 @@ class InternalToolExecutor
 
     /**
      * Crear un ticket
-     * 
-     * @param array $payload
-     * @param array $config
-     * @return array
      */
     private function createTicket(array $payload, array $config): array
     {
         // Aquí implementarías la lógica real para crear tickets
         // Por ahora, simulamos la creación
-        
+
         $ticketData = [
             'title' => $payload['title'] ?? 'Ticket creado por IA',
             'description' => $payload['description'] ?? 'Sin descripción',
@@ -96,8 +91,8 @@ class InternalToolExecutor
         // $ticket = app(TicketService::class)->create($ticketData);
 
         // Simulación por ahora
-        $ticketId = 'ticket_' . uniqid();
-        
+        $ticketId = 'ticket_'.uniqid();
+
         return [
             'ticket_id' => $ticketId,
             'status' => 'created',
@@ -109,10 +104,6 @@ class InternalToolExecutor
 
     /**
      * Transferir conversación a otro departamento
-     * 
-     * @param array $payload
-     * @param array $config
-     * @return array
      */
     private function transferDepartment(array $payload, array $config): array
     {
@@ -120,11 +111,11 @@ class InternalToolExecutor
         $departmentId = $payload['department_id'] ?? $config['department'] ?? null;
         $reason = $payload['reason'] ?? 'Transfer by AI agent';
 
-        if (!$conversationId) {
+        if (! $conversationId) {
             throw new \InvalidArgumentException('conversation_id is required');
         }
 
-        if (!$departmentId) {
+        if (! $departmentId) {
             throw new \InvalidArgumentException('department_id is required');
         }
 
@@ -142,10 +133,6 @@ class InternalToolExecutor
 
     /**
      * Enviar mensaje
-     * 
-     * @param array $payload
-     * @param array $config
-     * @return array
      */
     private function sendMessage(array $payload, array $config): array
     {
@@ -153,7 +140,7 @@ class InternalToolExecutor
         $message = $payload['message'] ?? '';
         $messageType = $payload['type'] ?? 'text';
 
-        if (!$conversationId || empty($message)) {
+        if (! $conversationId || empty($message)) {
             throw new \InvalidArgumentException('conversation_id and message are required');
         }
 
@@ -162,7 +149,7 @@ class InternalToolExecutor
 
         return [
             'conversation_id' => $conversationId,
-            'message_id' => 'msg_' . uniqid(),
+            'message_id' => 'msg_'.uniqid(),
             'message_type' => $messageType,
             'status' => 'sent',
             'timestamp' => now()->toISOString(),
@@ -171,10 +158,6 @@ class InternalToolExecutor
 
     /**
      * Cerrar conversación
-     * 
-     * @param array $payload
-     * @param array $config
-     * @return array
      */
     private function closeConversation(array $payload, array $config): array
     {
@@ -182,7 +165,7 @@ class InternalToolExecutor
         $reason = $payload['reason'] ?? 'Closed by AI agent';
         $sendNotification = $payload['send_notification'] ?? true;
 
-        if (!$conversationId) {
+        if (! $conversationId) {
             throw new \InvalidArgumentException('conversation_id is required');
         }
 
@@ -199,10 +182,6 @@ class InternalToolExecutor
 
     /**
      * Asignar agente a conversación
-     * 
-     * @param array $payload
-     * @param array $config
-     * @return array
      */
     private function assignAgent(array $payload, array $config): array
     {
@@ -210,7 +189,7 @@ class InternalToolExecutor
         $agentId = $payload['agent_id'] ?? null;
         $priority = $payload['priority'] ?? $config['priority'] ?? 'normal';
 
-        if (!$conversationId || !$agentId) {
+        if (! $conversationId || ! $agentId) {
             throw new \InvalidArgumentException('conversation_id and agent_id are required');
         }
 
