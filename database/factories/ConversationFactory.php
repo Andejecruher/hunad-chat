@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Models\Agent;
 use App\Models\Channel;
 use App\Models\Customer;
-use App\Models\Agent;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**

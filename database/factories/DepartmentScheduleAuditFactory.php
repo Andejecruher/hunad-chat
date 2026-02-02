@@ -24,7 +24,7 @@ class DepartmentScheduleAuditFactory extends Factory
             'exception_created',
             'exception_updated',
             'exception_deleted',
-            'schedule_override'
+            'schedule_override',
         ]);
 
         // Datos de ejemplo según el tipo de cambio
@@ -45,7 +45,7 @@ class DepartmentScheduleAuditFactory extends Factory
      */
     private function generateChangeData(string $changeType): array
     {
-        return match($changeType) {
+        return match ($changeType) {
             'department_created' => $this->departmentCreatedData(),
             'department_updated' => $this->departmentUpdatedData(),
             'department_deleted' => $this->departmentDeletedData(),
@@ -64,7 +64,7 @@ class DepartmentScheduleAuditFactory extends Factory
     private function departmentCreatedData(): array
     {
         $departmentData = [
-            'name' => $this->faker->company() . ' Department',
+            'name' => $this->faker->company().' Department',
             'description' => $this->faker->optional(0.7)->sentence(),
             'timezone' => $this->faker->timezone(),
             'is_active' => true,
@@ -73,7 +73,7 @@ class DepartmentScheduleAuditFactory extends Factory
 
         return [
             'previous' => null,
-            'current' => $departmentData
+            'current' => $departmentData,
         ];
     }
 
@@ -94,12 +94,12 @@ class DepartmentScheduleAuditFactory extends Factory
             'description' => 'Updated department description',
             'timezone' => 'America/Los_Angeles',
             'is_active' => false,
-            'updated_fields' => ['name', 'description', 'timezone', 'is_active']
+            'updated_fields' => ['name', 'description', 'timezone', 'is_active'],
         ];
 
         return [
             'previous' => $oldData,
-            'current' => $newData
+            'current' => $newData,
         ];
     }
 
@@ -113,12 +113,12 @@ class DepartmentScheduleAuditFactory extends Factory
             'description' => 'This department was deleted',
             'timezone' => 'UTC',
             'is_active' => true,
-            'deleted_at' => now()->toISOString()
+            'deleted_at' => now()->toISOString(),
         ];
 
         return [
             'previous' => $departmentData,
-            'current' => null
+            'current' => null,
         ];
     }
 
@@ -145,12 +145,12 @@ class DepartmentScheduleAuditFactory extends Factory
             'friday' => ['open' => '08:00', 'close' => '17:00', 'closed' => false],
             'saturday' => ['open' => '10:00', 'close' => '14:00', 'closed' => false],
             'sunday' => ['open' => null, 'close' => null, 'closed' => true],
-            'updated_days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+            'updated_days' => ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
         ];
 
         return [
             'previous' => ['hours' => $oldHours],
-            'current' => ['hours' => $newHours]
+            'current' => ['hours' => $newHours],
         ];
     }
 
@@ -165,7 +165,7 @@ class DepartmentScheduleAuditFactory extends Factory
                 'Maintenance Day',
                 'Team Building',
                 'System Update',
-                'Company Event'
+                'Company Event',
             ]),
             'type' => $this->faker->randomElement(['annual', 'monthly', 'specific']),
             'start_date' => $this->faker->dateTimeBetween('+1 week', '+3 months')->format('Y-m-d'),
@@ -180,13 +180,13 @@ class DepartmentScheduleAuditFactory extends Factory
         } elseif ($exceptionData['behavior'] === 'partially_open') {
             $exceptionData['partial_hours'] = [
                 ['open_time' => '09:00:00', 'close_time' => '12:00:00'],
-                ['open_time' => '14:00:00', 'close_time' => '16:00:00']
+                ['open_time' => '14:00:00', 'close_time' => '16:00:00'],
             ];
         }
 
         return [
             'previous' => null,
-            'current' => $exceptionData
+            'current' => $exceptionData,
         ];
     }
 
@@ -211,12 +211,12 @@ class DepartmentScheduleAuditFactory extends Factory
             'recurrence_pattern' => ['month' => 1, 'day' => 15],
             'special_open_time' => '11:00:00',
             'special_close_time' => '15:00:00',
-            'updated_fields' => ['name', 'type', 'behavior', 'recurrence_pattern', 'special_open_time', 'special_close_time']
+            'updated_fields' => ['name', 'type', 'behavior', 'recurrence_pattern', 'special_open_time', 'special_close_time'],
         ];
 
         return [
             'previous' => $oldException,
-            'current' => $newException
+            'current' => $newException,
         ];
     }
 
@@ -230,12 +230,12 @@ class DepartmentScheduleAuditFactory extends Factory
             'type' => 'specific',
             'start_date' => '2024-02-01',
             'behavior' => 'fully_closed',
-            'deleted_at' => now()->toISOString()
+            'deleted_at' => now()->toISOString(),
         ];
 
         return [
             'previous' => $exceptionData,
-            'current' => null
+            'current' => null,
         ];
     }
 
@@ -250,19 +250,19 @@ class DepartmentScheduleAuditFactory extends Factory
             'original_schedule' => [
                 'open_time' => '09:00:00',
                 'close_time' => '18:00:00',
-                'is_closed' => false
+                'is_closed' => false,
             ],
             'override_schedule' => [
                 'open_time' => '10:00:00',
                 'close_time' => '15:00:00',
-                'is_closed' => false
+                'is_closed' => false,
             ],
-            'override_type' => 'manual_adjustment'
+            'override_type' => 'manual_adjustment',
         ];
 
         return [
             'previous' => $overrideData['original_schedule'],
-            'current' => $overrideData
+            'current' => $overrideData,
         ];
     }
 
@@ -273,21 +273,21 @@ class DepartmentScheduleAuditFactory extends Factory
     {
         $type = $this->faker->randomElement(['annual', 'monthly', 'specific']);
 
-        return match($type) {
+        return match ($type) {
             'annual' => [
                 'month' => $this->faker->numberBetween(1, 12),
-                'day' => $this->faker->numberBetween(1, 28)
+                'day' => $this->faker->numberBetween(1, 28),
             ],
             'monthly' => $this->faker->randomElement([
                 [
                     'type' => 'specific_day',
-                    'day_of_month' => $this->faker->numberBetween(1, 28)
+                    'day_of_month' => $this->faker->numberBetween(1, 28),
                 ],
                 [
                     'type' => 'pattern',
                     'week_pattern' => $this->faker->randomElement(['first', 'second', 'third', 'fourth', 'last']),
-                    'day_of_week' => $this->faker->numberBetween(0, 6)
-                ]
+                    'day_of_week' => $this->faker->numberBetween(0, 6),
+                ],
             ]),
             'specific' => null
         };

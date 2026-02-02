@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use App\Models\Ticket;
 use App\Models\Customer;
+use App\Models\Ticket;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class SaleFactory extends Factory

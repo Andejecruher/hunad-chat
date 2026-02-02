@@ -19,6 +19,7 @@ class ToolFactory extends Factory
         return [
             'company_id' => Company::factory(),
             'name' => ucfirst($name),
+            'description' => $this->faker->sentence(),
             'slug' => $slug,
             'category' => $this->faker->randomElement([
                 'ticket',

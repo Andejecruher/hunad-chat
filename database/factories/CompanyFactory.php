@@ -34,7 +34,7 @@ class CompanyFactory extends Factory
                         ],
                     ],
                 ],
-                'logo_url' => "https://picsum.photos/200/200",
+                'logo_url' => 'https://picsum.photos/200/200',
                 'default_theme' => $this->faker->randomElement(['light', 'dark']),
             ],
             'subscription_type' => $this->faker->randomElement(['free', 'basic', 'pro', 'enterprise']),

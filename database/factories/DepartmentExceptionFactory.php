@@ -32,7 +32,7 @@ class DepartmentExceptionFactory extends Factory
                 $baseData['start_date'] = $this->faker->date();
                 $baseData['recurrence_pattern'] = [
                     'month' => $this->faker->numberBetween(1, 12),
-                    'day' => $this->faker->numberBetween(1, 28)
+                    'day' => $this->faker->numberBetween(1, 28),
                 ];
                 break;
 
@@ -42,14 +42,14 @@ class DepartmentExceptionFactory extends Factory
                     // Día específico del mes
                     $baseData['recurrence_pattern'] = [
                         'type' => 'specific_day',
-                        'day_of_month' => $this->faker->numberBetween(1, 28)
+                        'day_of_month' => $this->faker->numberBetween(1, 28),
                     ];
                 } else {
                     // Patrón recurrente
                     $baseData['recurrence_pattern'] = [
                         'type' => 'pattern',
                         'week_pattern' => $this->faker->randomElement(['first', 'second', 'third', 'fourth', 'last']),
-                        'day_of_week' => $this->faker->numberBetween(0, 6)
+                        'day_of_week' => $this->faker->numberBetween(0, 6),
                     ];
                 }
                 break;
@@ -70,7 +70,7 @@ class DepartmentExceptionFactory extends Factory
             case 'partially_open':
                 $baseData['partial_hours'] = [
                     ['open_time' => '09:00:00', 'close_time' => '12:00:00'],
-                    ['open_time' => '14:00:00', 'close_time' => '17:00:00']
+                    ['open_time' => '14:00:00', 'close_time' => '17:00:00'],
                 ];
                 break;
         }
@@ -88,7 +88,7 @@ class DepartmentExceptionFactory extends Factory
             'start_date' => $this->faker->date(),
             'recurrence_pattern' => [
                 'month' => $this->faker->numberBetween(1, 12),
-                'day' => $this->faker->numberBetween(1, 28)
+                'day' => $this->faker->numberBetween(1, 28),
             ],
         ]);
     }
@@ -103,7 +103,7 @@ class DepartmentExceptionFactory extends Factory
             'start_date' => $this->faker->date(),
             'recurrence_pattern' => [
                 'type' => 'specific_day',
-                'day_of_month' => $dayOfMonth
+                'day_of_month' => $dayOfMonth,
             ],
         ]);
     }
@@ -145,7 +145,7 @@ class DepartmentExceptionFactory extends Factory
             'special_close_time' => null,
             'partial_hours' => [
                 ['open_time' => '09:00:00', 'close_time' => '12:00:00'],
-                ['open_time' => '14:00:00', 'close_time' => '17:00:00']
+                ['open_time' => '14:00:00', 'close_time' => '17:00:00'],
             ],
         ]);
     }
