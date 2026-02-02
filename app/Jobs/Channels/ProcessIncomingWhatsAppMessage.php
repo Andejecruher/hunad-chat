@@ -19,31 +19,31 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Job para procesar mensajes entrantes de WhatsApp.
+ * Job to process incoming WhatsApp messages.
  *
- * Procesa el payload del webhook, identifica o crea clientes y conversaciones,
- * registra el mensaje y dispara eventos para actualizaciones en tiempo real.
+ * Processes the webhook payload, identifies or creates customers and conversations,
+ * stores the message and dispatches events for real-time updates.
  */
 class ProcessIncomingWhatsAppMessage implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Número máximo de intentos del job.
+     * Maximum number of attempts for the job.
      */
     public int $tries = 3;
 
     /**
-     * Tiempo máximo de ejecución en segundos.
+     * Maximum execution time in seconds.
      */
     public int $timeout = 60;
 
     /**
-     * Constructor del job.
+     * Job constructor.
      *
-     * @param  Channel  $channel  Canal de WhatsApp
-     * @param  array  $messageData  Datos del mensaje del webhook
-     * @param  array  $contactsData  Información de contactos del webhook
+     * @param  Channel  $channel  WhatsApp channel
+     * @param  array  $messageData  Message data from the webhook
+     * @param  array  $contactsData  Contacts information from the webhook
      */
     public function __construct(
         private readonly Channel $channel,
@@ -52,7 +52,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     ) {}
 
     /**
-     * Ejecuta el job.
+     * Execute the job.
      */
     public function handle(): void
     {
@@ -73,7 +73,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Procesa el mensaje entrante.
+     * Process the incoming message.
      */
     private function processIncomingMessage(): void
     {
@@ -90,7 +90,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
             return;
         }
 
-        // Verificar si el mensaje ya fue procesado
+        // Check if the message has already been processed
         if (Message::where('external_id', $messageId)->exists()) {
             Log::info('WhatsApp message already processed', [
                 'message_id' => $messageId,
@@ -100,19 +100,19 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
             return;
         }
 
-        // Buscar o crear el cliente
+        // Find or create the customer
         $customer = $this->findOrCreateCustomer($from);
 
-        // Buscar o crear la conversación
+        // Find or create the conversation
         $conversation = $this->findOrCreateConversation($customer);
 
-        // Crear el mensaje
+        // Create the message
         $message = $this->createMessage($conversation, $messageId, $timestamp);
 
-        // Marcar el mensaje como leído automáticamente
+        // Mark the message as read automatically
         $this->markMessageAsRead($messageId);
 
-        // Disparar evento para actualizaciones en tiempo real
+        // Dispatch event for real-time updates
         MessageReceived::dispatch($message);
 
         Log::info('WhatsApp message processed successfully', [
@@ -124,10 +124,10 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Busca o crea un cliente basado en el número de teléfono.
+     * Find or create a customer based on phone number.
      *
-     * @param  string  $phoneNumber  Número de teléfono del cliente
-     * @return Customer Cliente encontrado o creado
+     * @param  string  $phoneNumber  Customer phone number
+     * @return Customer Found or created customer
      */
     private function findOrCreateCustomer(string $phoneNumber): Customer
     {
@@ -140,10 +140,10 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
             return $customer;
         }
 
-        // Buscar información del contacto en los datos del webhook
+        // Find contact information in webhook data
         $contactInfo = $this->findContactInfo($phoneNumber);
 
-        // Crear nuevo cliente
+        // Create new customer
         return Customer::create([
             'company_id' => $this->channel->company_id,
             'name' => $contactInfo['name'] ?? null,
@@ -153,10 +153,10 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Busca información del contacto en los datos del webhook.
+     * Find contact information in the webhook data.
      *
-     * @param  string  $phoneNumber  Número de teléfono
-     * @return array Información del contacto
+     * @param  string  $phoneNumber  Phone number
+     * @return array Contact information
      */
     private function findContactInfo(string $phoneNumber): array
     {
@@ -172,14 +172,14 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Busca o crea una conversación para el cliente.
+     * Find or create a conversation for the customer.
      *
-     * @param  Customer  $customer  Cliente
-     * @return Conversation Conversación encontrada o creada
+     * @param  Customer  $customer  Customer
+     * @return Conversation Found or created conversation
      */
     private function findOrCreateConversation(Customer $customer): Conversation
     {
-        // Buscar conversación abierta existente
+        // Look for an existing open conversation
         $conversation = Conversation::where('channel_id', $this->channel->id)
             ->where('customer_id', $customer->id)
             ->where('status', 'open')
@@ -189,7 +189,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
             return $conversation;
         }
 
-        // Crear nueva conversación
+        // Create a new conversation
         return Conversation::create([
             'channel_id' => $this->channel->id,
             'customer_id' => $customer->id,
@@ -198,12 +198,12 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Crea el mensaje en la base de datos.
+     * Create the message in the database.
      *
-     * @param  Conversation  $conversation  Conversación
-     * @param  string  $messageId  ID del mensaje de WhatsApp
-     * @param  string|null  $timestamp  Timestamp del mensaje
-     * @return Message Mensaje creado
+     * @param  Conversation  $conversation
+     * @param  string  $messageId  WhatsApp message ID
+     * @param  string|null  $timestamp  Message timestamp
+     * @return Message Created message
      */
     private function createMessage(Conversation $conversation, string $messageId, ?string $timestamp): Message
     {
@@ -224,9 +224,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Extrae el contenido del mensaje según su tipo.
+     * Extract the message content according to its type.
      *
-     * @return string Contenido del mensaje
+     * @return string Message content
      */
     private function extractMessageContent(): string
     {
@@ -248,9 +248,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Extrae el tipo de mensaje.
+     * Extract the message type.
      *
-     * @return string Tipo de mensaje
+     * @return string Message type
      */
     private function extractMessageType(): string
     {
@@ -258,9 +258,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Extrae los archivos adjuntos del mensaje.
+     * Extract attachments from the message.
      *
-     * @return array|null Información de archivos adjuntos
+     * @return array|null Attachments information
      */
     private function extractAttachments(): ?array
     {
@@ -290,9 +290,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Formatea un mensaje de ubicación.
+     * Format a location message.
      *
-     * @return string Mensaje formateado
+     * @return string Formatted message
      */
     private function formatLocationMessage(): string
     {
@@ -318,9 +318,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Extrae el contenido de mensajes interactivos.
+     * Extract interactive message content.
      *
-     * @return string Contenido del mensaje interactivo
+     * @return string Interactive message content
      */
     private function extractInteractiveContent(): string
     {
@@ -335,9 +335,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Marca el mensaje como leído en WhatsApp.
+     * Mark the message as read on WhatsApp.
      *
-     * @param  string  $messageId  ID del mensaje
+     * @param  string  $messageId  Message ID
      */
     private function markMessageAsRead(string $messageId): void
     {
@@ -350,7 +350,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
                 'channel_id' => $this->channel->id,
             ]);
         } catch (\Exception $e) {
-            // No fallar el job si no se puede marcar como leído
+            // Do not fail the job if marking as read fails
             Log::warning('Failed to mark WhatsApp message as read', [
                 'message_id' => $messageId,
                 'channel_id' => $this->channel->id,
@@ -360,9 +360,9 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     }
 
     /**
-     * Maneja fallos del job.
+     * Handle job failures.
      *
-     * @param  \Throwable  $exception  Excepción que causó el fallo
+     * @param  \Throwable  $exception  Exception that caused the failure
      */
     public function failed(\Throwable $exception): void
     {

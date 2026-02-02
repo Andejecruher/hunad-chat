@@ -15,47 +15,47 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 /**
- * Job para enviar mensajes a WhatsApp Cloud API.
+ * Job to send messages to the WhatsApp Cloud API.
  *
- * Procesa mensajes pendientes en la cola, los envía a través del servicio
- * de WhatsApp y actualiza su estado en la base de datos. Maneja reintentos
- * automáticos con backoff exponencial.
+ * Processes pending messages in the queue, sends them via the WhatsApp service
+ * and updates their status in the database. Handles automatic retries with
+ * exponential backoff.
  */
 class SendWhatsAppMessageJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * Número máximo de intentos del job.
+     * Maximum number of attempts for the job.
      */
     public int $tries = 5;
 
     /**
-     * Tiempo máximo de ejecución en segundos.
+     * Maximum execution time in seconds.
      */
     public int $timeout = 120;
 
     /**
-     * Backoff en segundos entre reintentos.
+     * Backoff in seconds between retries.
      */
     public array $backoff = [10, 30, 60, 300, 900]; // 10s, 30s, 1m, 5m, 15m
 
     /**
-     * Constructor del job.
+     * Job constructor.
      *
-     * @param  Message  $message  Mensaje a enviar
+     * @param  Message  $message  Message to send
      */
     public function __construct(
         private readonly Message $message
     ) {}
 
     /**
-     * Ejecuta el job.
+     * Execute the job.
      */
     public function handle(): void
     {
         try {
-            // Verificar que el mensaje no haya sido enviado ya
+            // Verify that the message has not already been sent
             if ($this->message->status !== 'pending') {
                 Log::info('WhatsApp message already processed', [
                     'message_id' => $this->message->id,
@@ -65,21 +65,21 @@ class SendWhatsAppMessageJob implements ShouldQueue
                 return;
             }
 
-            // Cargar relaciones necesarias
+            // Load required relations
             $this->message->load(['conversation.customer', 'conversation.channel']);
 
             $channel = $this->message->conversation->channel;
             $customer = $this->message->conversation->customer;
 
-            // Verificar que es un canal de WhatsApp
+            // Verify this is a WhatsApp channel
             if ($channel->type !== 'whatsapp') {
                 throw new \InvalidArgumentException('Message channel is not WhatsApp');
             }
 
-            // Crear instancia del servicio
+            // Instantiate the service
             $whatsappService = new WhatsAppCloudService($channel);
 
-            // Enviar el mensaje según su tipo
+            // Send the message according to its type
             $response = $this->sendMessageByType($whatsappService, $customer->phone);
 
             // Actualizar el mensaje con la respuesta
@@ -160,11 +160,11 @@ class SendWhatsAppMessageJob implements ShouldQueue
     }
 
     /**
-     * Envía un mensaje multimedia.
+     * Send a media message.
      *
-     * @param  WhatsAppCloudService  $service  Servicio de WhatsApp
-     * @param  string  $recipient  Destinatario
-     * @return array Respuesta de la API
+     * @param  WhatsAppCloudService  $service
+     * @param  string  $recipient
+     * @return array API response
      */
     private function sendMediaMessage(WhatsAppCloudService $service, string $recipient): array
     {
@@ -175,7 +175,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
             throw new \InvalidArgumentException('Media message requires attachments');
         }
 
-        $attachment = $attachments[0]; // Primer archivo adjunto
+        $attachment = $attachments[0]; // First attachment
         $mediaId = $attachment['media_id'] ?? throw new \InvalidArgumentException('Media ID is required');
         $caption = $attachment['caption'] ?? $this->message->content;
         $filename = $attachment['filename'] ?? null;
@@ -190,9 +190,9 @@ class SendWhatsAppMessageJob implements ShouldQueue
     }
 
     /**
-     * Actualiza el mensaje después del envío exitoso.
+     * Update the message after successful sending.
      *
-     * @param  array  $response  Respuesta de la API
+     * @param  array  $response  API response
      */
     private function updateMessageAfterSending(array $response): void
     {
@@ -225,7 +225,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
             'attempt' => $this->attempts(),
         ]);
 
-        // Actualizar el estado del mensaje
+        // Update message status
         $this->updateMessageStatus('failed', [
             'error_code' => $exception->getApiErrorCode(),
             'error_type' => $exception->getApiErrorType(),
@@ -234,7 +234,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
             'attempt' => $this->attempts(),
         ]);
 
-        // Si el error es recuperable y aún tenemos intentos, reintentamos
+        // If the error is retryable and attempts remain, retry
         if ($exception->isRetryable() && $this->attempts() < $this->tries) {
             $retryAfter = $exception->getRetryAfter();
             $this->release($retryAfter);
@@ -242,16 +242,15 @@ class SendWhatsAppMessageJob implements ShouldQueue
             return;
         }
 
-        // Si no es recuperable o agotamos los intentos, marcar como falló permanentemente
+        // If not retryable or attempts exhausted, mark as permanently failed
         $this->updateMessageStatus('failed_permanently');
         throw $exception;
     }
 
     /**
-     * Maneja excepciones genéricas.
+     * Handle generic exceptions.
      *
-     * @param  \Exception  $exception  Excepción genérica
-     *
+     * @param  \Exception  $exception
      * @throws \Exception
      */
     private function handleGenericException(\Exception $exception): void
@@ -273,10 +272,10 @@ class SendWhatsAppMessageJob implements ShouldQueue
     }
 
     /**
-     * Actualiza el estado del mensaje.
+     * Update the message status.
      *
-     * @param  string  $status  Nuevo estado
-     * @param  array  $additionalMetadata  Metadatos adicionales
+     * @param  string  $status
+     * @param  array  $additionalMetadata
      */
     private function updateMessageStatus(string $status, array $additionalMetadata = []): void
     {
@@ -289,9 +288,9 @@ class SendWhatsAppMessageJob implements ShouldQueue
     }
 
     /**
-     * Maneja fallos permanentes del job.
+     * Handle permanent job failure.
      *
-     * @param  \Throwable  $exception  Excepción que causó el fallo
+     * @param  \Throwable  $exception
      */
     public function failed(\Throwable $exception): void
     {
@@ -310,10 +309,10 @@ class SendWhatsAppMessageJob implements ShouldQueue
     }
 
     /**
-     * Calcula el tiempo de retardo para el siguiente intento.
+     * Calculate backoff time for the next attempt.
      *
-     * @param  int  $attempt  Número de intento
-     * @return int Segundos de retardo
+     * @param  int  $attempt
+     * @return int Seconds of delay
      */
     public function backoffFor(int $attempt): int
     {

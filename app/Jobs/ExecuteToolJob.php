@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * Job para ejecutar herramientas de IA de forma asíncrona
- * 
+ *
  * Se encarga de:
  * - Ejecutar la herramienta según su tipo (internal/external)
  * - Actualizar el registro de ejecución con el resultado
@@ -28,22 +28,20 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Número de reintentos del job
-     * 
+     *
      * @var int
      */
     public $tries = 3;
 
     /**
      * Timeout en segundos
-     * 
+     *
      * @var int
      */
     public $timeout = 120;
 
     /**
      * Crear nueva instancia del job
-     * 
-     * @param ToolExecution $execution
      */
     public function __construct(
         public ToolExecution $execution
@@ -75,6 +73,7 @@ class ExecuteToolJob implements ShouldQueue
                     'execution_id' => $execution->id,
                     'current_status' => $execution->status,
                 ]);
+
                 return;
             }
 
@@ -117,10 +116,8 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Manejar fallo en la ejecución
-     * 
-     * @param ToolExecution $execution
-     * @param \App\Models\Tool $tool
-     * @param \Exception $e
+     *
+     * @param  \App\Models\Tool  $tool
      */
     private function handleExecutionFailure(ToolExecution $execution, $tool, \Exception $e): void
     {
@@ -161,7 +158,7 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Obtener tiempo de ejecución desde que se creó el registro
-     * 
+     *
      * @return int Tiempo en milisegundos
      */
     private function getExecutionTime(): int
@@ -171,8 +168,6 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Manejar job fallido definitivamente
-     * 
-     * @param \Throwable $exception
      */
     public function failed(\Throwable $exception): void
     {
@@ -197,25 +192,21 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Configurar tags para mejor monitoreo
-     * 
-     * @return array
      */
     public function tags(): array
     {
         $tool = $this->execution->tool;
-        
+
         return [
-            'tool_type:' . $tool->type,
-            'tool_category:' . $tool->category,
-            'company_id:' . $tool->company_id,
-            'execution_id:' . $this->execution->id,
+            'tool_type:'.$tool->type,
+            'tool_category:'.$tool->category,
+            'company_id:'.$tool->company_id,
+            'execution_id:'.$this->execution->id,
         ];
     }
 
     /**
      * Obtener identificador único para el job
-     * 
-     * @return string
      */
     public function uniqueId(): string
     {
@@ -224,8 +215,6 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Determinar si el job debería ser único
-     * 
-     * @return bool
      */
     public function shouldBeUnique(): bool
     {
@@ -234,8 +223,6 @@ class ExecuteToolJob implements ShouldQueue
 
     /**
      * Tiempo de expiración de la unicidad en segundos
-     * 
-     * @return int
      */
     public function uniqueFor(): int
     {
