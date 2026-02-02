@@ -41,13 +41,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Herramientas disponibles para un agente
         Route::get('tools', [App\Http\Controllers\AI\ToolController::class, 'index'])
             ->name('api.ai.agent.tools.index');
-        
+
         Route::get('tools/stats', [App\Http\Controllers\AI\ToolController::class, 'stats'])
             ->name('api.ai.agent.tools.stats');
-            
+
         Route::get('tools/category/{category}', [App\Http\Controllers\AI\ToolController::class, 'byCategory'])
             ->name('api.ai.agent.tools.category');
-            
+
         Route::get('tools/{toolSlug}', [App\Http\Controllers\AI\ToolController::class, 'show'])
             ->name('api.ai.agent.tools.show');
 
@@ -62,16 +62,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         // Gestión de ejecuciones
         Route::get('executions', [App\Http\Controllers\AI\ToolExecutionController::class, 'index'])
             ->name('api.ai.agent.executions.index');
-            
+
         Route::get('executions/stats', [App\Http\Controllers\AI\ToolExecutionController::class, 'stats'])
             ->name('api.ai.agent.executions.stats');
-            
+
         Route::get('executions/{execution}', [App\Http\Controllers\AI\ToolExecutionController::class, 'show'])
             ->name('api.ai.agent.executions.show');
-            
+
         Route::delete('executions/{execution}', [App\Http\Controllers\AI\ToolExecutionController::class, 'cancel'])
             ->name('api.ai.agent.executions.cancel');
-            
+
         Route::post('executions/{execution}/retry', [App\Http\Controllers\AI\ToolExecutionController::class, 'retry'])
             ->name('api.ai.agent.executions.retry');
     });
