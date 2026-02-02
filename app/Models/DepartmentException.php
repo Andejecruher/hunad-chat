@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Carbon\Carbon;
 
 class DepartmentException extends Model
 {
@@ -21,7 +21,7 @@ class DepartmentException extends Model
         'behavior',
         'special_open_time',
         'special_close_time',
-        'partial_hours'
+        'partial_hours',
     ];
 
     protected $casts = [
@@ -33,7 +33,9 @@ class DepartmentException extends Model
 
     // Comportamientos disponibles
     const BEHAVIOR_FULLY_CLOSED = 'fully_closed';
+
     const BEHAVIOR_PARTIALLY_CLOSED = 'partially_closed';
+
     const BEHAVIOR_PARTIALLY_OPEN = 'partially_open';
 
     public static function getBehaviors(): array
@@ -64,7 +66,7 @@ class DepartmentException extends Model
     {
         $this->recurrence_pattern = [
             'type' => 'specific_day',
-            'day_of_month' => $dayOfMonth
+            'day_of_month' => $dayOfMonth,
         ];
     }
 
@@ -73,17 +75,17 @@ class DepartmentException extends Model
         $this->recurrence_pattern = [
             'type' => 'pattern',
             'week_pattern' => $weekPattern,
-            'day_of_week' => $dayOfWeek
+            'day_of_week' => $dayOfWeek,
         ];
     }
 
     // Método para obtener horarios efectivos
     public function getEffectiveHours(): ?array
     {
-        return match($this->behavior) {
+        return match ($this->behavior) {
             self::BEHAVIOR_FULLY_CLOSED => null,
             self::BEHAVIOR_PARTIALLY_CLOSED => [
-                ['open_time' => $this->special_open_time, 'close_time' => $this->special_close_time]
+                ['open_time' => $this->special_open_time, 'close_time' => $this->special_close_time],
             ],
             self::BEHAVIOR_PARTIALLY_OPEN => $this->partial_hours,
             default => null
@@ -106,7 +108,7 @@ class DepartmentException extends Model
 
     private function matchesRecurrencePattern(Carbon $date): bool
     {
-        return match($this->type) {
+        return match ($this->type) {
             'annual' => $this->matchesAnnualPattern($date),
             'monthly' => $this->matchesMonthlyPattern($date),
             'specific' => $this->matchesSpecificPattern($date),
@@ -118,7 +120,7 @@ class DepartmentException extends Model
     {
         $pattern = $this->recurrence_pattern;
 
-        if (!$pattern) {
+        if (! $pattern) {
             return false;
         }
 
@@ -132,7 +134,7 @@ class DepartmentException extends Model
 
         $firstOfMonth = $date->copy()->firstOfMonth();
 
-        return match($weekPattern) {
+        return match ($weekPattern) {
             'first' => $date->isSameDay($firstOfMonth->copy()->modify("first {$this->getDayName($targetDay)} of this month")),
             'second' => $date->isSameDay($firstOfMonth->copy()->modify("second {$this->getDayName($targetDay)} of this month")),
             'third' => $date->isSameDay($firstOfMonth->copy()->modify("third {$this->getDayName($targetDay)} of this month")),
@@ -151,13 +153,14 @@ class DepartmentException extends Model
             3 => 'wednesday',
             4 => 'thursday',
             5 => 'friday',
-            6 => 'saturday'
+            6 => 'saturday',
         ][$dayOfWeek] ?? 'sunday';
     }
 
     private function matchesAnnualPattern(Carbon $date): bool
     {
         $pattern = $this->recurrence_pattern;
+
         return $pattern &&
             $date->month == $pattern['month'] &&
             $date->day == $pattern['day'];

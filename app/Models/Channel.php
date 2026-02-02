@@ -41,5 +41,4 @@ class Channel extends Model
             $channel->conversations()->update(['updated_at' => $ts]);
         });
     }
-
 }

@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DepartmentScheduleAudit extends Model
 {
@@ -15,12 +15,12 @@ class DepartmentScheduleAudit extends Model
         'change_type',
         'previous_data',
         'new_data',
-        'changed_by'
+        'changed_by',
     ];
 
     protected $casts = [
         'previous_data' => 'array',
-        'new_data' => 'array'
+        'new_data' => 'array',
     ];
 
     public function department(): BelongsTo
@@ -32,5 +32,4 @@ class DepartmentScheduleAudit extends Model
     {
         return $this->belongsTo(User::class, 'changed_by');
     }
-
 }

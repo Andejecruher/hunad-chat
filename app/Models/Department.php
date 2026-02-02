@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Department extends Model
 {
@@ -17,15 +17,15 @@ class Department extends Model
         'color',
         'description',
         'timezone',
-        'is_active'
+        'is_active',
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
     ];
 
     protected $appends = [
-        'agents_count'
+        'agents_count',
     ];
 
     public function company(): BelongsTo
@@ -71,7 +71,6 @@ class Department extends Model
         return $this->agents()->count();
     }
 
-
     // Método para obtener horario de un día específico
     public function getHoursForDay(int $dayOfWeek): ?DepartmentHour
     {
@@ -97,7 +96,7 @@ class Department extends Model
                 $formattedHours[] = [
                     'day_of_week' => $day,
                     'time_ranges' => $timeRanges,
-                    'is_closed' => $dayHours->first()->is_closed
+                    'is_closed' => $dayHours->first()->is_closed,
                 ];
             } else {
                 // Crear horario por defecto si no existe
@@ -107,10 +106,10 @@ class Department extends Model
                         [
                             'id' => (string) \Illuminate\Support\Str::uuid(),
                             'open_time' => '09:00',
-                            'close_time' => '18:00'
-                        ]
+                            'close_time' => '18:00',
+                        ],
                     ],
-                    'is_closed' => in_array($day, [0, 6]) // Cerrado sábados y domingos por defecto
+                    'is_closed' => in_array($day, [0, 6]), // Cerrado sábados y domingos por defecto
                 ];
             }
         }
