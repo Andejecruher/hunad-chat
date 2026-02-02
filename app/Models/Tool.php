@@ -15,6 +15,7 @@ class Tool extends Model
     protected $fillable = [
         'company_id',
         'name',
+        'description',
         'slug',
         'category',
         'type',
@@ -25,6 +26,8 @@ class Tool extends Model
         'last_error',
         'created_by',
         'updated_by',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [
@@ -84,5 +87,55 @@ class Tool extends Model
     public function scopeExternal($query)
     {
         return $query->where('type', 'external');
+    }
+
+    public function scopeByCategory($query, $category)
+    {
+        return $query->where('category', $category);
+    }
+
+    public function scopeBySlug($query, $slug)
+    {
+        return $query->where('slug', $slug);
+    }
+
+    // ===========================
+    // | Funciones útiles
+    // ===========================
+    public function isInternal(): bool
+    {
+        return $this->type === 'internal';
+    }
+
+    public function isExternal(): bool
+    {
+        return $this->type === 'external';
+    }
+
+    // Evitar loops de eventos: asignar atributos antes de persistir
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        // Asignar timestamps y campos de auditoría antes de insertar
+        static::creating(function ($tool) {
+            $ts = \Illuminate\Support\Carbon::now()->utc()->toDateTimeString();
+            $tool->created_at = $ts;
+            $tool->updated_at = $ts;
+
+            if (auth()->check()) {
+                $tool->created_by = auth()->id();
+                $tool->updated_by = auth()->id();
+            }
+        });
+
+        // Actualizar updated_at y updated_by antes de guardar cambios
+        static::updating(function ($tool) {
+            $tool->updated_at = \Illuminate\Support\Carbon::now()->utc()->toDateTimeString();
+
+            if (auth()->check()) {
+                $tool->updated_by = auth()->id();
+            }
+        });
     }
 }
