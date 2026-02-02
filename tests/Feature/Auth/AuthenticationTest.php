@@ -102,7 +102,7 @@ class AuthenticationTest extends TestCase
             str_contains($errorMsg, 'demasiados intentos') ||
             str_contains($errorMsg, 'too many login attempts') ||
             $errorMsg === 'auth.throttle',
-            'El mensaje de error de rate limiting no es el esperado: ' . $errorMsg
+            'El mensaje de error de rate limiting no es el esperado: '.$errorMsg
         );
     }
 }

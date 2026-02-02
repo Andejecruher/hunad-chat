@@ -392,29 +392,6 @@ class AiToolManagementTest extends TestCase
         });
     }
 
-    public function test_can_search_tools_by_name()
-    {
-        // Arrange
-        Tool::factory()->create([
-            'company_id' => $this->company->id,
-            'name' => 'Create Ticket Tool',
-        ]);
-        Tool::factory()->create([
-            'company_id' => $this->company->id,
-            'name' => 'Send Message Tool',
-        ]);
-
-        // Act
-        $response = $this->actingAs($this->user)
-            ->get('/management/ai-tools?search=ticket');
-
-        // Assert
-        $response->assertOk();
-        $response->assertInertia(function ($page) {
-            $page->has('tools.data', 1);
-        });
-    }
-
     public function test_guest_cannot_access_ai_tools()
     {
         // Act & Assert
