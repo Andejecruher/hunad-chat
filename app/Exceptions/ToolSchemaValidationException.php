@@ -12,6 +12,7 @@ class ToolSchemaValidationException extends Exception
     public static function invalidPayload(string $toolName, array $errors): self
     {
         $errorMessages = implode(', ', $errors);
+
         return new self("Invalid payload for tool '{$toolName}': {$errorMessages}");
     }
 

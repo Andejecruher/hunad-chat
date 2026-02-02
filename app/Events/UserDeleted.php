@@ -3,7 +3,6 @@
 namespace App\Events;
 
 use App\Models\User;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
@@ -24,7 +23,7 @@ class UserDeleted implements ShouldBroadcastNow
 
     public function broadcastOn()
     {
-        return new PrivateChannel('company.' . $this->user->company_id . '.users');
+        return new PrivateChannel('company.'.$this->user->company_id.'.users');
     }
 
     public function broadcastWith(): array
@@ -42,4 +41,3 @@ class UserDeleted implements ShouldBroadcastNow
         return 'user.deleted';
     }
 }
-
