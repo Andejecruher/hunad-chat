@@ -18,7 +18,8 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->string('name');                 // "Crear Ticket"
+            $table->string('name');
+            $table->string('description')->nullable();                // "Crear Ticket"
             $table->string('slug');                 // "ticket.create"
             $table->string('category');             // ticket | whatsapp | external
             $table->string('type');                 // internal | external
