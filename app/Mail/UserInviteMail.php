@@ -11,9 +11,13 @@ class UserInviteMail extends Mailable
     use Queueable, SerializesModels;
 
     public $name;
+
     public $email;
+
     public $role;
+
     public $password;
+
     public $verificationUrl;
 
     public function __construct($name, $email, $role, $password, $verificationUrl)
@@ -27,7 +31,7 @@ class UserInviteMail extends Mailable
 
     public function build()
     {
-        return $this->subject('Invitation to join ' . config('app.name'))
+        return $this->subject('Invitation to join '.config('app.name'))
             ->markdown('emails.user_invite')
             ->with([
                 'name' => $this->name,
@@ -38,4 +42,3 @@ class UserInviteMail extends Mailable
             ]);
     }
 }
-
