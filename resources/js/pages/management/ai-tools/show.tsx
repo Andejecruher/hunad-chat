@@ -1,7 +1,7 @@
 import { ShowTool } from "@/features/management/ai-tools/show-tool";
 import AppLayout from '@/layouts/app-layout';
 import aiToolsRoutes from '@/routes/ai-tools';
-import { type BreadcrumbItem, type Tool } from '@/types';
+import { type BreadcrumbItem, type Tool, ExecutionStats } from '@/types';
 import { Head } from '@inertiajs/react';
 
 const breadcrumbs = (tool: Tool): BreadcrumbItem[] => [
@@ -21,7 +21,7 @@ const breadcrumbs = (tool: Tool): BreadcrumbItem[] => [
 
 export default function ShowAIToolPage(props: {
     tool: Tool;
-    executionStats: any;
+    executionStats: ExecutionStats;
 }) {
     const { tool, executionStats } = props;
 

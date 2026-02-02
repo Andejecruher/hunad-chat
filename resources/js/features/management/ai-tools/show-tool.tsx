@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import aiToolsRoutes from '@/routes/ai-tools';
-import { ExternalConfigComplete, InternalConfigComplete, type SchemaFieldComplete, type Tool } from '@/types';
+import { ExecutionStats, ExternalConfigComplete, InternalConfigComplete, type SchemaFieldComplete, type Tool } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Activity,
@@ -13,37 +13,34 @@ import {
     Edit,
     Globe,
     Layers,
-    Play,
     Settings2,
     TrendingUp,
     User,
     XCircle
 } from "lucide-react";
-import { useState } from "react";
-import { TestToolDialog } from "./test-tool-dialog";
+
+import { TestToolSection } from './test-tool-section';
 
 interface ShowToolProps {
     tool: Tool;
-    executionStats: {
-        total_executions: number;
-        successful_executions: number;
-        failed_executions: number;
-        avg_execution_time: number | null;
-        last_execution: string | null;
-        success_rate: number;
-    };
+    executionStats: ExecutionStats;
 }
 
+/**
+ * ShowTool - Componente principal de visualización de herramientas IA
+ * 
+ * Este componente ha sido refactorizado para integrar la funcionalidad de prueba
+ * directamente en la vista principal, eliminando el modal y usando TestToolSection
+ * como componente inline. Utiliza Wayfinder para el manejo consistente de rutas.
+ */
 export function ShowTool({ tool, executionStats }: ShowToolProps) {
-    const [testDialogOpen, setTestDialogOpen] = useState(false);
 
     const handleEdit = () => {
         router.visit(aiToolsRoutes.edit({ ai_tool: tool.id }).url);
     };
 
     const handleToggleStatus = () => {
-        // Usamos la ruta de toggle status que definimos en web.php
-        router.patch(`/management/ai-tools/${tool.id}/toggle-status`, {}, {
+        router.patch(aiToolsRoutes.toggleStatus({ tool: tool.id }).url, {}, {
             preserveState: true,
             onSuccess: () => {
                 // El estado se actualizará automáticamente
@@ -102,14 +99,6 @@ export function ShowTool({ tool, executionStats }: ShowToolProps) {
                 </div>
 
                 <div className="flex gap-2">
-                    <Button
-                        variant="outline"
-                        onClick={() => setTestDialogOpen(true)}
-                        disabled={!tool.enabled}
-                    >
-                        <Play className="mr-2 h-4 w-4" />
-                        Probar
-                    </Button>
                     <Button
                         variant="outline"
                         onClick={handleEdit}
@@ -349,13 +338,13 @@ export function ShowTool({ tool, executionStats }: ShowToolProps) {
                 </CardContent>
             </Card>
 
-            {/* Test Dialog */}
-            <TestToolDialog
-                open={testDialogOpen}
-                onOpenChange={setTestDialogOpen}
+            {/* Test Tool Section */}
+            <TestToolSection
+                toolId={tool.id}
                 toolName={tool.name}
                 inputs={schema.inputs || []}
                 outputs={schema.outputs || []}
+                enabled={tool.enabled}
             />
         </div>
     );
