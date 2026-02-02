@@ -3,11 +3,10 @@
 namespace App\Services\AI\MCP;
 
 use App\Models\Tool;
-use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Mapeador de herramientas al formato Model Context Protocol (MCP)
- * 
+ *
  * Se encarga de convertir herramientas internas al formato estándar MCP
  * para interoperabilidad con diferentes proveedores de IA (Claude, OpenAI, etc.)
  */
@@ -15,9 +14,8 @@ class MCPToolMapper
 {
     /**
      * Convertir herramientas al formato MCP estándar
-     * 
-     * @param \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection $tools
-     * @return array
+     *
+     * @param  \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection  $tools
      */
     public function toMCPFormat($tools): array
     {
@@ -25,16 +23,13 @@ class MCPToolMapper
             'tools' => $tools->map(function (Tool $tool) {
                 return $this->mapTool($tool);
             })->toArray(),
-            'version' => '1.0.0',
-            'protocol' => 'mcp',
+            'version' => config('mcp.version', '1.0.0'),
+            'protocol' => config('mcp.protocol', 'mcp'),
         ];
     }
 
     /**
      * Mapear una herramienta individual al formato MCP
-     * 
-     * @param Tool $tool
-     * @return array
      */
     public function mapTool(Tool $tool): array
     {
@@ -54,9 +49,6 @@ class MCPToolMapper
 
     /**
      * Construir schema de entrada compatible con MCP
-     * 
-     * @param array $inputs
-     * @return array
      */
     private function buildMCPInputSchema(array $inputs): array
     {
@@ -92,9 +84,6 @@ class MCPToolMapper
 
     /**
      * Construir schema de salida compatible con MCP
-     * 
-     * @param array $outputs
-     * @return array
      */
     private function buildMCPOutputSchema(array $outputs): array
     {
@@ -123,9 +112,6 @@ class MCPToolMapper
 
     /**
      * Mapear tipos internos a tipos de JSON Schema compatibles con MCP
-     * 
-     * @param string $internalType
-     * @return string
      */
     private function mapTypeToJSONSchema(string $internalType): string
     {
@@ -142,12 +128,6 @@ class MCPToolMapper
 
     /**
      * Crear respuesta MCP para ejecución de herramienta
-     * 
-     * @param Tool $tool
-     * @param array $result
-     * @param bool $success
-     * @param string|null $error
-     * @return array
      */
     public function createMCPResponse(Tool $tool, array $result = [], bool $success = true, ?string $error = null): array
     {
@@ -167,16 +147,14 @@ class MCPToolMapper
 
     /**
      * Crear manifest MCP para el servidor
-     * 
-     * @param \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection $tools
-     * @param array $serverInfo
-     * @return array
+     *
+     * @param  \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection  $tools
      */
     public function createMCPManifest($tools, array $serverInfo = []): array
     {
         return [
-            'protocol' => 'mcp',
-            'version' => '1.0.0',
+            'protocol' => config('mcp.protocol', 'mcp'),
+            'version' => config('mcp.version', '1.0.0'),
             'server' => array_merge([
                 'name' => 'HunadChat Tool Server',
                 'version' => '1.0.0',
@@ -200,8 +178,7 @@ class MCPToolMapper
 
     /**
      * Validar que un payload MCP es compatible con nuestro formato interno
-     * 
-     * @param array $mcpPayload
+     *
      * @return array Payload normalizado para uso interno
      */
     public function normalizeMCPPayload(array $mcpPayload): array
@@ -213,11 +190,6 @@ class MCPToolMapper
 
     /**
      * Crear error MCP estándar
-     * 
-     * @param string $code
-     * @param string $message
-     * @param array $details
-     * @return array
      */
     public function createMCPError(string $code, string $message, array $details = []): array
     {
