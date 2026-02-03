@@ -30,7 +30,7 @@ class WhatsAppWebhookController extends Controller
      * @param  Request  $request  Request with verification parameters
      * @return JsonResponse|string Challenge token or error
      */
-    public function verify(Request $request): JsonResponse|string
+    public function verify(Request $request): JsonResponse|Response|string
     {
         $verifyToken = config('services.meta.verify_token');
 
@@ -147,18 +147,18 @@ class WhatsAppWebhookController extends Controller
         $phoneNumberId = $value['metadata']['phone_number_id'] ?? null;
 
         if (! $phoneNumberId) {
-            Log::warning('WhatsApp webhook: Missing phone_number_id in message change');
+            Log::warning('WhatsApp webhook: Missing whatsapp_phone_number_id in message change');
 
             return;
         }
 
         // Find the corresponding channel
         $channel = Channel::where('type', 'whatsapp')
-            ->whereJsonContains('config->phone_number_id', $phoneNumberId)
+            ->whereJsonContains('config->whatsapp_phone_number_id', $phoneNumberId)
             ->first();
 
         if (! $channel) {
-            Log::warning('WhatsApp webhook: Channel not found', ['phone_number_id' => $phoneNumberId]);
+            Log::warning('WhatsApp webhook: Channel not found', ['whatsapp_phone_number_id' => $phoneNumberId]);
 
             return;
         }
