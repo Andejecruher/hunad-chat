@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Channel\StoreChannelRequest;
 use App\Http\Requests\Channel\UpdateChannelRequest;
 use App\Models\Channel;
-use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;

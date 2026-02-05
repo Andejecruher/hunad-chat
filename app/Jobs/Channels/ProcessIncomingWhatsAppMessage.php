@@ -200,7 +200,6 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     /**
      * Create the message in the database.
      *
-     * @param  Conversation  $conversation
      * @param  string  $messageId  WhatsApp message ID
      * @param  string|null  $timestamp  Message timestamp
      * @return Message Created message
