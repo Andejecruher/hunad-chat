@@ -320,7 +320,7 @@ class WhatsAppCloudService
         try {
             $response = Http::withToken($this->getAccessToken())->post($url, $payload);
 
-            $this->logApiCall('POST', $url, $payload, $response);
+            $this->logApiCall('PUT', $url, $payload, $response);
 
             if (! $response->successful()) {
                 throw $this->createExceptionFromResponse($response);
