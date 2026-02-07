@@ -13,6 +13,7 @@ import { dashboard } from '@/routes';
 import iaTools from '@/routes/ai-tools';
 import channels from '@/routes/channels';
 import company from '@/routes/company';
+import conversations from '@/routes/conversations';
 import departments from '@/routes/departments';
 import users from '@/routes/users';
 import { type NavItem, type SharedData } from '@/types';
@@ -27,7 +28,7 @@ export function AppSidebar() {
         {
             label: 'Conversaciones',
             icon: 'MessageSquare',
-            path: '#',
+            path: conversations.index().url,
         },
         { label: 'Tickets', icon: 'Ticket', path: '#' },
         { label: 'Ventas', icon: 'ShoppingCart', path: '#' },

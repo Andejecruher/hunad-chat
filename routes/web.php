@@ -3,6 +3,7 @@
 use App\Http\Controllers\AiToolController;
 use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\CompaniesController;
+use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -32,7 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('/management/ai-tools', AiToolController::class);
     Route::patch('/management/ai-tools/{tool}/toggle-status', [AiToolController::class, 'toggleStatus'])->name('ai-tools.toggle-status');
     Route::post('/management/ai-tools/{tool}/test', [AiToolController::class, 'test'])->name('ai-tools.test');
-
+    // Conversations Routes
+    Route::resource('/conversations', ConversationController::class);
 });
 
 require __DIR__.'/settings.php';
