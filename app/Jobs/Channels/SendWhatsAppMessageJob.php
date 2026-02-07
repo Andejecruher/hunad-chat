@@ -162,8 +162,6 @@ class SendWhatsAppMessageJob implements ShouldQueue
     /**
      * Send a media message.
      *
-     * @param  WhatsAppCloudService  $service
-     * @param  string  $recipient
      * @return array API response
      */
     private function sendMediaMessage(WhatsAppCloudService $service, string $recipient): array
@@ -250,7 +248,6 @@ class SendWhatsAppMessageJob implements ShouldQueue
     /**
      * Handle generic exceptions.
      *
-     * @param  \Exception  $exception
      * @throws \Exception
      */
     private function handleGenericException(\Exception $exception): void
@@ -273,9 +270,6 @@ class SendWhatsAppMessageJob implements ShouldQueue
 
     /**
      * Update the message status.
-     *
-     * @param  string  $status
-     * @param  array  $additionalMetadata
      */
     private function updateMessageStatus(string $status, array $additionalMetadata = []): void
     {
@@ -289,8 +283,6 @@ class SendWhatsAppMessageJob implements ShouldQueue
 
     /**
      * Handle permanent job failure.
-     *
-     * @param  \Throwable  $exception
      */
     public function failed(\Throwable $exception): void
     {
@@ -311,7 +303,6 @@ class SendWhatsAppMessageJob implements ShouldQueue
     /**
      * Calculate backoff time for the next attempt.
      *
-     * @param  int  $attempt
      * @return int Seconds of delay
      */
     public function backoffFor(int $attempt): int

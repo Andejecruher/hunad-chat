@@ -318,8 +318,7 @@ class WhatsAppCloudService
         ];
 
         try {
-            $response = Http::withToken($this->getAccessToken())
-                ->post($url, $payload);
+            $response = Http::withToken($this->getAccessToken())->post($url, $payload);
 
             $this->logApiCall('POST', $url, $payload, $response);
 
@@ -408,11 +407,11 @@ class WhatsAppCloudService
     {
         $config = $this->channel->config ?? [];
 
-        if (! isset($config['phone_number_id'])) {
+        if (! isset($config['whatsapp_phone_number_id'])) {
             throw new InvalidArgumentException('Phone Number ID not configured for the channel');
         }
 
-        return $config['phone_number_id'];
+        return $config['whatsapp_phone_number_id'];
     }
 
     /**

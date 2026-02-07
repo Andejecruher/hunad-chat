@@ -160,7 +160,7 @@ class UserController extends Controller
                         'message' => 'Not authorized to update this user',
                         'user' => $user->fresh(),
                     ], 403);
-                        // Create user by assigning attributes explicitly to avoid "guarded" warnings
+                    // Create user by assigning attributes explicitly to avoid "guarded" warnings
                 }
                 abort(403, 'Not authorized to update this user');
             }
@@ -171,7 +171,7 @@ class UserController extends Controller
             }
 
             // Manejar contraseña: si se envía, hashearla; si viene null/empty, removerla
-                        // Generate verification URL
+            // Generate verification URL
             if (array_key_exists('password', $data)) {
                 if (! empty($data['password'])) {
                     $data['password'] = Hash::make($data['password']);
@@ -179,7 +179,7 @@ class UserController extends Controller
                     unset($data['password']);
                 }
             }
-                        // Send email using Mailable
+            // Send email using Mailable
 
             // Registrar cambios en transacción para mantener consistencia
             DB::beginTransaction();
@@ -247,7 +247,7 @@ class UserController extends Controller
                 abort(403, 'Not authorized to resend invitation for this user');
             }
 
-                        // Prevent changes to company_id from the request
+            // Prevent changes to company_id from the request
             // Check if user already verified their email
             if ($user->email_verified_at) {
                 if ($request->expectsJson()) {
@@ -263,7 +263,7 @@ class UserController extends Controller
             // Generate new temporary password
             $tempPassword = Str::random(16);
             $user->password = Hash::make($tempPassword);
-                        // Record changes inside a transaction to maintain consistency
+            // Record changes inside a transaction to maintain consistency
             $user->save();
 
             // Generate new verification URL
@@ -345,8 +345,8 @@ class UserController extends Controller
             }
 
             // Authorization: only same company or admins can delete
-                        // If soft deletes are desired, enable SoftDeletes on the model
-                        // Currently performs a physical delete
+            // If soft deletes are desired, enable SoftDeletes on the model
+            // Currently performs a physical delete
             if ($user->company_id !== $authUser->company_id) {
                 if ($request->expectsJson()) {
                     return response()->json([

@@ -56,6 +56,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | API Version
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the current version of the API. It will be used
+    | as a prefix for all API routes, allowing for better version control
+    | and backward compatibility management.
+    |
+    */
+
+    'version_api' => env('APP_VERSION_API', 'v1'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Timezone
     |--------------------------------------------------------------------------
     |

@@ -163,6 +163,8 @@ class WhatsAppWebhookController extends Controller
             return;
         }
 
+        Log::info('WhatsApp webhook: Processing messages for channel', ['channel_id' => $channel->id, 'message' => $value['messages'] ?? null, 'payload' => $value]);
+
         // Process incoming messages
         if (isset($value['messages'])) {
             foreach ($value['messages'] as $message) {
