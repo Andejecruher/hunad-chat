@@ -5,6 +5,7 @@ use App\Http\Controllers\ChannelController;
 use App\Http\Controllers\CompaniesController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -35,6 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/management/ai-tools/{tool}/test', [AiToolController::class, 'test'])->name('ai-tools.test');
     // Conversations Routes
     Route::resource('/conversations', ConversationController::class);
+    Route::get('/conversations/{conversation}/messages', [MessageController::class, 'index'])->name('conversations.messages.index');
+    Route::post('/conversations/{conversation}/messages', [MessageController::class, 'store'])->name('conversations.messages.store');
 });
 
 require __DIR__.'/settings.php';

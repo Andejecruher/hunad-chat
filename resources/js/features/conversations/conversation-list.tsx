@@ -54,10 +54,10 @@ export function ConversationList({
   const inactiveConversations = conversations.filter((c) => c.status === "pending" || c.status === "closed")
 
   return (
-    <Card className="w-full lg:w-80 flex flex-col h-full border-r">
-      <CardContent className="flex flex-col h-full p-0">
+    <Card className="flex h-full min-h-0 w-full flex-col border-r lg:w-80">
+      <CardContent className="flex h-full min-h-0 flex-col p-0">
         {/* Header */}
-        <div className="p-4 space-y-3">
+        <div className="shrink-0 space-y-3 p-4">
           <div className="flex items-center justify-between">
             <h2 className="font-heading text-lg font-semibold">Inbox</h2>
             <Button onClick={onNewConversation} size="sm" className="h-8">
@@ -127,7 +127,7 @@ export function ConversationList({
         <Separator />
 
         {/* Conversation Groups */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 min-h-0">
           <div className="p-2 space-y-2">
             {/* Active Conversations */}
             <Collapsible open={!activeCollapsed} onOpenChange={() => setActiveCollapsed(!activeCollapsed)}>
@@ -234,7 +234,7 @@ function ConversationItem({
       exit={{ opacity: 0, x: -20 }}
       transition={{ delay: index * 0.03 }}
       onClick={() => onSelect(conversation)}
-      className={`w-full text-left p-3 rounded-lg transition-colors ${isSelected ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+      className={`w-full h-full max-h-full text-left p-3 rounded-lg transition-colors ${isSelected ? "bg-primary text-primary-foreground" : "hover:bg-accent"
         }`}
     >
       <div className="flex items-start gap-3">

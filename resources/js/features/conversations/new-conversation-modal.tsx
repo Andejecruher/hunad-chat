@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import type { ChannelLine } from "@/types/conversation"
+import { useForm } from "@inertiajs/react"
 import { FileText, MessageSquare } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -22,13 +23,8 @@ import { toast } from "sonner"
 interface NewConversationModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreateConversation: (data: {
-    clientPhone: string
-    channelLineId: string
-    message?: string
-    templateId?: string
-  }) => void
   channelLines: ChannelLine[]
+  createUrl: string
 }
 
 const mockTemplates = [
@@ -37,52 +33,50 @@ const mockTemplates = [
   { id: "t3", name: "Recordatorio de pago", content: "Hola {{name}}, te recordamos que tienes un pago pendiente de {{amount}}" },
 ]
 
-export function NewConversationModal({ open, onOpenChange, onCreateConversation, channelLines }: NewConversationModalProps) {
-  const [clientPhone, setClientPhone] = useState("")
-  const [selectedLineId, setSelectedLineId] = useState("")
-  const [message, setMessage] = useState("")
-  const [selectedTemplateId, setSelectedTemplateId] = useState("")
+export function NewConversationModal({ open, onOpenChange, channelLines, createUrl }: NewConversationModalProps) {
+  const form = useForm({
+    clientPhone: "",
+    channelLineId: "",
+    message: "",
+    templateId: "",
+  })
   const [messageType, setMessageType] = useState<"manual" | "template">("manual")
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = async () => {
-    if (!clientPhone || !selectedLineId) {
+  const handleSubmit = () => {
+    if (!form.data.clientPhone || !form.data.channelLineId) {
       toast.error("Por favor completa todos los campos requeridos")
       return
     }
 
-    if (messageType === "manual" && !message) {
+    if (messageType === "manual" && !form.data.message) {
       toast.error("Por favor escribe un mensaje")
       return
     }
 
-    if (messageType === "template" && !selectedTemplateId) {
+    if (messageType === "template" && !form.data.templateId) {
       toast.error("Por favor selecciona un template")
       return
     }
 
-    setIsSubmitting(true)
+    form.transform((data) => ({
+      client_phone: data.clientPhone,
+      channel_id: data.channelLineId,
+      message: messageType === "manual" ? data.message : undefined,
+      template_id: messageType === "template" ? data.templateId : undefined,
+    }))
 
-    try {
-      await onCreateConversation({
-        clientPhone,
-        channelLineId: selectedLineId,
-        message: messageType === "manual" ? message : undefined,
-        templateId: messageType === "template" ? selectedTemplateId : undefined,
-      })
-
-      // Reset form
-      setClientPhone("")
-      setSelectedLineId("")
-      setMessage("")
-      setSelectedTemplateId("")
-      onOpenChange(false)
-      toast.success("Conversación iniciada correctamente")
-    } catch {
-      toast.error("Error al iniciar conversación")
-    } finally {
-      setIsSubmitting(false)
-    }
+    form.post(createUrl, {
+      preserveScroll: true,
+      onSuccess: () => {
+        form.reset()
+        setMessageType("manual")
+        onOpenChange(false)
+        toast.success("Conversacion iniciada correctamente")
+      },
+      onError: () => {
+        toast.error("Error al iniciar conversacion")
+      },
+    })
   }
 
   return (
@@ -101,15 +95,15 @@ export function NewConversationModal({ open, onOpenChange, onCreateConversation,
               id="phone"
               type="tel"
               placeholder="+52 55 1234 5678"
-              value={clientPhone}
-              onChange={(e) => setClientPhone(e.target.value)}
+              value={form.data.clientPhone}
+              onChange={(e) => form.setData("clientPhone", e.target.value)}
             />
           </div>
 
           {/* Channel Line Selection */}
           <div className="space-y-2">
             <Label htmlFor="line">Línea / Canal *</Label>
-            <Select value={selectedLineId} onValueChange={setSelectedLineId}>
+            <Select value={form.data.channelLineId} onValueChange={(value) => form.setData("channelLineId", value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecciona una línea" />
               </SelectTrigger>
@@ -142,8 +136,8 @@ export function NewConversationModal({ open, onOpenChange, onCreateConversation,
               <Textarea
                 id="message"
                 placeholder="Escribe el primer mensaje..."
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                value={form.data.message}
+                onChange={(e) => form.setData("message", e.target.value)}
                 rows={4}
               />
             </TabsContent>
@@ -151,7 +145,7 @@ export function NewConversationModal({ open, onOpenChange, onCreateConversation,
             {/* Template Selection */}
             <TabsContent value="template" className="space-y-2">
               <Label htmlFor="template">Selecciona un template</Label>
-              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+              <Select value={form.data.templateId} onValueChange={(value) => form.setData("templateId", value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un template" />
                 </SelectTrigger>
@@ -163,10 +157,10 @@ export function NewConversationModal({ open, onOpenChange, onCreateConversation,
                   ))}
                 </SelectContent>
               </Select>
-              {selectedTemplateId && (
+              {form.data.templateId && (
                 <div className="p-3 bg-muted rounded-md text-sm">
                   <p className="text-muted-foreground mb-1">Vista previa:</p>
-                  <p>{mockTemplates.find((t) => t.id === selectedTemplateId)?.content}</p>
+                  <p>{mockTemplates.find((t) => t.id === form.data.templateId)?.content}</p>
                 </div>
               )}
             </TabsContent>
@@ -174,11 +168,11 @@ export function NewConversationModal({ open, onOpenChange, onCreateConversation,
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={form.processing}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Iniciando..." : "Iniciar Conversación"}
+          <Button onClick={handleSubmit} disabled={form.processing}>
+            {form.processing ? "Iniciando..." : "Iniciar Conversacion"}
           </Button>
         </DialogFooter>
       </DialogContent>

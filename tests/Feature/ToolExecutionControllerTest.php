@@ -69,7 +69,10 @@ class ToolExecutionControllerTest extends TestCase
     {
         $payload = ['title' => 'Test execution'];
 
-        $response = $this->postJson("/api/ai/agents/{$this->agent->id}/tools/{$this->tool->slug}/execute", [
+        $response = $this->postJson(route('api.ai.agent.tools.execute', [
+            'agent' => $this->agent->id,
+            'toolSlug' => $this->tool->slug,
+        ]), [
             'payload' => $payload,
             'sync' => false,
         ]);
@@ -102,7 +105,10 @@ class ToolExecutionControllerTest extends TestCase
 
     public function test_it_validates_payload_structure()
     {
-        $response = $this->postJson("/api/ai/agents/{$this->agent->id}/tools/{$this->tool->slug}/execute", [
+        $response = $this->postJson(route('api.ai.agent.tools.execute', [
+            'agent' => $this->agent->id,
+            'toolSlug' => $this->tool->slug,
+        ]), [
             'payload' => 'invalid-payload', // debe ser array
         ]);
 
@@ -115,7 +121,10 @@ class ToolExecutionControllerTest extends TestCase
 
     public function test_it_rejects_execution_for_nonexistent_tool()
     {
-        $response = $this->postJson("/api/ai/agents/{$this->agent->id}/tools/nonexistent-tool/execute", [
+        $response = $this->postJson(route('api.ai.agent.tools.execute', [
+            'agent' => $this->agent->id,
+            'toolSlug' => 'nonexistent-tool',
+        ]), [
             'payload' => ['title' => 'Test'],
         ]);
 
@@ -131,7 +140,10 @@ class ToolExecutionControllerTest extends TestCase
         $otherCompany = Company::factory()->create();
         $otherAgent = AiAgent::factory()->create(['company_id' => $otherCompany->id]);
 
-        $response = $this->postJson("/api/ai/agents/{$otherAgent->id}/tools/{$this->tool->slug}/execute", [
+        $response = $this->postJson(route('api.ai.agent.tools.execute', [
+            'agent' => $otherAgent->id,
+            'toolSlug' => $this->tool->slug,
+        ]), [
             'payload' => ['title' => 'Test'],
         ]);
 
@@ -151,7 +163,10 @@ class ToolExecutionControllerTest extends TestCase
             'result' => ['result' => 'Success'],
         ]);
 
-        $response = $this->getJson("/api/ai/agents/{$this->agent->id}/executions/{$execution->id}");
+        $response = $this->getJson(route('api.ai.agent.executions.show', [
+            'agent' => $this->agent->id,
+            'execution' => $execution->id,
+        ]));
 
         $response->assertStatus(200)
             ->assertJson([
@@ -176,7 +191,9 @@ class ToolExecutionControllerTest extends TestCase
             'tool_id' => $this->tool->id,
         ]);
 
-        $response = $this->getJson("/api/ai/agents/{$this->agent->id}/executions");
+        $response = $this->getJson(route('api.ai.agent.executions.index', [
+            'agent' => $this->agent->id,
+        ]));
 
         $response->assertStatus(200)
             ->assertJson([
@@ -203,7 +220,10 @@ class ToolExecutionControllerTest extends TestCase
             'status' => 'failed',
         ]);
 
-        $response = $this->getJson("/api/ai/agents/{$this->agent->id}/executions?status=success");
+        $response = $this->getJson(route('api.ai.agent.executions.index', [
+            'agent' => $this->agent->id,
+            'status' => 'success',
+        ]));
 
         $response->assertStatus(200)
             ->assertJsonCount(1, 'data');
@@ -223,7 +243,9 @@ class ToolExecutionControllerTest extends TestCase
             'status' => 'failed',
         ]);
 
-        $response = $this->getJson("/api/ai/agents/{$this->agent->id}/executions/stats");
+        $response = $this->getJson(route('api.ai.agent.executions.stats', [
+            'agent' => $this->agent->id,
+        ]));
 
         $response->assertStatus(200)
             ->assertJson([
@@ -245,7 +267,10 @@ class ToolExecutionControllerTest extends TestCase
             'status' => 'accepted',
         ]);
 
-        $response = $this->deleteJson("/api/ai/agents/{$this->agent->id}/executions/{$execution->id}");
+        $response = $this->deleteJson(route('api.ai.agent.executions.cancel', [
+            'agent' => $this->agent->id,
+            'execution' => $execution->id,
+        ]));
 
         $response->assertStatus(200)
             ->assertJson([
@@ -265,7 +290,10 @@ class ToolExecutionControllerTest extends TestCase
             'status' => 'success',
         ]);
 
-        $response = $this->deleteJson("/api/ai/agents/{$this->agent->id}/executions/{$execution->id}");
+        $response = $this->deleteJson(route('api.ai.agent.executions.cancel', [
+            'agent' => $this->agent->id,
+            'execution' => $execution->id,
+        ]));
 
         $response->assertStatus(400)
             ->assertJson([
@@ -283,7 +311,10 @@ class ToolExecutionControllerTest extends TestCase
             'payload' => ['title' => 'Test retry'],
         ]);
 
-        $response = $this->postJson("/api/ai/agents/{$this->agent->id}/executions/{$failedExecution->id}/retry", [
+        $response = $this->postJson(route('api.ai.agent.executions.retry', [
+            'agent' => $this->agent->id,
+            'execution' => $failedExecution->id,
+        ]), [
             'sync' => false,
         ]);
 

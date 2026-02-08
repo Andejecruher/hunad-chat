@@ -99,10 +99,21 @@ export interface ConversationListProps {
     onChannelFilterChange: (channel: string) => void
 }
 
+export interface MessageComposerState {
+    value: string
+    attachments: File[]
+    location: Location | null
+    onValueChange: (value: string) => void
+    onAttachmentsChange: (files: File[]) => void
+    onLocationChange: (location: Location | null) => void
+    isSending: boolean
+}
+
 export interface ChatWindowProps {
     conversation: Conversation
     messages: Message[]
-    onSendMessage: (content: string, attachments?: File[]) => void
+    composer: MessageComposerState
+    onSendMessage: () => void
     onToggleInfo: () => void
     isTyping: boolean
 }
