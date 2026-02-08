@@ -17,6 +17,7 @@ return new class extends Migration
             $table->enum('sender_type', ['customer', 'agent', 'ai']);
             $table->text('content');
             $table->enum('type', ['text', 'image', 'video', 'file', 'audio', 'reaction', 'system', 'sticker'])->default('text');
+            $table->enum('status', ['pending', 'sent', 'delivered', 'read', 'failed'])->default('pending');
             $table->boolean('is_read')->default(false);
             $table->string('external_id')->nullable(); // ID de cuenta/línea específica
             $table->json('attachments')->nullable();

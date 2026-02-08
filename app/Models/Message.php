@@ -11,7 +11,7 @@ class Message extends Model
     /** @use HasFactory<\Database\Factories\MessageFactory> */
     use HasFactory;
 
-    protected $fillable = ['conversation_id', 'sender_type', 'type', 'content', 'attachments', 'payload', 'is_read', 'external_id'];
+    protected $fillable = ['conversation_id', 'sender_type', 'type', 'content', 'attachments', 'payload', 'is_read', 'external_id', 'status'];
 
     protected $casts = [
         'attachments' => 'array',

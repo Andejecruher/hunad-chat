@@ -82,7 +82,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
             // Send the message according to its type
             $response = $this->sendMessageByType($whatsappService, $customer->phone);
 
-            // Actualizar el mensaje con la respuesta
+            // Update message status and metadata after successful sending
             $this->updateMessageAfterSending($response);
 
             Log::info('WhatsApp message sent successfully', [

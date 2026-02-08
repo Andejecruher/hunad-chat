@@ -65,7 +65,7 @@ class ToolFactory extends Factory
             'type' => 'external',
             'config' => [
                 'method' => 'GET',
-                'url' => 'https://api.example.com/resource/{id}',
+                'url' => $this->faker->url().'/{id}',
                 'headers' => [
                     'Authorization' => 'Bearer {{secret.api_key}}',
                 ],

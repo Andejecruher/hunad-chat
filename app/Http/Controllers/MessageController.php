@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Conversation\StoreMessageRequest;
+use App\Jobs\Channels\SendWhatsAppMessageJob;
 use App\Models\Conversation;
 use App\Models\Message;
 use App\Services\Conversations\ConversationPageService;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
+use Log;
 
 class MessageController extends Controller
 {
@@ -30,13 +32,15 @@ class MessageController extends Controller
 
     public function store(StoreMessageRequest $request, Conversation $conversation): RedirectResponse
     {
+        Log::info('Storing message for conversation', ['conversation_id' => $conversation->id]);
+
         $this->ensureCompanyAccess($request, $conversation);
 
         $attachments = $this->storeAttachments($request);
         $payload = $this->buildPayload($request);
         $content = (string) ($request->input('content') ?? '');
 
-        Message::create([
+        $message = Message::create([
             'conversation_id' => $conversation->id,
             'sender_type' => 'agent',
             'type' => $this->resolveMessageType($attachments, $content),
@@ -44,7 +48,23 @@ class MessageController extends Controller
             'attachments' => $attachments,
             'payload' => $payload,
             'is_read' => false,
+            'status' => 'pending',
         ]);
+
+        // Dispatch channel-specific jobs (WhatsApp for now)
+        try {
+            $conversation->loadMissing('channel');
+
+            if ($conversation->channel && ($conversation->channel->type ?? null) === 'whatsapp') {
+                SendWhatsAppMessageJob::dispatch($message);
+            }
+        } catch (\Throwable $e) {
+            Log::error('Failed to dispatch send message job', [
+                'conversation_id' => $conversation->id,
+                'message_id' => $message->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         return back()->with('success', 'Mensaje enviado.');
     }
