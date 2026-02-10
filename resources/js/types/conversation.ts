@@ -1,6 +1,6 @@
 export type ConversationStatus = "open" | "pending" | "closed"
 export type MessageSender = "client" | "agent" | "ai"
-export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed"
+export type MessageStatus = "sending" | "sent" | "delivered" | "read" | "failed" | "pending"
 export type ChannelType = "whatsapp" | "instagram" | "facebook" | "telegram"
 export type AttachmentType = "image" | "video" | "audio" | "document" | "sticker" | "location"
 export type TransferTarget = "agent" | "ai" | "department"

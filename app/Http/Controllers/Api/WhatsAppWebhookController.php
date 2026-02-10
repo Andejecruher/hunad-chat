@@ -202,7 +202,7 @@ class WhatsAppWebhookController extends Controller
         if ($message) {
             $message->update([
                 'status' => $statusType,
-                'status_updated_at' => $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now(),
+                'updated_at' => $timestamp ? \Carbon\Carbon::createFromTimestamp($timestamp) : now(),
             ]);
 
             Log::info('WhatsApp message status updated', [

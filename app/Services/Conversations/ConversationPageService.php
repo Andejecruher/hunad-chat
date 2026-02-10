@@ -174,7 +174,7 @@ class ConversationPageService
             'senderName' => $this->resolveSenderName($senderType, $conversation),
             'senderAvatar' => null,
             'timestamp' => $message->created_at?->format('H:i') ?? '',
-            'status' => $senderType === 'agent' ? 'sent' : null,
+            'status' => $message->status ?? 'sent',
             'attachments' => $message->attachments ?? [],
             'reactions' => [],
             'location' => is_array($location) ? $location : null,

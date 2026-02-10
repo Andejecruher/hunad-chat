@@ -106,7 +106,7 @@ export function MessageBubble({ message, showAvatar = true, onAddReaction, onRep
           )}
 
           {/* Text content */}
-          {message.content && <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>}
+          {message.content && <p className="text-sm whitespace-pre-wrap wrap-break-words leading-relaxed">{message.content}</p>}
 
           {/* Attachments */}
           {message.attachments && message.attachments.length > 0 && (
@@ -126,7 +126,7 @@ export function MessageBubble({ message, showAvatar = true, onAddReaction, onRep
                     </audio>
                   ) : (
                     <div className="flex items-center gap-2 p-2 rounded-lg bg-black/10 hover:bg-black/20 transition-colors cursor-pointer">
-                      <File className="h-4 w-4 flex-shrink-0" />
+                      <File className="h-4 w-4 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <div className="text-xs font-medium truncate">{attachment.name}</div>
                         <div className="text-xs opacity-70">{formatFileSize(attachment.size)}</div>
