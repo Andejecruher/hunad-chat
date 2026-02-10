@@ -71,6 +71,26 @@ function WhatsAppConfigEditor({ config, onChange }: { config?: unknown; onChange
                     placeholder="3223188252"
                 />
             </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="whatsappappid">App ID</Label>
+                <Input
+                    id="whatsappappid"
+                    value={value('whatsapp_app_id')}
+                    onChange={(e) => handleChange('whatsapp_app_id', e.target.value)}
+                    placeholder="1234567890"
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="whatsappappsecret">App Secret</Label>
+                <Input
+                    id="whatsappappsecret"
+                    value={value('whatsapp_app_secret')}
+                    onChange={(e) => handleChange('whatsapp_app_secret', e.target.value)}
+                    placeholder="abcdef123456"
+                />
+            </div>
         </div>
     )
 }
@@ -141,7 +161,9 @@ function validateChannel(channel: Partial<Channel>) {
         if (!cfg?.phone_number_id) errors.phone_number_id = 'WhatsApp phone number required'
         if (!cfg?.access_token) errors.access_token = 'WhatsApp API key required'
         if (!cfg?.whatsapp_business_id) errors.whatsapp_business_id = 'Business Account ID required'
-        if (!cfg?.whatsapp_phone_number_id) errors.whatsapp_phone_number_id = 'Webhook URL required'
+        if (!cfg?.whatsapp_phone_number_id) errors.whatsapp_phone_number_id = 'WhatsApp Phone ID required'
+        if (!cfg?.whatsapp_app_id) errors.whatsapp_app_id = 'App ID required'
+        if (!cfg?.whatsapp_app_secret) errors.whatsapp_app_secret = 'App Secret required'
     }
 
     if (channel.type === 'telegram') {

@@ -7,6 +7,8 @@ export interface WhatsAppConfig {
     phone_number_id: string,
     whatsapp_business_id: number,
     whatsapp_phone_number_id: number
+    whatsapp_app_id: number
+    whatsapp_app_secret: string
 }
 
 export interface InstagramConfig {

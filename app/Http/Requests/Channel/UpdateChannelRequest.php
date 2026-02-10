@@ -50,11 +50,10 @@ class UpdateChannelRequest extends FormRequest
                 'access_token' => $config['access_token'] ?? null,
                 'phone_number_id' => $config['phone_number_id'] ?? null,
                 // acepta ambos nombres: whatsapp_business_id o business_id
-                'business_id' => $config['whatsapp_business_id'] ?? $config['business_id'] ?? null,
+                'whatsapp_business_id' => $config['whatsapp_business_id'] ?? $config['business_id'] ?? null,
                 'whatsapp_phone_number_id' => $config['whatsapp_phone_number_id'] ?? null,
-                'app_secret' => $config['app_secret'] ?? null,
-                'api_key' => $config['api_key'] ?? null,
-                'webhook_secret' => $config['webhook_secret'] ?? null,
+                'whatsapp_app_id' => $config['whatsapp_app_id'] ?? null,
+                'whatsapp_app_secret' => $config['whatsapp_app_secret'] ?? null,
             ];
 
             $merge = [];
@@ -74,14 +73,6 @@ class UpdateChannelRequest extends FormRequest
         // Limpieza general si vienen top-level fields
         if ($this->has('access_token')) {
             $this->merge(['access_token' => trim((string) $this->input('access_token'))]);
-        }
-
-        if ($this->has('phone_number_id')) {
-            $this->merge(['phone_number_id' => trim((string) $this->input('phone_number_id'))]);
-        }
-
-        if ($this->has('business_id')) {
-            $this->merge(['business_id' => trim((string) $this->input('business_id'))]);
         }
     }
 
@@ -116,9 +107,8 @@ class UpdateChannelRequest extends FormRequest
             'config.phone_number_id' => ['sometimes', 'nullable', 'string', 'regex:/^\d+$/'],
             'config.whatsapp_business_id' => ['sometimes', 'nullable', 'string', 'regex:/^\d+$/'],
             'config.whatsapp_phone_number_id' => ['sometimes', 'nullable', 'string', 'regex:/^\d+$/'],
-            'config.app_secret' => ['sometimes', 'nullable', 'string', 'min:32'],
-            'config.api_key' => ['sometimes', 'nullable', 'string'],
-            'config.webhook_secret' => ['sometimes', 'nullable', 'string'],
+            'config.whatsapp_app_id' => ['sometimes', 'nullable', 'string'],
+            'config.whatsapp_app_secret' => ['sometimes', 'nullable', 'string'],
         ];
     }
 
@@ -135,8 +125,10 @@ class UpdateChannelRequest extends FormRequest
             'config.access_token.min' => 'El token de acceso dentro de `config` debe tener al menos :min caracteres.',
             'phone_number_id.regex' => 'El ID del número de teléfono debe contener solo dígitos.',
             'config.phone_number_id.regex' => 'El ID del número de teléfono en `config` debe contener solo dígitos.',
-            'business_id.regex' => 'El ID del negocio debe contener solo dígitos.',
             'config.whatsapp_business_id.regex' => 'El ID del negocio en `config` debe contener solo dígitos.',
+            'config.whatsapp_phone_number_id.regex' => 'El ID del número de teléfono de WhatsApp en `config` debe contener solo dígitos.',
+            'config.whatsapp_app_id.string' => 'El ID de la aplicación de WhatsApp en `config` debe ser una cadena de texto.',
+            'config.whatsapp_app_secret.string' => 'El secreto de la aplicación de WhatsApp en `config` debe ser una cadena de texto.',
         ];
     }
 

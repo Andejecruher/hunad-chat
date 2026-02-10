@@ -239,10 +239,8 @@ class ChannelController extends Controller
             'phone_number_id',
             'whatsapp_business_id',
             'whatsapp_phone_number_id',
-            'business_id',
-            'app_secret',
-            'api_key',
-            'webhook_secret',
+            'whatsapp_app_id',
+            'whatsapp_app_secret',
         ];
 
         foreach ($topLevelKeys as $key) {

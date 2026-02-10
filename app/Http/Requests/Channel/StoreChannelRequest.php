@@ -45,6 +45,8 @@ class StoreChannelRequest extends FormRequest
             'config.phone_number_id' => ['nullable', 'string'],
             'config.whatsapp_business_id' => ['nullable', 'string'],
             'config.whatsapp_phone_number_id' => ['nullable', 'string'],
+            'config.whatsapp_app_secret' => ['nullable', 'string'],
+            'config.whatsapp_app_id' => ['nullable', 'string'],
         ];
     }
 
@@ -53,6 +55,11 @@ class StoreChannelRequest extends FormRequest
         return [
             'config.array' => 'El campo `config` debe ser un objeto JSON o un arreglo.',
             'config.access_token.min' => 'El access_token debe tener al menos :min caracteres.',
+            'config.whatsapp_business_id.required' => 'WhatsApp Business ID es requerido.',
+            'config.whatsapp_phone_number_id.required' => 'WhatsApp Phone ID es requerido.',
+            'config.whatsapp_app_id.required' => 'App ID es requerido.',
+            'config.whatsapp_app_secret.required' => 'App Secret es requerido.',
+            'config.phone_number_id.required' => 'WhatsApp phone number ID es requerido.',
         ];
     }
 }

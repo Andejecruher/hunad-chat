@@ -19,11 +19,11 @@ import {
 } from "@/components/ui/select"
 import channelsRouter from '@/routes/channels'
 import { type ChannelConfigMap, type ChannelType, platformInfo } from '@/types/channels'
+import { toFormData } from "@/utils/form-data-utils"
 import { router } from '@inertiajs/react'
 import { AlertCircle, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import {toFormData} from "@/utils/form-data-utils";
 
 
 
@@ -31,7 +31,7 @@ import {toFormData} from "@/utils/form-data-utils";
 const getInitialConfig = (type: ChannelType): ChannelConfigMap[ChannelType] => {
     switch (type) {
         case 'whatsapp':
-            return {  access_token: "", phone_number_id: "", whatsapp_business_id: 0, whatsapp_phone_number_id: 0 }
+            return { access_token: "", phone_number_id: "", whatsapp_business_id: 0, whatsapp_phone_number_id: 0, whatsapp_app_id: 0, whatsapp_app_secret: "" }
         // case 'instagram':
         //     return { accessToken: '', pageId: '', appSecret: '', webhookVerifyToken: '' }
         // case 'facebook':
@@ -52,8 +52,10 @@ const validateChannelConfig = (type: ChannelType, config: ChannelConfigMap[Chann
             const whatsappConfig = config as ChannelConfigMap['whatsapp']
             if (!whatsappConfig.phone_number_id) errors.push('El número de teléfono es requerido')
             if (!whatsappConfig.access_token) errors.push('La API Key es requerida')
-            if(!whatsappConfig.whatsapp_phone_number_id) errors.push('El WhatsApp Phone Number ID es requerido')
-            if(!whatsappConfig.whatsapp_business_id) errors.push('El Business Account Id es requerido')
+            if (!whatsappConfig.whatsapp_phone_number_id) errors.push('El WhatsApp Phone Number ID es requerido')
+            if (!whatsappConfig.whatsapp_business_id) errors.push('El Business Account Id es requerido')
+            if (!whatsappConfig.whatsapp_app_id) errors.push('El WhatsApp App ID es requerido')
+            if (!whatsappConfig.whatsapp_app_secret) errors.push('El WhatsApp App Secret es requerido')
             break
         }
         case 'instagram': {
@@ -142,6 +144,25 @@ export function ChannelAdd() {
                                 placeholder="ID de la cuenta empresarial"
                                 value={whatsappConfig.whatsapp_phone_number_id || ''}
                                 onChange={(e) => handleConfigChange('whatsapp_phone_number_id', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="whatsappAppId">WhatsApp App ID</Label>
+                            <Input
+                                id="whatsappAppId"
+                                placeholder="ID de tu aplicación de WhatsApp"
+                                value={whatsappConfig.whatsapp_app_id || ''}
+                                onChange={(e) => handleConfigChange('whatsapp_app_id', e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="whatsappAppSecret">WhatsApp App Secret</Label>
+                            <Input
+                                id="whatsappAppSecret"
+                                type="password"
+                                placeholder="App Secret de tu aplicación de WhatsApp"
+                                value={whatsappConfig.whatsapp_app_secret || ''}
+                                onChange={(e) => handleConfigChange('whatsapp_app_secret', e.target.value)}
                             />
                         </div>
                     </>
@@ -335,7 +356,7 @@ export function ChannelAdd() {
         setErrors([])
 
         try {
-            const backendData = toFormData({...formData}, 'POST');
+            const backendData = toFormData({ ...formData }, 'POST');
             // Enviar al backend usando Inertia
             router.post(channelsRouter.store.url(), backendData, {
                 preserveState: true,
