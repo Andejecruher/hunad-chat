@@ -218,9 +218,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
             'type' => $messageType,
             'attachments' => $attachments,
             'payload' => $this->messageData,
-            'created_at' => $timestamp
-                ? \Carbon\Carbon::createFromTimestampUTC((int) $timestamp)->setTimezone('UTC')
-                : now('UTC'),
+            'created_at' => $timestamp,
         ]);
     }
 

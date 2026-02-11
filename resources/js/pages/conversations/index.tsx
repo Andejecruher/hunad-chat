@@ -23,6 +23,7 @@ export default function ConversationsPage(props: {
     channelLines: ChannelLine[];
     selectedConversationId?: string | null;
 }) {
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Conversations" />

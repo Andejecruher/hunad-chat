@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Message } from "@/types/conversation"
+// use browser Intl for locale-aware time formatting (supports each user's locale/timezone)
 import { motion } from "framer-motion"
 import { Bot, Download, File, MapPin, Reply, Smile } from "lucide-react"
 import { useState } from "react"
@@ -26,6 +27,9 @@ export function MessageBubble({ message, showAvatar = true, onAddReaction, onRep
   const [showReactions, setShowReactions] = useState(false)
   const isFromClient = message.sender === "client"
   const isFromAI = message.sender === "ai"
+  const formattedTime = message.timestamp
+    ? new Intl.DateTimeFormat(navigator.language, { hour: '2-digit', minute: '2-digit' }).format(new Date(message.timestamp))
+    : ''
 
   return (
     <motion.div
@@ -181,7 +185,7 @@ export function MessageBubble({ message, showAvatar = true, onAddReaction, onRep
 
         {/* Timestamp and Status */}
         <div className={`flex items-center gap-1 text-xs text-muted-foreground mt-1 px-2`}>
-          <span>{message.timestamp}</span>
+          <span>{formattedTime}</span>
           {!isFromClient && message.status && <MessageStatus status={message.status} />}
         </div>
       </div>

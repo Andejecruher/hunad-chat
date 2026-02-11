@@ -200,7 +200,7 @@ class SendWhatsAppMessageJob implements ShouldQueue
             'sent_at' => now(),
             'metadata' => array_merge($this->message->metadata ?? [], [
                 'api_response' => $response,
-                'sent_timestamp' => $response['timestamp'] ?? now()->toISOString(),
+                'sent_timestamp' => $response['timestamp'] ?? now()->timestamp,
             ]),
         ]);
     }

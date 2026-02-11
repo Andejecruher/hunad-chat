@@ -173,7 +173,7 @@ class ConversationPageService
             'sender' => $senderType,
             'senderName' => $this->resolveSenderName($senderType, $conversation),
             'senderAvatar' => null,
-            'timestamp' => $message->created_at?->format('H:i') ?? '',
+            'timestamp' => $message->created_at?->toIso8601String() ?? null,
             'status' => $message->status ?? 'sent',
             'attachments' => $message->attachments ?? [],
             'reactions' => [],

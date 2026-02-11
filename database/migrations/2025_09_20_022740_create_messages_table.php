@@ -22,7 +22,7 @@ return new class extends Migration
             $table->string('external_id')->nullable(); // ID de cuenta/línea específica
             $table->json('attachments')->nullable();
             $table->json('payload')->nullable();
-            $table->timestamps();
+            $table->timestampsTz();
         });
     }
 
