@@ -9,7 +9,7 @@ import conversationsRoutes from "@/routes/conversations"
 import type { PaginatedData } from "@/types"
 import type { ChannelLine, Conversation, ConversationStatus, Location, Message, TransferTarget } from "@/types/conversation"
 import { router, useForm } from "@inertiajs/react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 interface ConversationFilters {
@@ -48,7 +48,7 @@ const getUrl = (route: unknown, params?: unknown) => {
 }
 
 export function ChatPanel({ conversations, messages, filters, channelLines, selectedConversationId }: ChatPanelProps) {
-    const [showInfo, setShowInfo] = useState(true)
+    const [showInfo, setShowInfo] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const [mobileView, setMobileView] = useState<"list" | "chat" | "info">("list")
     const [newConvModalOpen, setNewConvModalOpen] = useState(false)
@@ -112,7 +112,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
         return () => window.removeEventListener("resize", checkMobile)
     }, [])
 
-    const submitFilters = (next?: Partial<typeof filterForm.data>) => {
+    const submitFilters = useCallback((next?: Partial<typeof filterForm.data>) => {
         const payload = { ...filterForm.data, ...(next ?? {}) }
         router.get(getUrl(conversationsRoutes.index), payload, {
             preserveState: true,
@@ -120,7 +120,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
             replace: true,
             only: ["conversations", "filters", "selectedConversationId", "messages", "channelLines"],
         })
-    }
+    }, [filterForm])
 
     const handleSelectConversation = (conversation: Conversation) => {
         setActiveConversationId(conversation.id)
@@ -158,55 +158,77 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
         })
     }
 
-    const handleAddReaction = (_messageId: string, _emoji: string) => {
+    const handleAddReaction = useCallback((_messageId: string, _emoji: string) => {
         void _messageId
         void _emoji
         toast.info("Reaccion agregada")
-    }
+    }, [])
 
-    const handleReplyTo = (_message: Message) => {
+    const handleReplyTo = useCallback((_message: Message) => {
         void _message
         toast.info("Responder mensaje")
-    }
+    }, [])
 
-    const handleChangeStatus = (status: ConversationStatus) => {
+    const handleChangeStatus = useCallback((status: ConversationStatus) => {
         toast.success(`Estado cambiado a ${status}`)
-    }
+    }, [])
 
-    const handleAssignAgent = () => {
+    const handleAssignAgent = useCallback(() => {
         toast.info("Asignar agente")
-    }
+    }, [])
 
-    const handleAddTag = () => {
+    const handleAddTag = useCallback(() => {
         toast.info("Agregar etiqueta")
-    }
+    }, [])
 
-    const handleRemoveTag = () => {
+    const handleRemoveTag = useCallback(() => {
         toast.info("Eliminar etiqueta")
-    }
+    }, [])
 
-    const handleTransfer = async (target: TransferTarget, targetId: string) => {
+    const handleTransfer = useCallback(async (target: TransferTarget, targetId: string) => {
         console.log("[conversations] Transfer", target, targetId)
         await new Promise((resolve) => setTimeout(resolve, 500))
-    }
+    }, [])
 
-    const handleCloseTicket = () => {
+    const handleCloseTicket = useCallback(() => {
         toast.info("Cerrar ticket")
-    }
+    }, [])
 
-    const handleToggleInfo = () => {
+    const handleToggleInfo = useCallback(() => {
         if (isMobile) {
             setMobileView("info")
         } else {
             setShowInfo(!showInfo)
         }
-    }
+    }, [isMobile, showInfo])
 
-    if (!selectedConversation) {
-        return <div className="flex min-h-0 flex-1 items-center justify-center">Selecciona una conversacion</div>
-    }
+    // Memoized filter handlers
+    const handleSearchChange = useCallback((value: string) => {
+        filterForm.setData("search", value)
+        submitFilters({ search: value })
+    }, [filterForm, submitFilters])
 
-    const composer = {
+    const handleChannelFilterChange = useCallback((value: string) => {
+        filterForm.setData("channel", value)
+        filterForm.setData("line", "all")
+        submitFilters({ channel: value, line: "all" })
+    }, [filterForm, submitFilters])
+
+    const handleLineFilterChange = useCallback((value: string) => {
+        filterForm.setData("line", value)
+        submitFilters({ line: value })
+    }, [filterForm, submitFilters])
+
+    const handleNewConversation = useCallback(() => {
+        setNewConvModalOpen(true)
+    }, [])
+
+    const handleOpenTransferDialog = useCallback(() => {
+        setTransferDialogOpen(true)
+    }, [])
+
+    // Memoized composer object
+    const composer = useMemo(() => ({
         value: messageForm.data.content,
         attachments: messageForm.data.attachments,
         location: messageForm.data.location,
@@ -214,6 +236,75 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
         onAttachmentsChange: (files: File[]) => messageForm.setData((data) => ({ ...data, attachments: files })),
         onLocationChange: (location: Location | null) => messageForm.setData((data) => ({ ...data, location })),
         isSending: messageForm.processing,
+    }), [messageForm])
+
+    if (!selectedConversation) {
+        return (
+            <div className="flex h-full min-h-0 flex-1 gap-0 overflow-hidden">
+                {isMobile ? (
+                    <div className="flex h-full min-h-0 flex-1">
+                        <ConversationList
+                            conversations={conversations}
+                            selectedId={""}
+                            onSelect={handleSelectConversation}
+                            searchQuery={filterForm.data.search}
+                            channelFilter={filterForm.data.channel}
+                            onSearchChange={handleSearchChange}
+                            onChannelFilterChange={handleChannelFilterChange}
+                            onNewConversation={handleNewConversation}
+                            channelLines={channelLines}
+                            selectedLineId={filterForm.data.line}
+                            onLineFilterChange={handleLineFilterChange}
+                        />
+                    </div>
+                ) : (
+                    <>
+                        <ConversationList
+                            conversations={conversations}
+                            selectedId={""}
+                            onSelect={handleSelectConversation}
+                            searchQuery={filterForm.data.search}
+                            channelFilter={filterForm.data.channel}
+                            onSearchChange={handleSearchChange}
+                            onChannelFilterChange={handleChannelFilterChange}
+                            onNewConversation={handleNewConversation}
+                            channelLines={channelLines}
+                            selectedLineId={filterForm.data.line}
+                            onLineFilterChange={handleLineFilterChange}
+                        />
+
+                        <div className="flex h-full min-h-0 flex-1 items-center justify-center px-6">
+                            <div className="text-center">
+                                <p className="text-sm text-zinc-600">Selecciona una conversación o crea una nueva</p>
+                                <div className="mt-4">
+                                    <button
+                                        type="button"
+                                        onClick={handleNewConversation}
+                                        className="rounded-md bg-blue-600 px-3 py-1 text-white"
+                                    >
+                                        Nueva conversación
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+
+                <NewConversationModal
+                    open={newConvModalOpen}
+                    onOpenChange={setNewConvModalOpen}
+                    channelLines={channelLines}
+                    createUrl={getUrl(conversationsRoutes.store)}
+                />
+
+                <TransferDialog
+                    open={transferDialogOpen}
+                    onOpenChange={setTransferDialogOpen}
+                    onTransfer={handleTransfer}
+                    conversationId={""}
+                />
+            </div>
+        )
     }
 
     return (
@@ -227,22 +318,12 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         onSelect={handleSelectConversation}
                         searchQuery={filterForm.data.search}
                         channelFilter={filterForm.data.channel}
-                        onSearchChange={(value) => {
-                            filterForm.setData("search", value)
-                            submitFilters({ search: value })
-                        }}
-                        onChannelFilterChange={(value) => {
-                            filterForm.setData("channel", value)
-                            filterForm.setData("line", "all")
-                            submitFilters({ channel: value, line: "all" })
-                        }}
-                        onNewConversation={() => setNewConvModalOpen(true)}
+                        onSearchChange={handleSearchChange}
+                        onChannelFilterChange={handleChannelFilterChange}
+                        onNewConversation={handleNewConversation}
                         channelLines={channelLines}
                         selectedLineId={filterForm.data.line}
-                        onLineFilterChange={(value) => {
-                            filterForm.setData("line", value)
-                            submitFilters({ line: value })
-                        }}
+                        onLineFilterChange={handleLineFilterChange}
                     />
                 </div>
             )}
@@ -256,7 +337,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         composer={composer}
                         onSendMessage={handleSendMessage}
                         onToggleInfo={handleToggleInfo}
-                        onTransfer={() => setTransferDialogOpen(true)}
+                        onTransfer={handleOpenTransferDialog}
                         onAddReaction={handleAddReaction}
                         onReplyTo={handleReplyTo}
                         isTyping={false}
@@ -288,22 +369,12 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         onSelect={handleSelectConversation}
                         searchQuery={filterForm.data.search}
                         channelFilter={filterForm.data.channel}
-                        onSearchChange={(value) => {
-                            filterForm.setData("search", value)
-                            submitFilters({ search: value })
-                        }}
-                        onChannelFilterChange={(value) => {
-                            filterForm.setData("channel", value)
-                            filterForm.setData("line", "all")
-                            submitFilters({ channel: value, line: "all" })
-                        }}
-                        onNewConversation={() => setNewConvModalOpen(true)}
+                        onSearchChange={handleSearchChange}
+                        onChannelFilterChange={handleChannelFilterChange}
+                        onNewConversation={handleNewConversation}
                         channelLines={channelLines}
                         selectedLineId={filterForm.data.line}
-                        onLineFilterChange={(value) => {
-                            filterForm.setData("line", value)
-                            submitFilters({ line: value })
-                        }}
+                        onLineFilterChange={handleLineFilterChange}
                     />
 
                     <ChatWindow
@@ -312,7 +383,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         composer={composer}
                         onSendMessage={handleSendMessage}
                         onToggleInfo={handleToggleInfo}
-                        onTransfer={() => setTransferDialogOpen(true)}
+                        onTransfer={handleOpenTransferDialog}
                         onAddReaction={handleAddReaction}
                         onReplyTo={handleReplyTo}
                         isTyping={false}
