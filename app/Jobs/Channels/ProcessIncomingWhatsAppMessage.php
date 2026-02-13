@@ -112,8 +112,18 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
         // Mark the message as read automatically
         $this->markMessageAsRead($messageId);
 
-        // Dispatch event for real-time updates
+        // Dispatch events for real-time updates
         MessageReceived::dispatch($message);
+
+        try {
+            broadcast(new \App\Events\MessageBroadcasted($message))->toOthers();
+        } catch (\Throwable $e) {
+            Log::warning('Failed to broadcast MessageBroadcasted for incoming WhatsApp message', [
+                'channel_id' => $this->channel->id,
+                'message_id' => $messageId,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         Log::info('WhatsApp message processed successfully', [
             'message_id' => $messageId,

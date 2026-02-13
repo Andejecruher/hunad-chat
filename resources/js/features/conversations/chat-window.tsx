@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import useConversationRealtime from "@/hooks/use-conversation-realtime"
 import type { ChatWindowEnhancedProps } from "@/types/conversation"
 import { AnimatePresence, motion } from "framer-motion"
 import { Archive, ArrowRightLeft, Info, MoreVertical, Phone, Star, Tag, User, Video } from "lucide-react"
@@ -24,6 +25,13 @@ import { MessageInput } from "./message-input"
 import { TypingIndicator } from "./typing-indicator"
 
 export function ChatWindow({ conversation, messages, composer, onSendMessage, onToggleInfo, onTransfer, onAddReaction, onReplyTo, isTyping }: ChatWindowEnhancedProps) {
+
+  useConversationRealtime(Number(conversation?.id), (payload) => {
+    console.log("🚀 --------------------------------------🚀");
+    console.log("🚀 ~ :28 ~ ChatWindow ~ payload:", payload);
+    console.log("🚀 --------------------------------------🚀"
+    );
+  })
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {

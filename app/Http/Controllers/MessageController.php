@@ -51,6 +51,18 @@ class MessageController extends Controller
             'status' => 'pending',
         ]);
 
+        // Broadcast the new message to the conversation channel (to others)
+        try {
+            broadcast(new \App\Events\MessageBroadcasted($message))->toOthers();
+        } catch (\Throwable $e) {
+            // Non-fatal: do not break message flow if broadcasting fails
+            Log::warning('Failed to broadcast MessageBroadcasted event', [
+                'conversation_id' => $conversation->id,
+                'message_id' => $message->id ?? null,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
         // Dispatch channel-specific jobs (WhatsApp for now)
         try {
             $conversation->loadMissing('channel');

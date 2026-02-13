@@ -10,6 +10,28 @@ configureEcho({
     broadcaster: 'reverb',
 });
 
+// Quick runtime check to help debug Echo initialization in the browser console.
+// This logs connector/options when Echo is available without altering behavior.
+// Keep this minimal and safe for production debugging.
+if (typeof window !== 'undefined') {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+
+    if (w.Echo) {
+        try {
+            // Some connectors expose internal options
+
+            console.debug('Echo initialized:', w.Echo.connector?.options ?? w.Echo);
+        } catch {
+
+            console.debug('Echo present but failed to read connector options');
+        }
+    } else {
+
+        console.warn('Echo not initialized yet. If private channels fail, ensure configureEcho is correct and @laravel/echo-react is loaded.');
+    }
+}
+
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({

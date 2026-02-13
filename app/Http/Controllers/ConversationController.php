@@ -88,6 +88,22 @@ class ConversationController extends Controller
                 ]);
             }
 
+            // If a message was created in this flow, broadcast it to the conversation channel
+            // We attempt to find the last message created for this conversation within the transaction.
+            try {
+                $last = \App\Models\Message::where('conversation_id', $conversation->id)->latest('id')->first();
+
+                if ($last) {
+                    broadcast(new \App\Events\MessageBroadcasted($last))->toOthers();
+                }
+            } catch (\Throwable $e) {
+                // Non-fatal: keep business logic intact
+                \Illuminate\Support\Facades\Log::warning('Failed to broadcast message created in ConversationController::store', [
+                    'conversation_id' => $conversation->id,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             return $conversation;
         });
 
