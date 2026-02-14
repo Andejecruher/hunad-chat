@@ -5,7 +5,7 @@ export function HeroSection() {
     return (
         <section className="relative overflow-hidden py-20 lg:py-32">
             {/* Background gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5" />
 
             <div className="relative container m-auto">
                 <div className="mx-auto max-w-4xl text-center">

@@ -69,7 +69,7 @@ export function CompanySettings({
 
     // function to logo upload and preview
     function getLogoUrl(logo_url: string): string {
-        if (!logo_url) return '/placeholder.svg';
+        if (!logo_url) return '';
         if (
             logo_url.startsWith('http://') ||
             logo_url.startsWith('https://') ||
@@ -392,7 +392,7 @@ export function CompanySettings({
                                                     getLogoUrl(
                                                         companySettings.branding
                                                             .logo_url,
-                                                    ) || '/placeholder.svg'
+                                                    ) || ''
                                                 }
                                                 alt="Logo preview"
                                                 width={80}
@@ -667,7 +667,7 @@ export function CompanySettings({
                                                     getLogoUrl(
                                                         companySettings.branding
                                                             .logo_url,
-                                                    ) || '/placeholder.svg'
+                                                    ) || ''
                                                 }
                                                 alt="Logo"
                                                 width={24}

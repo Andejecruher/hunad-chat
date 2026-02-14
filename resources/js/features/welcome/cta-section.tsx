@@ -13,7 +13,7 @@ export function CTASection() {
     return (
         <section className="py-20 lg:py-32">
             <div className="container m-auto">
-                <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+                <Card className="relative overflow-hidden border-primary/20 bg-linear-to-br from-primary/5 via-background to-secondary/5">
                     <CardContent className="p-12 lg:p-16">
                         <div className="mx-auto max-w-3xl text-center">
                             <h2 className="mb-6 text-3xl font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
@@ -35,7 +35,7 @@ export function CTASection() {
                                         key={index}
                                         className="flex items-center space-x-2 text-sm"
                                     >
-                                        <CheckCircle className="h-4 w-4 flex-shrink-0 text-primary" />
+                                        <CheckCircle className="h-4 w-4 shrink-0 text-primary" />
                                         <span>{benefit}</span>
                                     </div>
                                 ))}

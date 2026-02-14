@@ -54,6 +54,8 @@ export default function useConversationRealtime(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const echo = (window as any).Echo;
 
+        console.log('useConversationRealtime', echo);
+
         if (!echo || subscribed.current) {
             return;
         }
@@ -76,22 +78,13 @@ export default function useConversationRealtime(
         };
 
         // Listen common event names and variations to avoid mismatch with backend
-        privateChannel.listen('.message.broadcasted', handler);
-        privateChannel.listen('message.broadcasted', handler);
-        privateChannel.listen('.message.sent', handler);
-        privateChannel.listen('message.sent', handler);
-        privateChannel.listen('App\\Events\\MessageBroadcasted', handler);
+        privateChannel.listen('message.received', handler);
 
         subscribed.current = true;
 
         return () => {
             try {
-                privateChannel.stopListening('.message.broadcasted');
-                privateChannel.stopListening('message.broadcasted');
-                privateChannel.stopListening('.message.sent');
-                privateChannel.stopListening('message.sent');
-                privateChannel.stopListening('App\\Events\\MessageBroadcasted');
-
+                privateChannel.stopListening('message.received');
                 // Leave the underlying private channel to avoid leaks
                 if (typeof echo.leave === 'function') {
                     echo.leave(`private-${channelName}`);

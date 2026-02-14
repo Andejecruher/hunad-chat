@@ -529,7 +529,7 @@ export default function Register() {
                                                     <img
                                                         src={
                                                             brandingData.logoUrl ||
-                                                            '/placeholder.svg'
+                                                            ''
                                                         }
                                                         alt="Logo preview"
                                                         width={80}
@@ -805,7 +805,7 @@ export default function Register() {
                                                     <img
                                                         src={
                                                             brandingData.logoUrl ||
-                                                            '/placeholder.svg'
+                                                            ''
                                                         }
                                                         alt="Logo"
                                                         width={24}

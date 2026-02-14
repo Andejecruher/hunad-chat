@@ -124,7 +124,7 @@ export function Pricing() {
                                         key={featureIndex}
                                         className="flex items-center gap-3"
                                     >
-                                        <Check className="h-4 w-4 flex-shrink-0 text-primary" />
+                                        <Check className="h-4 w-4 shrink-0 text-primary" />
                                         <span className="text-sm">
                                             {feature}
                                         </span>

@@ -90,7 +90,44 @@ php artisan db:seed
 
 ---
 
-## 👨‍💻 Autor
+## � Tiempo real con Laravel Reverb + Echo
+
+Para habilitar la mensajería en tiempo real debes completar la siguiente configuración:
+
+1. **Variables de entorno**
+   * Define `BROADCAST_CONNECTION=reverb` en tu `.env`.
+   * Completa las claves `REVERB_APP_ID`, `REVERB_APP_KEY`, `REVERB_APP_SECRET`, `REVERB_HOST`, `REVERB_PORT`, `REVERB_SCHEME` y los parámetros del servidor (`REVERB_SERVER_HOST`, `REVERB_SERVER_PORT`, `REVERB_SERVER_PATH`). Consulta el archivo `.env.example` para un esquema actualizado @.env.example#47-106.
+   * Expón las mismas variables para Vite (`VITE_REVERB_*`) a fin de que el frontend pueda consumirlas @resources/js/app.tsx#9-33.
+
+2. **Eventos y canales**
+   * Los eventos que implementan `ShouldBroadcast` (por ejemplo `MessageReceived`) se publican en los canales privados `company.{companyId}` y `conversation.{conversationId}` @app/Events/MessageReceived.php#20-98.
+   * Verifica la autorización en `routes/channels.php` para que los usuarios puedan suscribirse correctamente @routes/channels.php#11-29.
+
+3. **Arranque de servicios**
+
+   ```bash
+   # Inicia el servidor Reverb
+   php artisan reverb:start
+
+   # Lanza el worker de colas si los eventos se despachan de manera asíncrona
+   php artisan queue:work
+
+   # Compila assets y arranca Vite/React
+    npm run dev
+   ```
+
+4. **Frontend**
+   * El archivo `resources/js/app.tsx` inicializa `configureEcho` con el broadcaster `reverb` usando las variables de entorno expuestas para Vite; esto crea `window.Echo` para toda la aplicación @resources/js/app.tsx#1-42.
+   * El hook `useConversationRealtime` escucha el evento `message.received` en `conversation.{conversationId}` y maneja la normalización del payload @resources/js/hooks/use-conversation-realtime.ts#42-97.
+
+5. **Pruebas locales**
+   * Arranca la aplicación (`php artisan serve`) y envía un mensaje que dispare el evento `MessageReceived`.
+   * Abre la consola del navegador y confirma que `window.Echo` está definido y que el hook recibe el evento (`useConversationRealtime` registra en consola al suscribirse).
+   * Si la conexión falla, revisa los logs de Laravel y la pestaña Network → WS para validar handshakes y autenticación del canal privado.
+
+---
+
+## �👨‍💻 Autor
 
 **Andejecruher** – Full Stack Developer 🚀
 
