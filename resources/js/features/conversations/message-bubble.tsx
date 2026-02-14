@@ -33,10 +33,18 @@ export function MessageBubble({
     const isFromClient = message.sender === 'client';
     const isFromAI = message.sender === 'ai';
     const formattedTime = message.timestamp
-        ? new Intl.DateTimeFormat(navigator.language, {
-              hour: '2-digit',
-              minute: '2-digit',
-          }).format(new Date(message.timestamp))
+        ? (() => {
+            const messageDate = new Date(message.timestamp);
+            const today = new Date();
+            const isToday = messageDate.toDateString() === today.toDateString();
+
+            return new Intl.DateTimeFormat(navigator.language, {
+                weekday: !isToday ? 'long' : undefined,
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            }).format(messageDate);
+        })()
         : '';
 
     return (
@@ -72,13 +80,12 @@ export function MessageBubble({
             >
                 {/* Bubble */}
                 <div
-                    className={`group relative rounded-2xl px-4 py-2 ${
-                        isFromClient
-                            ? 'rounded-tl-none bg-muted text-foreground'
-                            : isFromAI
-                              ? 'bg-brand-teal rounded-tr-none text-white'
-                              : 'rounded-tr-none bg-primary text-primary-foreground'
-                    }`}
+                    className={`group relative rounded-2xl px-4 py-2 ${isFromClient
+                        ? 'rounded-tl-none bg-muted text-foreground'
+                        : isFromAI
+                            ? 'bg-brand-teal rounded-tr-none text-white'
+                            : 'rounded-tr-none bg-primary text-primary-foreground'
+                        }`}
                     onMouseEnter={() => setShowReactions(true)}
                     onMouseLeave={() => setShowReactions(false)}
                 >

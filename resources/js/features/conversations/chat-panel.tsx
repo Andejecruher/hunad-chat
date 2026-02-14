@@ -140,12 +140,13 @@ export function ChatPanel({ conversations, conversationsMeta, messages, messages
             for (const m of next) {
                 if (!seen.has(m.id)) merged.push(m)
             }
-            return merged
+            return merged.sort((a, b) => a.timestamp.localeCompare(b.timestamp))
         })
 
         setHasMoreMessages(Boolean(messagesMeta?.nextPageUrl))
         setIsLoadingOlderMessages(false)
     }, [messages, messagesMeta?.nextPageUrl])
+
 
     useEffect(() => {
         if (selectedConversationId) {
@@ -214,6 +215,7 @@ export function ChatPanel({ conversations, conversationsMeta, messages, messages
         if (isLoadingOlderMessages || !hasMoreMessages) return
 
         const nextPageUrl = messagesMeta?.nextPageUrl
+
         if (!nextPageUrl) {
             setHasMoreMessages(false)
             return
@@ -227,6 +229,7 @@ export function ChatPanel({ conversations, conversationsMeta, messages, messages
             replace: false,
         })
     }, [hasMoreMessages, isLoadingOlderMessages, messagesMeta?.nextPageUrl])
+
 
     const handleSelectConversation = (conversation: Conversation) => {
         setActiveConversationId(conversation.id)

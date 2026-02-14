@@ -83,6 +83,7 @@ export function ChatWindow({
     }, [messages]);
 
     useEffect(() => {
+
         if (pendingPrependRestoreRef.current) return;
 
         if (shouldStickToBottomRef.current) {
