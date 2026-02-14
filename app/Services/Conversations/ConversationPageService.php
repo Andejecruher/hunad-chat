@@ -112,7 +112,7 @@ class ConversationPageService
     {
         return Message::query()
             ->where('conversation_id', $conversation->id)
-            ->orderBy('created_at')
+            ->orderBy('created_at', 'asc')
             ->paginate($perPage, ['*'], 'messages_page')
             ->withQueryString();
     }

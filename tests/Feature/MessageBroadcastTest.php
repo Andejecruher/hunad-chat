@@ -8,9 +8,9 @@ use App\Models\Company;
 use App\Models\Conversation;
 use App\Models\Customer;
 use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Str;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class MessageBroadcastTest extends TestCase
@@ -46,7 +46,7 @@ class MessageBroadcastTest extends TestCase
 
         $user = User::create([
             'name' => 'Agent',
-            'email' => Str::random(8) . '@example.com',
+            'email' => Str::random(8).'@example.com',
             'password' => 'password',
             'company_id' => $company->id,
         ]);

@@ -14,7 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { ChatWindowEnhancedProps } from '@/types/conversation';
-import { useEcho } from '@laravel/echo-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
     Archive,
@@ -49,14 +48,6 @@ export function ChatWindow({
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
-
-    useEcho(`conversation.${conversation.id}`, 'message.received', (e) => {
-        console.log(e.message);
-    });
-
-    useEcho(`conversation.${conversation.id}`, 'message.broadcasted', (e) => {
-        console.log(e.message);
-    });
 
     const getStatusBadge = (status: string) => {
         switch (status) {

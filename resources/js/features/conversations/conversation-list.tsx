@@ -349,7 +349,7 @@ function ConversationItem({
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                             >
-                                <Badge className="bg-brand-green ml-2 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs text-white">
+                                <Badge className="bg-brand-green ml-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-xs text-white">
                                     {conversation.unreadCount}
                                 </Badge>
                             </motion.div>

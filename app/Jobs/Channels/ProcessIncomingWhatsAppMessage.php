@@ -371,7 +371,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     /**
      * Handle job failures.
      *
-     * @param  \Throwable  $exception that caused the failure
+     * @param  \Throwable  $exception  that caused the failure
      */
     public function failed(\Throwable $exception): void
     {
