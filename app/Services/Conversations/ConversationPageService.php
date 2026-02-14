@@ -21,15 +21,30 @@ class ConversationPageService
     public function buildPageProps(User $user, Request $request, ?Conversation $selectedConversation = null): array
     {
         $filters = $this->filtersFromRequest($request);
-        $conversations = $this->conversationQuery($user->company_id, $filters)->get();
-        $resolvedConversation = $this->resolveSelectedConversation($conversations, $selectedConversation, $request->query('conversation'));
+        $conversations = $this->conversationQuery($user->company_id, $filters)
+            ->paginate((int) $request->integer('conversations_limit', 30), ['*'], 'conversations_page')
+            ->withQueryString();
+
+        $resolvedConversation = $this->resolveSelectedConversation($conversations->getCollection(), $selectedConversation, $request->query('conversation'));
         $messages = $resolvedConversation
             ? $this->messagesPaginator($resolvedConversation, (int) $request->integer('messages_limit', 30))
             : null;
 
         return [
-            'conversations' => $conversations->map(fn (Conversation $conversation) => $this->mapConversation($conversation))->values(),
+            'conversations' => $conversations->through(fn (Conversation $conversation) => $this->mapConversation($conversation)),
+            'conversationsMeta' => [
+                'currentPage' => $conversations->currentPage(),
+                'lastPage' => $conversations->lastPage(),
+                'nextPageUrl' => $conversations->nextPageUrl(),
+                'prevPageUrl' => $conversations->previousPageUrl(),
+            ],
             'messages' => $messages?->through(fn (Message $message) => $this->mapMessage($message, $resolvedConversation)),
+            'messagesMeta' => $messages ? [
+                'currentPage' => $messages->currentPage(),
+                'lastPage' => $messages->lastPage(),
+                'nextPageUrl' => $messages->nextPageUrl(),
+                'prevPageUrl' => $messages->previousPageUrl(),
+            ] : null,
             'selectedConversationId' => $resolvedConversation ? (string) $resolvedConversation->id : null,
             'filters' => $filters,
             'channelLines' => $this->channelLines($user->company_id),
@@ -112,7 +127,7 @@ class ConversationPageService
     {
         return Message::query()
             ->where('conversation_id', $conversation->id)
-            ->orderBy('created_at', 'asc')
+            ->orderBy('created_at', 'desc')
             ->paginate($perPage, ['*'], 'messages_page')
             ->withQueryString();
     }

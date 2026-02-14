@@ -19,8 +19,20 @@ interface ConversationFilters {
 }
 
 interface ChatPanelProps {
-    conversations: Conversation[]
+    conversations: PaginatedData<Conversation[]>
+    conversationsMeta?: {
+        currentPage: number
+        lastPage: number
+        nextPageUrl: string | null
+        prevPageUrl: string | null
+    }
     messages: PaginatedData<Message[]> | null
+    messagesMeta?: {
+        currentPage: number
+        lastPage: number
+        nextPageUrl: string | null
+        prevPageUrl: string | null
+    } | null
     filters: ConversationFilters
     channelLines: ChannelLine[]
     selectedConversationId?: string | null
@@ -47,14 +59,21 @@ const getUrl = (route: unknown, params?: unknown) => {
     }
 }
 
-export function ChatPanel({ conversations, messages, filters, channelLines, selectedConversationId }: ChatPanelProps) {
+export function ChatPanel({ conversations, conversationsMeta, messages, messagesMeta, filters, channelLines, selectedConversationId }: ChatPanelProps) {
     const [showInfo, setShowInfo] = useState(false)
     const [isMobile, setIsMobile] = useState(false)
     const [mobileView, setMobileView] = useState<"list" | "chat" | "info">("list")
     const [newConvModalOpen, setNewConvModalOpen] = useState(false)
     const [transferDialogOpen, setTransferDialogOpen] = useState(false)
+    const initialConversations = useMemo(() => conversations?.data ?? [], [conversations])
+    const [conversationItems, setConversationItems] = useState<Conversation[]>(initialConversations)
+    const [isLoadingMoreConversations, setIsLoadingMoreConversations] = useState(false)
+    const [hasMoreConversations, setHasMoreConversations] = useState<boolean>(
+        Boolean(conversationsMeta?.nextPageUrl)
+    )
+
     const [activeConversationId, setActiveConversationId] = useState<string | null>(
-        selectedConversationId ?? conversations[0]?.id ?? null,
+        selectedConversationId ?? initialConversations[0]?.id ?? null,
     )
 
     const normalizedFilters = useMemo(() => {
@@ -77,19 +96,70 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
 
     const selectedConversation = useMemo(() => {
         if (activeConversationId) {
-            return conversations.find((conversation) => conversation.id === activeConversationId) ?? null
+            return conversationItems.find((conversation) => conversation.id === activeConversationId) ?? null
         }
 
-        return conversations[0] ?? null
-    }, [activeConversationId, conversations])
+        return conversationItems[0] ?? null
+    }, [activeConversationId, conversationItems])
 
-    const messageList = messages?.data ?? []
+    const initialMessages = useMemo(() => messages?.data ?? [], [messages])
+    const [messageItems, setMessageItems] = useState<Message[]>(initialMessages)
+    const [isLoadingOlderMessages, setIsLoadingOlderMessages] = useState(false)
+    const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(Boolean(messagesMeta?.nextPageUrl))
+
+    const messageList = useMemo(() => {
+        const list = messageItems ?? []
+        return list
+    }, [messageItems])
+
+    useEffect(() => {
+        setConversationItems((prev) => {
+            const next = conversations?.data ?? []
+            if (prev.length === 0) return next
+
+            const seen = new Set(prev.map((c) => c.id))
+            const merged = [...prev]
+            for (const c of next) {
+                if (!seen.has(c.id)) merged.push(c)
+            }
+            return merged
+        })
+
+        const nextPageUrl = conversationsMeta?.nextPageUrl ?? null
+        setHasMoreConversations(Boolean(nextPageUrl))
+        setIsLoadingMoreConversations(false)
+    }, [conversations, conversationsMeta?.nextPageUrl])
+
+    useEffect(() => {
+        const next = messages?.data ?? []
+        setMessageItems((prev) => {
+            if (prev.length === 0) return next
+
+            const seen = new Set(prev.map((m) => m.id))
+            const merged = [...prev]
+            for (const m of next) {
+                if (!seen.has(m.id)) merged.push(m)
+            }
+            return merged
+        })
+
+        setHasMoreMessages(Boolean(messagesMeta?.nextPageUrl))
+        setIsLoadingOlderMessages(false)
+    }, [messages, messagesMeta?.nextPageUrl])
 
     useEffect(() => {
         if (selectedConversationId) {
             setActiveConversationId(selectedConversationId)
         }
     }, [selectedConversationId])
+
+    useEffect(() => {
+        if (selectedConversationId) return
+
+        if (!activeConversationId && conversationItems.length > 0) {
+            setActiveConversationId(conversationItems[0].id)
+        }
+    }, [activeConversationId, conversationItems, selectedConversationId])
 
     useEffect(() => {
         const { search, channel, line } = normalizedFilters
@@ -118,9 +188,45 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
             preserveState: true,
             preserveScroll: true,
             replace: true,
-            only: ["conversations", "filters", "selectedConversationId", "messages", "channelLines"],
+            only: ["conversations", "conversationsMeta", "filters", "selectedConversationId", "messages", "messagesMeta", "channelLines"],
         })
     }, [filterForm])
+
+    const handleLoadMoreConversations = useCallback(() => {
+        if (isLoadingMoreConversations || !hasMoreConversations) return
+
+        const nextPageUrl = conversationsMeta?.nextPageUrl
+        if (!nextPageUrl) {
+            setHasMoreConversations(false)
+            return
+        }
+
+        setIsLoadingMoreConversations(true)
+        router.get(nextPageUrl, {}, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ["conversations", "conversationsMeta"],
+            replace: false,
+        })
+    }, [conversationsMeta?.nextPageUrl, hasMoreConversations, isLoadingMoreConversations])
+
+    const handleLoadOlderMessages = useCallback(() => {
+        if (isLoadingOlderMessages || !hasMoreMessages) return
+
+        const nextPageUrl = messagesMeta?.nextPageUrl
+        if (!nextPageUrl) {
+            setHasMoreMessages(false)
+            return
+        }
+
+        setIsLoadingOlderMessages(true)
+        router.get(nextPageUrl, {}, {
+            preserveState: true,
+            preserveScroll: true,
+            only: ["messages", "messagesMeta"],
+            replace: false,
+        })
+    }, [hasMoreMessages, isLoadingOlderMessages, messagesMeta?.nextPageUrl])
 
     const handleSelectConversation = (conversation: Conversation) => {
         setActiveConversationId(conversation.id)
@@ -131,7 +237,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
         router.get(getUrl(conversationsRoutes.show, { conversation: conversation.id }), {}, {
             preserveState: true,
             preserveScroll: true,
-            only: ["messages", "selectedConversationId"],
+            only: ["messages", "messagesMeta", "selectedConversationId"],
         })
     }
 
@@ -244,7 +350,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                 {isMobile ? (
                     <div className="flex h-full min-h-0 flex-1">
                         <ConversationList
-                            conversations={conversations}
+                            conversations={conversationItems}
                             selectedId={""}
                             onSelect={handleSelectConversation}
                             searchQuery={filterForm.data.search}
@@ -255,12 +361,15 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                             channelLines={channelLines}
                             selectedLineId={filterForm.data.line}
                             onLineFilterChange={handleLineFilterChange}
+                            onLoadMore={handleLoadMoreConversations}
+                            isLoadingMore={isLoadingMoreConversations}
+                            hasMore={hasMoreConversations}
                         />
                     </div>
                 ) : (
                     <>
                         <ConversationList
-                            conversations={conversations}
+                            conversations={conversationItems}
                             selectedId={""}
                             onSelect={handleSelectConversation}
                             searchQuery={filterForm.data.search}
@@ -271,6 +380,9 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                             channelLines={channelLines}
                             selectedLineId={filterForm.data.line}
                             onLineFilterChange={handleLineFilterChange}
+                            onLoadMore={handleLoadMoreConversations}
+                            isLoadingMore={isLoadingMoreConversations}
+                            hasMore={hasMoreConversations}
                         />
 
                         <div className="flex h-full min-h-0 flex-1 items-center justify-center px-6">
@@ -313,7 +425,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
             {isMobile && mobileView === "list" && (
                 <div className="flex h-full min-h-0 flex-1">
                     <ConversationList
-                        conversations={conversations}
+                        conversations={conversationItems}
                         selectedId={selectedConversation.id}
                         onSelect={handleSelectConversation}
                         searchQuery={filterForm.data.search}
@@ -324,6 +436,9 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         channelLines={channelLines}
                         selectedLineId={filterForm.data.line}
                         onLineFilterChange={handleLineFilterChange}
+                        onLoadMore={handleLoadMoreConversations}
+                        isLoadingMore={isLoadingMoreConversations}
+                        hasMore={hasMoreConversations}
                     />
                 </div>
             )}
@@ -334,6 +449,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                     <ChatWindow
                         conversation={selectedConversation}
                         messages={messageList}
+                        messagesMeta={messagesMeta}
                         composer={composer}
                         onSendMessage={handleSendMessage}
                         onToggleInfo={handleToggleInfo}
@@ -341,6 +457,9 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         onAddReaction={handleAddReaction}
                         onReplyTo={handleReplyTo}
                         isTyping={false}
+                        onLoadOlderMessages={handleLoadOlderMessages}
+                        hasMoreMessages={hasMoreMessages}
+                        isLoadingOlderMessages={isLoadingOlderMessages}
                     />
                 </div>
             )}
@@ -364,7 +483,7 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
             {!isMobile && (
                 <>
                     <ConversationList
-                        conversations={conversations}
+                        conversations={conversationItems}
                         selectedId={selectedConversation.id}
                         onSelect={handleSelectConversation}
                         searchQuery={filterForm.data.search}
@@ -375,11 +494,15 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         channelLines={channelLines}
                         selectedLineId={filterForm.data.line}
                         onLineFilterChange={handleLineFilterChange}
+                        onLoadMore={handleLoadMoreConversations}
+                        isLoadingMore={isLoadingMoreConversations}
+                        hasMore={hasMoreConversations}
                     />
 
                     <ChatWindow
                         conversation={selectedConversation}
                         messages={messageList}
+                        messagesMeta={messagesMeta}
                         composer={composer}
                         onSendMessage={handleSendMessage}
                         onToggleInfo={handleToggleInfo}
@@ -387,6 +510,9 @@ export function ChatPanel({ conversations, messages, filters, channelLines, sele
                         onAddReaction={handleAddReaction}
                         onReplyTo={handleReplyTo}
                         isTyping={false}
+                        onLoadOlderMessages={handleLoadOlderMessages}
+                        hasMoreMessages={hasMoreMessages}
+                        isLoadingOlderMessages={isLoadingOlderMessages}
                     />
 
                     {showInfo && (

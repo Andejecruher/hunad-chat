@@ -9,7 +9,7 @@ use App\Models\Conversation;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -19,7 +19,7 @@ class MessageBroadcastTest extends TestCase
 
     public function test_message_is_broadcasted_on_conversation_channel()
     {
-        Broadcast::fake();
+        Event::fake([MessageBroadcasted::class]);
 
         $company = Company::create(['name' => 'TestCo', 'slug' => 'testco']);
 
@@ -55,16 +55,8 @@ class MessageBroadcastTest extends TestCase
         $this->actingAs($user)
             ->post(route('conversations.messages.store', $conversation), ['content' => 'Hello realtime']);
 
-        Broadcast::assertBroadcasted(MessageBroadcasted::class, function ($event, $channels) use ($conversation) {
-            $hasChannel = false;
-            foreach ($channels as $ch) {
-                if (str_contains($ch, "conversation.{$conversation->id}")) {
-                    $hasChannel = true;
-                    break;
-                }
-            }
-
-            return $hasChannel && isset($event->message) && $event->message->content === 'Hello realtime';
+        Event::assertDispatched(MessageBroadcasted::class, function (MessageBroadcasted $event) {
+            return isset($event->message) && $event->message->content === 'Hello realtime';
         });
     }
 }

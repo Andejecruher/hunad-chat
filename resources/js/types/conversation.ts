@@ -97,6 +97,9 @@ export interface ConversationListProps {
     channelFilter: string
     onSearchChange: (query: string) => void
     onChannelFilterChange: (channel: string) => void
+    onLoadMore?: () => void
+    isLoadingMore?: boolean
+    hasMore?: boolean
 }
 
 export interface MessageComposerState {
@@ -112,10 +115,19 @@ export interface MessageComposerState {
 export interface ChatWindowProps {
     conversation: Conversation
     messages: Message[]
+    messagesMeta?: {
+        currentPage: number
+        lastPage: number
+        nextPageUrl: string | null
+        prevPageUrl: string | null
+    } | null
     composer: MessageComposerState
     onSendMessage: () => void
     onToggleInfo: () => void
     isTyping: boolean
+    onLoadOlderMessages?: () => void
+    hasMoreMessages?: boolean
+    isLoadingOlderMessages?: boolean
 }
 
 export interface ConversationInfoProps {

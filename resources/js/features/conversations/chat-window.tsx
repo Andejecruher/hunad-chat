@@ -26,7 +26,7 @@ import {
     User,
     Video,
 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { ChannelBadge } from './channel-badge';
 import { MessageBubble } from './message-bubble';
@@ -42,11 +42,52 @@ export function ChatWindow({
     onAddReaction,
     onReplyTo,
     isTyping,
+    onLoadOlderMessages,
+    hasMoreMessages,
+    isLoadingOlderMessages,
 }: ChatWindowEnhancedProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const viewportRef = useRef<HTMLDivElement>(null);
+    const shouldStickToBottomRef = useRef(true);
+    const pendingPrependRestoreRef = useRef<{ prevScrollHeight: number; prevScrollTop: number } | null>(null);
+
+    const handleViewportScroll = useCallback(() => {
+        const el = viewportRef.current;
+        if (!el) return;
+
+        const topThreshold = 80;
+        const bottomThreshold = 120;
+
+        if (el.scrollTop <= topThreshold) {
+            if (onLoadOlderMessages && hasMoreMessages && !isLoadingOlderMessages) {
+                pendingPrependRestoreRef.current = {
+                    prevScrollHeight: el.scrollHeight,
+                    prevScrollTop: el.scrollTop,
+                };
+                onLoadOlderMessages();
+            }
+        }
+
+        const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+        shouldStickToBottomRef.current = distanceToBottom <= bottomThreshold;
+    }, [hasMoreMessages, isLoadingOlderMessages, onLoadOlderMessages]);
+
+    useLayoutEffect(() => {
+        const el = viewportRef.current;
+        const pending = pendingPrependRestoreRef.current;
+        if (!el || !pending) return;
+
+        const delta = el.scrollHeight - pending.prevScrollHeight;
+        el.scrollTop = pending.prevScrollTop + delta;
+        pendingPrependRestoreRef.current = null;
+    }, [messages]);
 
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (pendingPrependRestoreRef.current) return;
+
+        if (shouldStickToBottomRef.current) {
+            messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+        }
     }, [messages]);
 
     const getStatusBadge = (status: string) => {
@@ -175,8 +216,17 @@ export function ChatWindow({
                 </div>
 
                 {/* Messages Area */}
-                <ScrollArea className="min-h-0 flex-1 bg-muted/20">
+                <ScrollArea
+                    className="min-h-0 flex-1 bg-muted/20"
+                    viewportRef={viewportRef}
+                    onViewportScroll={handleViewportScroll}
+                >
                     <div className="flex flex-col space-y-3 p-4">
+                        {(isLoadingOlderMessages || hasMoreMessages === false) && (
+                            <div className="text-center text-xs text-muted-foreground">
+                                {isLoadingOlderMessages ? 'Cargando mensajes…' : 'No hay más mensajes para cargar'}
+                            </div>
+                        )}
                         <AnimatePresence>
                             {messages.map((message) => (
                                 <MessageBubble

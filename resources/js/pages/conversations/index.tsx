@@ -17,8 +17,20 @@ interface ConversationFilters {
 }
 
 export default function ConversationsPage(props: {
-    conversations: Conversation[];
+    conversations: PaginatedData<Conversation[]>;
+    conversationsMeta?: {
+        currentPage: number;
+        lastPage: number;
+        nextPageUrl: string | null;
+        prevPageUrl: string | null;
+    };
     messages: PaginatedData<Message[]> | null;
+    messagesMeta?: {
+        currentPage: number;
+        lastPage: number;
+        nextPageUrl: string | null;
+        prevPageUrl: string | null;
+    } | null;
     filters: ConversationFilters;
     channelLines: ChannelLine[];
     selectedConversationId?: string | null;
@@ -32,6 +44,8 @@ export default function ConversationsPage(props: {
                     <ChatPanel
                         conversations={props.conversations}
                         messages={props.messages}
+                        conversationsMeta={props.conversationsMeta}
+                        messagesMeta={props.messagesMeta}
                         filters={props.filters}
                         channelLines={props.channelLines}
                         selectedConversationId={props.selectedConversationId}

@@ -27,7 +27,7 @@ import type {
 } from '@/types/conversation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, ChevronRight, Filter, Plus, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ChannelBadge } from './channel-badge';
 
 interface ConversationListEnhancedProps extends ConversationListProps {
@@ -45,6 +45,9 @@ export function ConversationList({
     channelFilter,
     onSearchChange,
     onChannelFilterChange,
+    onLoadMore,
+    isLoadingMore,
+    hasMore,
     onNewConversation,
     channelLines,
     selectedLineId,
@@ -52,6 +55,20 @@ export function ConversationList({
 }: ConversationListEnhancedProps) {
     const [activeCollapsed, setActiveCollapsed] = useState(false);
     const [inactiveCollapsed, setInactiveCollapsed] = useState(false);
+    const viewportRef = useRef<HTMLDivElement>(null);
+
+    const handleViewportScroll = useCallback(() => {
+        if (!onLoadMore || isLoadingMore || hasMore === false) return;
+
+        const el = viewportRef.current;
+        if (!el) return;
+
+        const thresholdPx = 120;
+        const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+        if (distanceToBottom <= thresholdPx) {
+            onLoadMore();
+        }
+    }, [hasMore, isLoadingMore, onLoadMore]);
 
     // Group conversations by status
     const activeConversations = conversations.filter(
@@ -153,7 +170,7 @@ export function ConversationList({
                                             .filter(
                                                 (l) =>
                                                     l.channelType ===
-                                                        channelFilter &&
+                                                    channelFilter &&
                                                     l.isActive,
                                             )
                                             .map((line) => (
@@ -175,7 +192,7 @@ export function ConversationList({
                 <Separator />
 
                 {/* Conversation Groups */}
-                <ScrollArea className="min-h-0 flex-1">
+                <ScrollArea className="min-h-0 flex-1" viewportRef={viewportRef} onViewportScroll={handleViewportScroll}>
                     <div className="space-y-2 p-2">
                         {/* Active Conversations */}
                         <Collapsible
@@ -286,6 +303,12 @@ export function ConversationList({
                                 )}
                             </CollapsibleContent>
                         </Collapsible>
+
+                        {(isLoadingMore || hasMore === false) && (
+                            <div className="py-3 text-center text-xs text-muted-foreground">
+                                {isLoadingMore ? 'Cargando más conversaciones…' : 'No hay más conversaciones para cargar'}
+                            </div>
+                        )}
                     </div>
                 </ScrollArea>
             </CardContent>
@@ -312,11 +335,10 @@ function ConversationItem({
             exit={{ opacity: 0, x: -20 }}
             transition={{ delay: index * 0.03 }}
             onClick={() => onSelect(conversation)}
-            className={`h-full max-h-full w-full rounded-lg p-3 text-left transition-colors ${
-                isSelected
+            className={`h-full max-h-full w-full rounded-lg p-3 text-left transition-colors ${isSelected
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-accent'
-            }`}
+                }`}
         >
             <div className="flex items-start gap-3">
                 {/* Avatar with Channel Badge */}
@@ -356,21 +378,19 @@ function ConversationItem({
                         )}
                     </div>
                     <p
-                        className={`truncate text-xs ${
-                            isSelected
+                        className={`truncate text-xs ${isSelected
                                 ? 'text-primary-foreground/80'
                                 : 'text-muted-foreground'
-                        }`}
+                            }`}
                     >
                         {conversation.lastMessage}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                         <span
-                            className={`text-xs ${
-                                isSelected
+                            className={`text-xs ${isSelected
                                     ? 'text-primary-foreground/60'
                                     : 'text-muted-foreground'
-                            }`}
+                                }`}
                         >
                             {conversation.lastMessageTime}
                         </span>

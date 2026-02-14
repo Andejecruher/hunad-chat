@@ -42,8 +42,10 @@ class ConversationPageTest extends TestCase
             ->get(route('conversations.index'))
             ->assertInertia(fn (Assert $page) => $page
                 ->component('conversations/index')
-                ->has('conversations', 1)
+                ->has('conversations.data', 1)
+                ->has('conversationsMeta')
                 ->has('messages.data', 1)
+                ->has('messagesMeta')
                 ->where('selectedConversationId', (string) $conversation->id)
             );
     }
