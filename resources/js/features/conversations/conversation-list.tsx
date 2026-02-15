@@ -64,7 +64,8 @@ export function ConversationList({
         if (!el) return;
 
         const thresholdPx = 120;
-        const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+        const distanceToBottom =
+            el.scrollHeight - el.scrollTop - el.clientHeight;
         if (distanceToBottom <= thresholdPx) {
             onLoadMore();
         }
@@ -79,7 +80,7 @@ export function ConversationList({
     );
 
     return (
-        <Card className="flex h-full min-h-0 w-full flex-col border-r lg:w-80">
+        <Card className="flex h-full min-h-0 w-full flex-col rounded-none border-t-0 border-r py-0 lg:w-80">
             <CardContent className="flex h-full min-h-0 flex-col p-0">
                 {/* Header */}
                 <div className="shrink-0 space-y-3 p-4">
@@ -170,7 +171,7 @@ export function ConversationList({
                                             .filter(
                                                 (l) =>
                                                     l.channelType ===
-                                                    channelFilter &&
+                                                        channelFilter &&
                                                     l.isActive,
                                             )
                                             .map((line) => (
@@ -192,7 +193,11 @@ export function ConversationList({
                 <Separator />
 
                 {/* Conversation Groups */}
-                <ScrollArea className="min-h-0 flex-1" viewportRef={viewportRef} onViewportScroll={handleViewportScroll}>
+                <ScrollArea
+                    className="min-h-0 flex-1"
+                    viewportRef={viewportRef}
+                    onViewportScroll={handleViewportScroll}
+                >
                     <div className="space-y-2 p-2">
                         {/* Active Conversations */}
                         <Collapsible
@@ -306,7 +311,9 @@ export function ConversationList({
 
                         {(isLoadingMore || hasMore === false) && (
                             <div className="py-3 text-center text-xs text-muted-foreground">
-                                {isLoadingMore ? 'Cargando más conversaciones…' : 'No hay más conversaciones para cargar'}
+                                {isLoadingMore
+                                    ? 'Cargando más conversaciones…'
+                                    : 'No hay más conversaciones para cargar'}
                             </div>
                         )}
                     </div>
@@ -335,10 +342,11 @@ function ConversationItem({
             exit={{ opacity: 0, x: -20 }}
             transition={{ delay: index * 0.03 }}
             onClick={() => onSelect(conversation)}
-            className={`h-full max-h-full w-full rounded-lg p-3 text-left transition-colors ${isSelected
+            className={`h-full max-h-full w-full rounded-lg p-3 text-left transition-colors ${
+                isSelected
                     ? 'bg-primary text-primary-foreground'
                     : 'hover:bg-accent'
-                }`}
+            }`}
         >
             <div className="flex items-start gap-3">
                 {/* Avatar with Channel Badge */}
@@ -378,19 +386,21 @@ function ConversationItem({
                         )}
                     </div>
                     <p
-                        className={`truncate text-xs ${isSelected
+                        className={`truncate text-xs ${
+                            isSelected
                                 ? 'text-primary-foreground/80'
                                 : 'text-muted-foreground'
-                            }`}
+                        }`}
                     >
                         {conversation.lastMessage}
                     </p>
                     <div className="mt-1 flex items-center gap-2">
                         <span
-                            className={`text-xs ${isSelected
+                            className={`text-xs ${
+                                isSelected
                                     ? 'text-primary-foreground/60'
                                     : 'text-muted-foreground'
-                                }`}
+                            }`}
                         >
                             {conversation.lastMessageTime}
                         </span>

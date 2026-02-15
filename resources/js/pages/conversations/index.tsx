@@ -35,11 +35,10 @@ export default function ConversationsPage(props: {
     channelLines: ChannelLine[];
     selectedConversationId?: string | null;
 }) {
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Conversations" />
-            <div className="flex max-h-[calc(100svh-5rem)] h-[calc(100svh-5rem)] min-h-0 flex-1 flex-col gap-4 overflow-hidden rounded-xl">
+            <div className="flex h-[calc(100svh-5rem)] max-h-[calc(100svh-5rem)] min-h-0 flex-1 flex-col gap-4 overflow-hidden">
                 <div className="relative flex min-h-0 flex-1 overflow-hidden">
                     <ChatPanel
                         conversations={props.conversations}

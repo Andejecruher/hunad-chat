@@ -41,7 +41,7 @@ export function ConversationInfo({
     onCloseTicket,
 }: ConversationInfoProps) {
     return (
-        <Card className="flex h-full min-h-0 w-full flex-col lg:w-80">
+        <Card className="flex h-full min-h-0 w-full flex-col rounded-none border-t-0 border-r py-0 lg:w-80">
             <CardContent className="flex h-full min-h-0 flex-col p-4">
                 <div className="shrink-0 space-y-6">
                     {/* Close Button (mobile) */}

@@ -49,7 +49,10 @@ export function ChatWindow({
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const viewportRef = useRef<HTMLDivElement>(null);
     const shouldStickToBottomRef = useRef(true);
-    const pendingPrependRestoreRef = useRef<{ prevScrollHeight: number; prevScrollTop: number } | null>(null);
+    const pendingPrependRestoreRef = useRef<{
+        prevScrollHeight: number;
+        prevScrollTop: number;
+    } | null>(null);
 
     const handleViewportScroll = useCallback(() => {
         const el = viewportRef.current;
@@ -59,7 +62,11 @@ export function ChatWindow({
         const bottomThreshold = 120;
 
         if (el.scrollTop <= topThreshold) {
-            if (onLoadOlderMessages && hasMoreMessages && !isLoadingOlderMessages) {
+            if (
+                onLoadOlderMessages &&
+                hasMoreMessages &&
+                !isLoadingOlderMessages
+            ) {
                 pendingPrependRestoreRef.current = {
                     prevScrollHeight: el.scrollHeight,
                     prevScrollTop: el.scrollTop,
@@ -68,7 +75,8 @@ export function ChatWindow({
             }
         }
 
-        const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+        const distanceToBottom =
+            el.scrollHeight - el.scrollTop - el.clientHeight;
         shouldStickToBottomRef.current = distanceToBottom <= bottomThreshold;
     }, [hasMoreMessages, isLoadingOlderMessages, onLoadOlderMessages]);
 
@@ -83,7 +91,6 @@ export function ChatWindow({
     }, [messages]);
 
     useEffect(() => {
-
         if (pendingPrependRestoreRef.current) return;
 
         if (shouldStickToBottomRef.current) {
@@ -111,7 +118,7 @@ export function ChatWindow({
     };
 
     return (
-        <Card className="flex h-full min-h-0 flex-1 flex-col">
+        <Card className="flex h-full min-h-0 flex-1 flex-col rounded-none border-t-0 border-r py-0">
             <CardContent className="flex h-full min-h-0 flex-col p-0">
                 {/* Chat Header */}
                 <div className="flex shrink-0 items-center justify-between border-b border-border bg-background/95 p-4 backdrop-blur supports-backdrop-filter:bg-background/60">
@@ -223,9 +230,12 @@ export function ChatWindow({
                     onViewportScroll={handleViewportScroll}
                 >
                     <div className="flex flex-col space-y-3 p-4">
-                        {(isLoadingOlderMessages || hasMoreMessages === false) && (
+                        {(isLoadingOlderMessages ||
+                            hasMoreMessages === false) && (
                             <div className="text-center text-xs text-muted-foreground">
-                                {isLoadingOlderMessages ? 'Cargando mensajes…' : 'No hay más mensajes para cargar'}
+                                {isLoadingOlderMessages
+                                    ? 'Cargando mensajes…'
+                                    : 'No hay más mensajes para cargar'}
                             </div>
                         )}
                         <AnimatePresence>
