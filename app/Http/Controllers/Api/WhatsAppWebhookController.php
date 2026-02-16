@@ -9,6 +9,7 @@ use App\Jobs\Channels\ProcessIncomingWhatsAppMessage;
 use App\Models\Channel;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -90,6 +91,28 @@ class WhatsAppWebhookController extends Controller
                 'ip' => $request->ip(),
             ]);
 
+            // Persist raw webhook event for observability/auditing
+            try {
+                DB::table('webhook_events')->insert([
+                    'provider' => 'whatsapp',
+                    'direction' => 'inbound',
+                    'company_id' => null,
+                    'channel_id' => null,
+                    'external_id' => null,
+                    'event_type' => null,
+                    'payload' => $payload,
+                    'status' => 'received',
+                    'received_at' => now(),
+                    'processed_at' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            } catch (\Throwable $e) {
+                Log::debug('Webhook events table not ready or insert failed', [
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
             // Verify this is a WhatsApp event
             if (($payload['object'] ?? null) !== 'whatsapp_business_account') {
                 Log::warning('WhatsApp webhook: Invalid object type', ['object' => $payload['object'] ?? null]);
@@ -140,7 +163,7 @@ class WhatsAppWebhookController extends Controller
     /**
      * Process message-related changes.
      *
-     * @param  array  $value  Message change data
+     * @param  array  $value message change data
      */
     private function processMessageChanges(array $value): void
     {

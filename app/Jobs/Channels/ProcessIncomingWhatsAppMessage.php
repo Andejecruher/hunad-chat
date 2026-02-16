@@ -9,6 +9,8 @@ use App\Models\Channel;
 use App\Models\Conversation;
 use App\Models\Customer;
 use App\Models\Message;
+use App\Models\OutboxEvent;
+use App\Jobs\PublishOutboxEvent;
 use App\Services\Channels\WhatsAppCloudService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,6 +19,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * Job to process incoming WhatsApp messages.
@@ -114,6 +117,44 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
 
         // Dispatch events for real-time updates
         MessageReceived::dispatch($message);
+
+        // Create outbox event for message.received (v1)
+        try {
+            $outbox = OutboxEvent::create([
+                'event_id' => Str::uuid()->toString(),
+                'version' => 'v1',
+                'type' => 'message.received',
+                'company_id' => $this->channel->company_id,
+                'channel_id' => $this->channel->id,
+                'conversation_id' => $conversation->id,
+                'message_id' => $message->id,
+                'payload' => [
+                    'message' => [
+                        'id' => $message->id,
+                        'external_id' => $message->external_id,
+                        'content' => $message->content,
+                        'type' => $message->type,
+                        'sender_type' => $message->sender_type,
+                        'created_at' => optional($message->created_at)->toISOString(),
+                    ],
+                    'conversation' => [
+                        'id' => $conversation->id,
+                    ],
+                    'channel' => [
+                        'id' => $this->channel->id,
+                        'type' => $this->channel->type,
+                    ],
+                ],
+            ]);
+
+            PublishOutboxEvent::dispatch($outbox->id);
+        } catch (\Throwable $e) {
+            Log::warning('Failed to create/publish outbox event for message.received', [
+                'channel_id' => $this->channel->id,
+                'message_id' => $messageId,
+                'error' => $e->getMessage(),
+            ]);
+        }
 
         try {
             broadcast(new \App\Events\MessageBroadcasted($message))->toOthers();
@@ -217,7 +258,7 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     private function createMessage(Conversation $conversation, string $messageId, ?string $timestamp): Message
     {
         $messageContent = $this->extractMessageContent();
-        $messageType = $this->extractMessageType();
+        $messageType = $this->mapToSupportedType($this->extractMessageType());
         $attachments = $this->extractAttachments();
 
         return Message::create([
@@ -264,6 +305,21 @@ class ProcessIncomingWhatsAppMessage implements ShouldQueue
     private function extractMessageType(): string
     {
         return $this->messageData['type'] ?? 'text';
+    }
+
+    /**
+     * Map provider-specific types to our supported enum values.
+     */
+    private function mapToSupportedType(string $waType): string
+    {
+        return match ($waType) {
+            'document' => 'file',
+            'voice' => 'audio',
+            'location', 'contacts', 'interactive' => 'text',
+            default => in_array($waType, ['text', 'image', 'video', 'file', 'audio', 'sticker'], true)
+                ? $waType
+                : 'text',
+        };
     }
 
     /**

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Jobs\Channels;
 
 use App\Models\Message;
+use App\Models\OutboxEvent;
+use App\Jobs\PublishOutboxEvent;
 use App\Services\Channels\Exceptions\WhatsAppApiException;
 use App\Services\Channels\WhatsAppCloudService;
 use Illuminate\Bus\Queueable;
@@ -203,6 +205,42 @@ class SendWhatsAppMessageJob implements ShouldQueue
                 'sent_timestamp' => $response['timestamp'] ?? now()->timestamp,
             ]),
         ]);
+
+        try {
+            $outbox = OutboxEvent::create([
+                'event_id' => \Illuminate\Support\Str::uuid()->toString(),
+                'version' => 'v1',
+                'type' => 'message.sent',
+                'company_id' => $this->message->conversation->channel->company_id,
+                'channel_id' => $this->message->conversation->channel->id,
+                'conversation_id' => $this->message->conversation->id,
+                'message_id' => $this->message->id,
+                'payload' => [
+                    'message' => [
+                        'id' => $this->message->id,
+                        'external_id' => $response['message_id'] ?? null,
+                        'content' => $this->message->content,
+                        'type' => $this->message->type,
+                        'sender_type' => $this->message->sender_type,
+                        'created_at' => optional($this->message->created_at)->toISOString(),
+                    ],
+                    'conversation' => [
+                        'id' => $this->message->conversation->id,
+                    ],
+                    'channel' => [
+                        'id' => $this->message->conversation->channel->id,
+                        'type' => $this->message->conversation->channel->type,
+                    ],
+                ],
+            ]);
+
+            PublishOutboxEvent::dispatch($outbox->id);
+        } catch (\Throwable $e) {
+            \Log::warning('Failed to create/publish outbox event for message.sent', [
+                'message_id' => $this->message->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
